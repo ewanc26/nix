@@ -1,0 +1,192 @@
+{ config, pkgs, ... }:
+
+{
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    
+    # Use custom starship.toml configuration
+    settings = {
+      "$schema" = "https://starship.rs/config-schema.json";
+      command_timeout = 3000;
+
+      format = "$os$username[](bg:color_leaf fg:color_lime)$directory[](fg:color_leaf bg:color_sage)$git_branch$git_status[](fg:color_sage bg:color_emerald)$c$cpp$rust$golang$nodejs$php$java$kotlin$haskell$python[](fg:color_emerald bg:color_bg3)$docker_context$conda$pixi[](fg:color_bg3 bg:color_bg1)$time[ ](fg:color_bg1)$line_break$character";
+
+      palette = "forest_dark";
+
+      palettes.forest_dark = {
+        color_fg0 = "#f0faf0";
+        color_bg1 = "#09150a";
+        color_bg3 = "#245327";
+        color_emerald = "#00a751";
+        color_sage = "#009b22";
+        color_moss = "#007713";
+        color_lime = "#679500";
+        color_fern = "#005f2a";
+        color_forest = "#00570c";
+        color_leaf = "#88b115";
+      };
+
+      os = {
+        disabled = false;
+        style = "bg:color_lime fg:color_fg0";
+        symbols = {
+          Windows = "󰍲";
+          Ubuntu = "󰕈";
+          SUSE = "";
+          Raspbian = "󰐿";
+          Mint = "󰣭";
+          Macos = "󰀵";
+          Manjaro = "";
+          Linux = "󰌽";
+          Gentoo = "󰣨";
+          Fedora = "󰣛";
+          Alpine = "";
+          Amazon = "";
+          Android = "";
+          AOSC = "";
+          Arch = "󰣇";
+          Artix = "󰣇";
+          EndeavourOS = "";
+          CentOS = "";
+          Debian = "󰣚";
+          Redhat = "󱄛";
+          RedHatEnterprise = "󱄛";
+          Pop = "";
+        };
+      };
+
+      username = {
+        show_always = true;
+        style_user = "bg:color_lime fg:color_fg0";
+        style_root = "bg:color_lime fg:color_fg0";
+        format = "[ $user ]($style)";
+      };
+
+      directory = {
+        style = "fg:color_fg0 bg:color_leaf";
+        format = "[ $path ]($style)";
+        truncation_length = 3;
+        truncation_symbol = "…/";
+        substitutions = {
+          "Documents" = "󰈙 ";
+          "Downloads" = " ";
+          "Music" = "󰝚 ";
+          "Pictures" = " ";
+          "Developer" = "󰲋 ";
+        };
+      };
+
+      git_branch = {
+        symbol = "";
+        style = "bg:color_sage";
+        format = "[[ $symbol $branch ](fg:color_fg0 bg:color_sage)]($style)";
+      };
+
+      git_status = {
+        style = "bg:color_sage";
+        format = "[[($all_status$ahead_behind )](fg:color_fg0 bg:color_sage)]($style)";
+      };
+
+      nodejs = {
+        symbol = "";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+        detect_files = ["package.json" "package-lock.json" ".node-version"];
+        detect_folders = ["node_modules"];
+        detect_extensions = [];
+      };
+
+      c = {
+        symbol = " ";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+      };
+
+      cpp = {
+        symbol = " ";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+      };
+
+      rust = {
+        symbol = "";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+      };
+
+      golang = {
+        symbol = "";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+      };
+
+      php = {
+        symbol = "";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+      };
+
+      java = {
+        symbol = "";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+      };
+
+      kotlin = {
+        symbol = "";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+      };
+
+      haskell = {
+        symbol = "";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+      };
+
+      python = {
+        symbol = "";
+        style = "bg:color_emerald";
+        format = "[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)";
+      };
+
+      docker_context = {
+        symbol = "";
+        style = "bg:color_bg3";
+        format = "[[ $symbol( $context) ](fg:#83a598 bg:color_bg3)]($style)";
+      };
+
+      conda = {
+        style = "bg:color_bg3";
+        format = "[[ $symbol( $environment) ](fg:#83a598 bg:color_bg3)]($style)";
+      };
+
+      pixi = {
+        style = "bg:color_bg3";
+        format = "[[ $symbol( $version)( $environment) ](fg:color_fg0 bg:color_bg3)]($style)";
+      };
+
+      time = {
+        disabled = false;
+        time_format = "%R";
+        style = "bg:color_bg1";
+        format = "[[  $time ](fg:color_fg0 bg:color_bg1)]($style)";
+      };
+
+      line_break = {
+        disabled = false;
+      };
+
+      character = {
+        disabled = false;
+        success_symbol = "[](bold fg:color_moss)";
+        error_symbol = "[](bold fg:color_forest)";
+        vimcmd_symbol = "[](bold fg:color_moss)";
+        vimcmd_replace_one_symbol = "[](bold fg:color_fern)";
+        vimcmd_replace_symbol = "[](bold fg:color_fern)";
+        vimcmd_visual_symbol = "[](bold fg:color_leaf)";
+      };
+    };
+  };
+}
