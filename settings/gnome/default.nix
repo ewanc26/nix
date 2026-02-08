@@ -1,29 +1,26 @@
 { ... }:
 {
   imports = [
-    ./desktop/app-folders/app-folders.nix
-    ./desktop/app-folders/folders/Pardus/Pardus.nix
-    ./desktop/app-folders/folders/System/System.nix
-    ./desktop/app-folders/folders/Utilities/Utilities.nix
-    ./desktop/app-folders/folders/YaST/YaST.nix
-    ./desktop/background/background.nix
-    ./desktop/input-sources/input-sources.nix
-    ./desktop/interface/interface.nix
-    ./desktop/notifications/application/firefox/firefox.nix
-    ./desktop/notifications/application/gnome-about-panel/gnome-about-panel.nix
-    ./desktop/notifications/application/gnome-power-panel/gnome-power-panel.nix
-    ./desktop/notifications/notifications.nix
-    ./desktop/screensaver/screensaver.nix
-    ./desktop/wm/preferences/preferences.nix
-    ./evolution-data-server/evolution-data-server.nix
-    ./housekeeping/housekeeping.nix
-    ./nautilus/preferences/preferences.nix
-    ./nautilus/window-state/window-state.nix
-    ./plugins/housekeeping/housekeeping.nix
-    ./settings/file-chooser/file-chooser.nix
-    ./shell/shell.nix
-    ./shell/world-clocks/world-clocks.nix
-    ./terminal/legacy/legacy.nix
-    ./terminal/legacy/profiles-/-b1dcc9dd-5262-4d8d-a863-c897e6d979b9/-b1dcc9dd-5262-4d8d-a863-c897e6d979b9.nix
+    ./housekeeping.nix
+    ./org-gnome-desktop-app-folders-folders-Pardus.nix
+    ./org-gnome-desktop-app-folders-folders-System.nix
+    ./org-gnome-desktop-app-folders-folders-Utilities.nix
+    ./org-gnome-desktop-app-folders-folders-YaST.nix
+    ./org-gnome-desktop-app-folders.nix
+    ./org-gnome-desktop-background.nix
+    ./org-gnome-desktop-input-sources.nix
+    ./org-gnome-desktop-interface.nix
+    ./org-gnome-desktop-screensaver.nix
+    ./org-gnome-desktop-wm-preferences.nix
+    ./org-gnome-evolution-data-server.nix
+    ./org-gnome-nautilus-preferences.nix
+    ./org-gnome-nautilus-window-state.nix
+    ./org-gnome-settings-daemon-plugins-housekeeping.nix
+    ./org-gnome-shell.nix
+    ./org-gnome-shell-world-clocks.nix
+    ./org-gnome-terminal-legacy.nix
+    ./org-gnome-terminal-legacy-profiles-----b1dcc9dd-5262-4d8d-a863-c897e6d979b9.nix
+    ./org-gtk-settings-file-chooser.nix
+    ./plugins-housekeeping.nix
   ];
 }
