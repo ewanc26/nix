@@ -15,7 +15,7 @@ dconf dump / > "$FULL_DUMP"
 
 HEADERS=$(grep '^\[.*\]$' "$FULL_DUMP" | tr -d '[]')
 
-echo "✂️  Extracting blocks..."
+echo "✂️  Extracting blocks as Absolute Truth (No mkDefault)..."
 for header in $HEADERS; do
     safe_name=$(echo "$header" | sed 's|/|-|g; s|:|--|g')
     full_file_path="$TEMP_EXPORT/${safe_name}.nix"
@@ -24,18 +24,18 @@ for header in $HEADERS; do
     [ -z "$block_content" ] && continue
 
     {
-        echo "{ lib, ... }:"
+        echo "{ ... }:"
         echo "{"
         echo "  dconf.settings.\"$header\" = {"
         echo "$block_content" | while read -r line; do
             if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
                 key="${BASH_REMATCH[1]}"
                 val="${BASH_REMATCH[2]}"
-                # GVariant protection
-                if [[ "$val" =~ ^(int64|uint32|uint64|int32|byte|boolean|handle|double|string) ]] || [[ "$val" =~ ^\< ]]; then
-                    [[ ! "$val" =~ ^\" ]] && val="\"$val\""
-                fi
-                echo "    \"$key\" = lib.mkDefault $val;"
+                
+                # Escape internal quotes and wrap in double quotes for Nix safety
+                clean_val=$(echo "$val" | sed "s/'/\"/g" | sed 's/"/\\"/g')
+                
+                echo "    \"$key\" = \"$clean_val\";"
             fi
         done
         echo "  };"
@@ -45,7 +45,7 @@ done
 
 # 2. Master default.nix
 {
-    echo "{ lib, ... }:"
+    echo "{ ... }:"
     echo "{"
     echo "  imports = ["
     find "$TEMP_EXPORT" -name "*.nix" ! -name "default.nix" -printf "    ./%P\n" | sort
@@ -53,24 +53,21 @@ done
     echo "}"
 } > "$TEMP_EXPORT/default.nix"
 
-# 3. Apply and Sync (The sudo part)
+# 3. Apply and Sync
 echo "🔄 Synchronizing to $TARGET_DIR..."
 sudo mkdir -p "$TARGET_DIR"
-# Sync files, then immediately ensure THEY ARE OWNED BY YOU
 sudo rsync -av --delete "$TEMP_EXPORT/" "$TARGET_DIR/"
 sudo chown -R "$CURRENT_USER":users "$TARGET_DIR"
 
 rm -rf "$TEMP_EXPORT"
 rm "$FULL_DUMP"
 
-# 4. Git Logic (Running as YOU)
+# 4. Git Logic
 cd "$REPO_ROOT" || exit
-git add "$TARGET_DIR"
 if ! git diff --cached --quiet; then
-    git commit -m "dconf-export: $TIMESTAMP"
-    echo "☁️  Pushing to Git..."
-    git push
-    echo "✅ Success!"
+  git commit -m "dconf-export: $TIMESTAMP"
+  git push
+  echo "✅ Success!"
 else
-    echo "✅ No changes to push."
+  echo "✅ No changes to push."
 fi
