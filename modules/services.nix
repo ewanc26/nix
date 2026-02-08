@@ -24,7 +24,6 @@
   services.locate = {
     enable = true;
     package = pkgs.plocate;
-    localuser = null;
   };
 
   # Enable GVfs for virtual file systems
