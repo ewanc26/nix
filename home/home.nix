@@ -18,7 +18,7 @@
 
     # Additional user packages
     packages = with pkgs; [
-      # Add any additional user-specific packages here
+      vlc
     ];
 
     # Global gitignore file
