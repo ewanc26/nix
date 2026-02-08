@@ -21,8 +21,12 @@
       vlc
       
       # Nerd Fonts
-      (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" "Meslo" "SourceCodePro" "UbuntuMono" ]; })
-    ];
+      nerd-fonts.fira-code
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.meslo-lg
+      nerd-fonts.sauce-code-pro
+      nerd-fonts.ubuntu-mono
+    ]; 
 
     # Global gitignore file
     file.".gitignore_global".text = ''
