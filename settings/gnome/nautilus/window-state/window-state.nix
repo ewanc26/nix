@@ -6,8 +6,8 @@ with lib.hm.gvariant;
 {
   dconf.settings = {
     "" = {
-      picture-options = "zoom";
-      picture-uri = "file:///home/ewan/.config/wallpapers/wallpaper.jpg";
+      initial-size = mkTuple [ 890 550 ];
+      initial-size-file-chooser = mkTuple [ 890 550 ];
     };
 
   };

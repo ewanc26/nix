@@ -6,8 +6,8 @@ with lib.hm.gvariant;
 {
   dconf.settings = {
     "" = {
-      picture-options = "zoom";
-      picture-uri = "file:///home/ewan/.config/wallpapers/wallpaper.jpg";
+      sources = [ (mkTuple [ "xkb" "gb" ]) ];
+      xkb-options = [ "terminate:ctrl_alt_bksp" ];
     };
 
   };

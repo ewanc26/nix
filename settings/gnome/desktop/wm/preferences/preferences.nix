@@ -6,8 +6,8 @@ with lib.hm.gvariant;
 {
   dconf.settings = {
     "" = {
-      picture-options = "zoom";
-      picture-uri = "file:///home/ewan/.config/wallpapers/wallpaper.jpg";
+      button-layout = "appmenu:minimize,maximize,close";
+      num-workspaces = 4;
     };
 
   };

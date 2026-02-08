@@ -6,8 +6,9 @@ with lib.hm.gvariant;
 {
   dconf.settings = {
     "" = {
-      picture-options = "zoom";
-      picture-uri = "file:///home/ewan/.config/wallpapers/wallpaper.jpg";
+      categories = [ "X-SuSE-YaST" ];
+      name = "suse-yast.directory";
+      translate = true;
     };
 
   };

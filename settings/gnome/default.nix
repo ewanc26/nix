@@ -1,52 +1,29 @@
-{ config, pkgs, lib, ... }:
-
+{ ... }:
 {
   imports = [
-    # Desktop settings
-    ./desktop/interface/interface.nix
-    ./desktop/wm/preferences.nix
-    ./desktop/wm/keybindings.nix
-    ./desktop/peripherals/touchpad.nix
-    ./desktop/peripherals/mouse.nix
-    ./desktop/peripherals/keyboard.nix
+    ./desktop/app-folders/app-folders.nix
+    ./desktop/app-folders/folders/Pardus/Pardus.nix
+    ./desktop/app-folders/folders/System/System.nix
+    ./desktop/app-folders/folders/Utilities/Utilities.nix
+    ./desktop/app-folders/folders/YaST/YaST.nix
     ./desktop/background/background.nix
-    ./desktop/screensaver/screensaver.nix
+    ./desktop/input-sources/input-sources.nix
+    ./desktop/interface/interface.nix
+    ./desktop/notifications/application/firefox/firefox.nix
+    ./desktop/notifications/application/gnome-about-panel/gnome-about-panel.nix
+    ./desktop/notifications/application/gnome-power-panel/gnome-power-panel.nix
     ./desktop/notifications/notifications.nix
-    ./desktop/privacy/privacy.nix
-    ./desktop/sound/sound.nix
-    ./desktop/a11y/accessibility.nix
-    
-    # Shell settings
+    ./desktop/screensaver/screensaver.nix
+    ./desktop/wm/preferences/preferences.nix
+    ./evolution-data-server/evolution-data-server.nix
+    ./housekeeping/housekeeping.nix
+    ./nautilus/preferences/preferences.nix
+    ./nautilus/window-state/window-state.nix
+    ./plugins/housekeeping/housekeeping.nix
+    ./settings/file-chooser/file-chooser.nix
     ./shell/shell.nix
-    ./shell/extensions/extensions.nix
-    ./shell/keybindings/keybindings.nix
-    
-    # Mutter (window manager)
-    ./mutter/mutter.nix
-    ./mutter/keybindings.nix
-    
-    # Settings daemon
-    ./settings-daemon/settings-daemon.nix
-    ./settings-daemon/plugins.nix
-    
-    # Applications
-    ./applications/terminal/terminal.nix
-    ./applications/nautilus/nautilus.nix
-    ./applications/gedit/gedit.nix
-    ./applications/calculator/calculator.nix
-    ./applications/calendar/calendar.nix
+    ./shell/world-clocks/world-clocks.nix
+    ./terminal/legacy/legacy.nix
+    ./terminal/legacy/profiles-/-b1dcc9dd-5262-4d8d-a863-c897e6d979b9/-b1dcc9dd-5262-4d8d-a863-c897e6d979b9.nix
   ];
-
-  # Additional manual overrides or custom settings can go here
-  dconf.settings = {
-    # File chooser settings (not auto-exported)
-    "org/gtk/settings/file-chooser" = {
-      sort-directories-first = true;
-    };
-  };
-
-  # Copy wallpaper to home directory
-  home.file.".config/wallpapers/wallpaper.jpg" = {
-    source = ../../wallpapers/wallpaper.jpg;
-  };
 }

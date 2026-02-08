@@ -6,8 +6,7 @@ with lib.hm.gvariant;
 {
   dconf.settings = {
     "" = {
-      picture-options = "zoom";
-      picture-uri = "file:///home/ewan/.config/wallpapers/wallpaper.jpg";
+      donation-reminder-last-shown = mkInt64 1770568675932549;
     };
 
   };
