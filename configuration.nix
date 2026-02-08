@@ -19,7 +19,7 @@
 
   # Networking
   networking = {
-    hostName = "dell-inspiron";
+    hostName = "laptop";
     networkmanager.enable = true;
   };
 
