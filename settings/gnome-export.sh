@@ -6,76 +6,46 @@ REPO_ROOT="/etc/nixos"
 CURRENT_USER=$(whoami)
 TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
 
-# Flag defaults
-DRY_RUN=false
-
-status_msg() {
-    local title="$1"
-    local msg="$2"
-    echo -e "\n**$title**: $msg"
-    if command -v notify-send >/dev/null 2>&1; then
-        notify-send "$title" "$msg"
-    fi
-}
-
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        -d|--dry-run) DRY_RUN=true; shift ;;
-        *) echo "Unknown parameter: $1"; exit 1 ;;
-    esac
-done
-
 # 1. Temporary Build Space
 TEMP_EXPORT=$(mktemp -d)
+FULL_DUMP="/tmp/dconf_full_dump.txt"
 
-# 2. Capture and Convert
-echo "📥 Extracting dconf settings..."
-PATHS=$(dconf dump / | grep '^\[.*\]' | tr -d '[]' | sort -u)
+echo "📥 Creating master dconf dump..."
+dconf dump / > "$FULL_DUMP"
 
-for path in $PATHS; do
-    [[ $path != /* ]] && dconf_path="/$path" || dconf_path="$path"
-    [[ $dconf_path != */ ]] && dconf_path="$dconf_path/"
+HEADERS=$(grep '^\[.*\]$' "$FULL_DUMP" | tr -d '[]')
 
-    rel_dir=$(echo "$dconf_path" | sed 's|^/org/gnome/||; s|^/org/gtk/||; s|^/||' | tr ':' '-')
-    filename=$(echo "$rel_dir" | sed 's|/$||; s|.*/||')
-    
-    [[ -z "$rel_dir" || "$rel_dir" == "/" ]] && { rel_dir="misc/"; filename="extra"; }
-    
-    full_path_dir="$TEMP_EXPORT/$rel_dir"
-    full_file_path="$full_path_dir/${filename}.nix"
+echo "✂️  Extracting blocks..."
+for header in $HEADERS; do
+    safe_name=$(echo "$header" | sed 's|/|-|g; s|:|--|g')
+    full_file_path="$TEMP_EXPORT/${safe_name}.nix"
+    block_content=$(awk "/^\[$(echo $header | sed 's/\//\\\//g')\]/{flag=1;next}/^\[/{flag=0}NF==0{flag=0}flag" "$FULL_DUMP")
 
-    raw_output=$(dconf dump "$dconf_path")
-    [ -z "$raw_output" ] && continue
+    [ -z "$block_content" ] && continue
 
-    mkdir -p "$full_path_dir"
-
-    # FIXED TYPO HERE: /tmp/dconf_temp
-    if echo "$raw_output" | dconf2nix > /tmp/dconf_temp 2>/dev/null; then
-        mv /tmp/dconf_temp "$full_file_path"
-    else
-        {
-            echo "{ ... }:"
-            echo "{"
-            echo "  dconf.settings.\"${dconf_path%/}\" = {"
-            # Enhanced quoting to handle the GVariant error you saw earlier
-            echo "$raw_output" | sed '/^\[.*\]$/d' | sed "s/^\([^=]*\)=\(.*\)$/    \"\1\" = \"\2\";/g"
-            echo "  };"
-            echo "}"
-        } > "$full_file_path"
-    fi
+    {
+        echo "{ lib, ... }:"
+        echo "{"
+        echo "  dconf.settings.\"$header\" = {"
+        echo "$block_content" | while read -r line; do
+            if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                key="${BASH_REMATCH[1]}"
+                val="${BASH_REMATCH[2]}"
+                # GVariant protection
+                if [[ "$val" =~ ^(int64|uint32|uint64|int32|byte|boolean|handle|double|string) ]] || [[ "$val" =~ ^\< ]]; then
+                    [[ ! "$val" =~ ^\" ]] && val="\"$val\""
+                fi
+                echo "    \"$key\" = lib.mkDefault $val;"
+            fi
+        done
+        echo "  };"
+        echo "}"
+    } > "$full_file_path"
 done
 
-# 3. SAFETY CHECK: Abort if nothing was generated
-FILE_COUNT=$(find "$TEMP_EXPORT" -name "*.nix" | wc -l)
-if [ "$FILE_COUNT" -lt 2 ]; then
-    echo "❌ ERROR: Export failed (only $FILE_COUNT files generated). Aborting to save existing config."
-    rm -rf "$TEMP_EXPORT"
-    exit 1
-fi
-
-# Master default.nix
+# 2. Master default.nix
 {
-    echo "{ ... }:"
+    echo "{ lib, ... }:"
     echo "{"
     echo "  imports = ["
     find "$TEMP_EXPORT" -name "*.nix" ! -name "default.nix" -printf "    ./%P\n" | sort
@@ -83,24 +53,24 @@ fi
     echo "}"
 } > "$TEMP_EXPORT/default.nix"
 
-# 4. Sync Logic
-if [ "$DRY_RUN" = true ]; then
-    diff -rN "$TARGET_DIR" "$TEMP_EXPORT" || true
-    rm -rf "$TEMP_EXPORT"
-    exit 0
-fi
-
+# 3. Apply and Sync (The sudo part)
+echo "🔄 Synchronizing to $TARGET_DIR..."
 sudo mkdir -p "$TARGET_DIR"
+# Sync files, then immediately ensure THEY ARE OWNED BY YOU
 sudo rsync -av --delete "$TEMP_EXPORT/" "$TARGET_DIR/"
-sudo chown -R "$CURRENT_USER" "$TARGET_DIR"
-rm -rf "$TEMP_EXPORT"
+sudo chown -R "$CURRENT_USER":users "$TARGET_DIR"
 
-# 5. Git Logic
+rm -rf "$TEMP_EXPORT"
+rm "$FULL_DUMP"
+
+# 4. Git Logic (Running as YOU)
 cd "$REPO_ROOT" || exit
-if [ -d ".git" ]; then
-    git add "$TARGET_DIR"
-    if ! git diff --cached --quiet; then
-        git commit -m "dconf-export: $TIMESTAMP"
-        git push && status_msg "GNOME Sync" "Success" || status_msg "Git Error" "Push Failed"
-    fi
+git add "$TARGET_DIR"
+if ! git diff --cached --quiet; then
+    git commit -m "dconf-export: $TIMESTAMP"
+    echo "☁️  Pushing to Git..."
+    git push
+    echo "✅ Success!"
+else
+    echo "✅ No changes to push."
 fi
