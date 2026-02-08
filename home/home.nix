@@ -25,6 +25,7 @@
       nerd-fonts.fira-code
       nerd-fonts.jetbrains-mono
       nerd-fonts.meslo-lg
+      nerd-fonts.roboto-mono
       nerd-fonts.sauce-code-pro
       nerd-fonts.ubuntu-mono
     ]; 
