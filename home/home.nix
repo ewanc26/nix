@@ -19,6 +19,9 @@
     # Additional user packages
     packages = with pkgs; [
       vlc
+      
+      # Nerd Fonts
+      (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" "Meslo" "SourceCodePro" "UbuntuMono" ]; })
     ];
 
     # Global gitignore file
@@ -48,6 +51,9 @@
 
   # Let Home Manager manage itself
   programs.home-manager.enable = true;
+
+  # Font configuration
+  fonts.fontconfig.enable = true;
 
   # GTK theme configuration
   gtk = {

@@ -37,4 +37,7 @@
 
   # Enable udisks2 for disk management
   services.udisks2.enable = true;
+
+  # Enable Tailscale VPN
+  services.tailscale.enable = true;
 }
