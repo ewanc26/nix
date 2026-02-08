@@ -9,30 +9,21 @@ TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
 # Flag defaults
 DRY_RUN=false
 
-# Helper for notifications
 status_msg() {
     local title="$1"
     local msg="$2"
-    echo -e "\n📦 **$title**: $msg"
+    echo -e "\n**$title**: $msg"
     if command -v notify-send >/dev/null 2>&1; then
         notify-send "$title" "$msg"
-    else
-        # Fallback: Log to system journal so you can audit via journalctl -t gnome-sync
-        echo "[$title] $msg" | systemd-cat -t gnome-sync
     fi
 }
 
-# Parse flags
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -d|--dry-run) DRY_RUN=true; shift ;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
 done
-
-if [ "$DRY_RUN" = true ]; then
-    echo "🔍 DRY RUN MODE: No changes will be written to disk or Git."
-fi
 
 # 1. Temporary Build Space
 TEMP_EXPORT=$(mktemp -d)
@@ -58,21 +49,29 @@ for path in $PATHS; do
 
     mkdir -p "$full_path_dir"
 
+    # FIXED TYPO HERE: /tmp/dconf_temp
     if echo "$raw_output" | dconf2nix > /tmp/dconf_temp 2>/dev/null; then
-        mv /tmp/dcgitonf_temp "$full_file_path"
+        mv /tmp/dconf_temp "$full_file_path"
     else
-        # Fallback for complex types (like GVariant layouts)
         {
             echo "{ ... }:"
             echo "{"
             echo "  dconf.settings.\"${dconf_path%/}\" = {"
-            # Enhanced sed to wrap values in double quotes if they look like GVariant/complex data
+            # Enhanced quoting to handle the GVariant error you saw earlier
             echo "$raw_output" | sed '/^\[.*\]$/d' | sed "s/^\([^=]*\)=\(.*\)$/    \"\1\" = \"\2\";/g"
             echo "  };"
             echo "}"
         } > "$full_file_path"
     fi
 done
+
+# 3. SAFETY CHECK: Abort if nothing was generated
+FILE_COUNT=$(find "$TEMP_EXPORT" -name "*.nix" | wc -l)
+if [ "$FILE_COUNT" -lt 2 ]; then
+    echo "❌ ERROR: Export failed (only $FILE_COUNT files generated). Aborting to save existing config."
+    rm -rf "$TEMP_EXPORT"
+    exit 1
+fi
 
 # Master default.nix
 {
@@ -84,37 +83,24 @@ done
     echo "}"
 } > "$TEMP_EXPORT/default.nix"
 
-# 3. Synchronize Logic
+# 4. Sync Logic
 if [ "$DRY_RUN" = true ]; then
-    echo -e "\n--- DIFF OF PROPOSED CHANGES ---"
     diff -rN "$TARGET_DIR" "$TEMP_EXPORT" || true
-    echo "--------------------------------"
     rm -rf "$TEMP_EXPORT"
     exit 0
 fi
 
-# Apply Changes Locally
 sudo mkdir -p "$TARGET_DIR"
 sudo rsync -av --delete "$TEMP_EXPORT/" "$TARGET_DIR/"
 sudo chown -R "$CURRENT_USER" "$TARGET_DIR"
 rm -rf "$TEMP_EXPORT"
 
-# 4. Git Logic
+# 5. Git Logic
 cd "$REPO_ROOT" || exit
 if [ -d ".git" ]; then
     git add "$TARGET_DIR"
-    
     if ! git diff --cached --quiet; then
         git commit -m "dconf-export: $TIMESTAMP"
-        echo "☁️  Pushing to remote..."
-        if git push; then
-            status_msg "GNOME Sync" "Settings synced and pushed successfully."
-        else
-            status_msg "Git Error" "Commit created, but push failed."
-        fi
-    else
-        echo "✅ No changes to sync."
+        git push && status_msg "GNOME Sync" "Success" || status_msg "Git Error" "Push Failed"
     fi
-else
-    status_msg "Nix Config" "Not a git repo. Settings updated locally only."
 fi
