@@ -19,7 +19,8 @@
     # Additional user packages
     packages = with pkgs; [
       vlc
-      
+      dconf2nix # For exporting GNOME settings to Nix
+
       # Nerd Fonts
       nerd-fonts.fira-code
       nerd-fonts.jetbrains-mono
