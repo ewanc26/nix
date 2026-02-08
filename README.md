@@ -94,7 +94,7 @@ dotfiles-nix/
 
    ```bash
    cd /mnt/etc/nixos
-   git clone https://github.com/ewanc26/dotfiles-nix .
+   git clone https://github.com/ewanc26/nix .
    ```
 
 4. **Update hardware-configuration.nix** with the UUIDs from `/mnt/etc/nixos/hardware-configuration.nix`:
