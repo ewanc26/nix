@@ -2,6 +2,7 @@
 {
   imports = [
     ./housekeeping.nix
+    ./org-gnome-control-center.nix
     ./org-gnome-desktop-app-folders-folders-Pardus.nix
     ./org-gnome-desktop-app-folders-folders-System.nix
     ./org-gnome-desktop-app-folders-folders-Utilities.nix
