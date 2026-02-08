@@ -5,15 +5,14 @@ with lib.hm.gvariant;
 
 {
   dconf.settings = {
-    "preferences" = {
+    "org/gnome/nautilus/preferences" = {
       default-folder-viewer = "icon-view";
       migrated-gtk-settings = true;
     };
 
-    "window-state" = {
+    "org/gnome/nautilus/window-state" = {
       initial-size = mkTuple [ 890 550 ];
       initial-size-file-chooser = mkTuple [ 890 550 ];
     };
-
   };
 }

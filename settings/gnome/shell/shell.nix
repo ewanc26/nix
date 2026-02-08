@@ -5,13 +5,12 @@ with lib.hm.gvariant;
 
 {
   dconf.settings = {
-    "" = {
+    "org/gnome/shell" = {
       welcome-dialog-last-shown-version = "49.2";
     };
 
-    "world-clocks" = {
+    "org/gnome/shell/world-clocks" = {
       locations = [];
     };
-
   };
 }
