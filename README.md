@@ -63,6 +63,138 @@ dotfiles-nix/
 
 ## 🚀 Installation
 
+### 📌 Before You Start
+
+This section assumes you want a **flake-enabled Nix/NixOS environment**. Flakes are experimental but widely used in the Nix community and required by this config. That means you’ll need a recent Nix installation with experimental features enabled.
+
+---
+
+### 🧠 Option A: Already on NixOS (Switch to This Config)
+
+1. **Enable flakes support**
+   Add this to your `/etc/nixos/configuration.nix`:
+
+   ```nix
+   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+   ```
+
+   Then rebuild:
+
+   ```bash
+   sudo nixos-rebuild switch
+   ```
+
+2. **Backup your current config**
+
+   ```bash
+   sudo cp -r /etc/nixos /etc/nixos.backup
+   ```
+
+3. **Clone your dotfiles**
+
+   ```bash
+   git clone https://github.com/ewanc26/dotfiles-nix.git ~/dotfiles-nix
+   cd ~/dotfiles-nix
+   ```
+
+4. **Copy your hardware config**
+
+   ```bash
+   sudo cp /etc/nixos/hardware-configuration.nix .
+   sudo chown $USER:users hardware-configuration.nix
+   ```
+
+5. **Edit configs** as needed (hostname, git user/email, extra packages, etc.)
+
+6. **Test your config**
+
+   ```bash
+   sudo nixos-rebuild test --flake .#laptop
+   ```
+
+7. **Apply permanently**
+
+   ```bash
+   sudo nixos-rebuild switch --flake .#laptop
+   ```
+
+8. **Optional: Move files to `/etc/nixos`**
+
+   If you want this repo as your system’s canonical config:
+
+   ```bash
+   sudo rm -rf /etc/nixos/*
+   sudo cp -r * /etc/nixos
+   sudo chown -R root:root /etc/nixos
+   ```
+
+9. **Reboot**
+
+   ```bash
+   sudo reboot
+   ```
+
+---
+
+### 🆕 Option B: Fresh NixOS Install (Flake-friendly)
+
+> **Important**: Before installing the OS, get Nix itself set up if you’re on another distro or live environment — see the section below.
+
+1. **Boot the NixOS installer** from USB or CD and partition your drive.
+
+2. **Generate initial hardware config**
+
+   ```bash
+   sudo nixos-generate-config --root /mnt
+   ```
+
+3. **Install Nix (with flakes support) in the installer** (if you need nix commands):
+
+   ```bash
+   curl -L https://nixos.org/nix/install | sh -s -- --daemon
+   . ~/.nix-profile/etc/profile.d/nix.sh
+   ```
+
+4. **Clone your config into the target**
+
+   ```bash
+   cd /mnt/etc/nixos
+   sudo nix-shell -p git --run "git clone https://github.com/ewanc26/dotfiles-nix.git ."
+   ```
+
+5. **Replace the generated `hardware-configuration.nix`** with the one from the installer.
+
+6. **Install NixOS with your flake**:
+
+   ```bash
+   sudo nixos-install --flake .#laptop
+   ```
+
+7. **Reboot into your new system**
+
+---
+
+### 🧰 Installing Nix (Non-NixOS Linux or macOS)
+
+If you’re on another Linux distro (or doing stuff in the installer) and just want the **Nix package manager**:
+
+```bash
+curl -L https://nixos.org/nix/install | sh -s -- --daemon
+```
+
+- This sets up **multi-user mode** (recommended).
+- After install, open a new terminal and verify:
+
+```bash
+nix --version
+```
+
+Then enable flakes by adding to your nix config (`~/.config/nix/nix.conf`):
+
+```plaintext
+experimental-features = nix-command flakes
+```
+
 ### Option A: Switching from Stock NixOS (Recommended)
 
 If you already have NixOS installed and want to switch to this configuration:
@@ -99,7 +231,7 @@ If you already have NixOS installed and want to switch to this configuration:
    ```
 
 5. **Customize the configuration**:
-   
+
    - **Edit `configuration.nix`**: Update the hostname if needed (currently set to "laptop")
    - **Edit `home/programs/git.nix`**: Set your git username and email
    - **Review `modules/packages.nix`**: Add or remove packages as needed
