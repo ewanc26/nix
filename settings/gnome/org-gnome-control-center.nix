@@ -1,7 +1,7 @@
 { ... }:
 {
   dconf.settings."org/gnome/control-center" = {
-    "last-panel" = "system";
+    "last-panel" = "background";
     "window-state" = "(980, 640, false)";
   };
 }

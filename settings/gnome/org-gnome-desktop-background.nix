@@ -3,9 +3,9 @@
   dconf.settings."org/gnome/desktop/background" = {
     "color-shading-type" = "solid";
     "picture-options" = "zoom";
-    "picture-uri" = "file:///home/ewan/.config/background";
-    "picture-uri-dark" = "file:///home/ewan/.config/background";
-    "primary-color" = "#86b6ef";
+    "picture-uri" = "file:///run/current-system/sw/share/backgrounds/gnome/amber-l.jxl";
+    "picture-uri-dark" = "file:///run/current-system/sw/share/backgrounds/gnome/amber-d.jxl";
+    "primary-color" = "#ff7800";
     "secondary-color" = "#000000";
   };
 }
