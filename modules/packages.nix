@@ -35,6 +35,7 @@
     tree
     ripgrep
     fd
+    gnome-extension-manager
   ];
 
   # VSCode with extensions
