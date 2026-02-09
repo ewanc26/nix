@@ -7,16 +7,19 @@ A hyper-organized, flake-based NixOS configuration for a Dell Inspiron 3501 lapt
 ```
 dotfiles-nix/
 ├── flake.nix                    # Main flake configuration
-├── configuration.nix            # Main NixOS configuration
-├── hardware-configuration.nix   # Hardware-specific settings
+├── hosts/                       # Host-specific configurations
+│   ├── README.md               # Guide for adding new hosts
+│   └── laptop/                 # Dell Inspiron 3501 configuration
+│       ├── default.nix         # Main host configuration
+│       └── hardware-configuration.nix  # Hardware-specific settings
 ├── wallpapers/                  # Wallpaper images
 │   └── wallpaper.jpg           # Default wallpaper
-├── modules/
+├── modules/                     # Reusable NixOS modules
 │   ├── desktop.nix             # Desktop environment (GNOME)
-│   ├── packages.nix            # System packages
+│   ├── packages.nix            # System packages (uses options where possible)
 │   ├── services.nix            # System services
 │   └── gaming.nix              # Steam and gaming setup
-└── home/
+└── home/                        # Home Manager configuration
     ├── home.nix                # Main home-manager config
     └── programs/
         ├── git.nix             # Git configuration
@@ -26,6 +29,44 @@ dotfiles-nix/
         ├── gnome.nix           # GNOME settings & wallpaper
         └── vscode.nix          # VSCode settings
 ```
+
+## 🏗️ Architecture
+
+### Hosts Directory
+
+This configuration uses a **hosts-based architecture** for easy multi-system management:
+
+- Each physical machine gets its own directory under `hosts/`
+- Host-specific settings (hostname, hardware config) are isolated
+- Shared modules (desktop, packages, services) are imported by each host
+- Easy to add new machines - see `hosts/README.md` for details
+
+### Options vs System Packages
+
+This configuration follows NixOS best practices by using **declarative options** instead of just adding packages:
+
+**✅ Good (Using Options):**
+```nix
+programs.firefox.enable = true;
+programs.steam.enable = true;
+```
+
+**❌ Less Ideal (Only System Packages):**
+```nix
+environment.systemPackages = with pkgs; [ firefox steam ];
+```
+
+**Why Options are Better:**
+- More declarative and clear
+- Provides additional configuration options
+- Better integration with NixOS
+- Enables/disables related services automatically
+- Some programs require options (e.g., Steam needs firewall rules)
+
+**When to Use System Packages:**
+- When no official NixOS option exists for the program
+- For simple utilities that don't need configuration
+- See `modules/packages.nix` for our approach
 
 ## 🖥️ Hardware Specifications
 
@@ -42,18 +83,18 @@ dotfiles-nix/
 
 ### System Tools
 
-- **git** - Version control
+- **git** - Version control (via `programs.git`)
 - **fastfetch** - System information
 - **starship** - Modern shell prompt
-- **zsh** - Z Shell
+- **zsh** - Z Shell (via `programs.zsh`)
 
 ### Applications
 
-- **Firefox** - Web browser
-- **VSCode** - Code editor with extensions
+- **Firefox** - Web browser (via `programs.firefox`)
+- **VSCode** - Code editor with extensions (via `programs.vscode`)
 - **Spotify** - Music streaming
 - **Discord** - Communication
-- **Steam** - Gaming platform (with GameMode)
+- **Steam** - Gaming platform (via `programs.steam` with GameMode)
 - **Prism Launcher** - Minecraft launcher
 
 ### Desktop Environment
@@ -62,138 +103,6 @@ dotfiles-nix/
 - **GDM** - Display manager
 
 ## 🚀 Installation
-
-### 📌 Before You Start
-
-This section assumes you want a **flake-enabled Nix/NixOS environment**. Flakes are experimental but widely used in the Nix community and required by this config. That means you’ll need a recent Nix installation with experimental features enabled.
-
----
-
-### 🧠 Option A: Already on NixOS (Switch to This Config)
-
-1. **Enable flakes support**
-   Add this to your `/etc/nixos/configuration.nix`:
-
-   ```nix
-   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-   ```
-
-   Then rebuild:
-
-   ```bash
-   sudo nixos-rebuild switch
-   ```
-
-2. **Backup your current config**
-
-   ```bash
-   sudo cp -r /etc/nixos /etc/nixos.backup
-   ```
-
-3. **Clone your dotfiles**
-
-   ```bash
-   git clone https://github.com/ewanc26/dotfiles-nix.git ~/dotfiles-nix
-   cd ~/dotfiles-nix
-   ```
-
-4. **Copy your hardware config**
-
-   ```bash
-   sudo cp /etc/nixos/hardware-configuration.nix .
-   sudo chown $USER:users hardware-configuration.nix
-   ```
-
-5. **Edit configs** as needed (hostname, git user/email, extra packages, etc.)
-
-6. **Test your config**
-
-   ```bash
-   sudo nixos-rebuild test --flake .#laptop
-   ```
-
-7. **Apply permanently**
-
-   ```bash
-   sudo nixos-rebuild switch --flake .#laptop
-   ```
-
-8. **Optional: Move files to `/etc/nixos`**
-
-   If you want this repo as your system’s canonical config:
-
-   ```bash
-   sudo rm -rf /etc/nixos/*
-   sudo cp -r * /etc/nixos
-   sudo chown -R root:root /etc/nixos
-   ```
-
-9. **Reboot**
-
-   ```bash
-   sudo reboot
-   ```
-
----
-
-### 🆕 Option B: Fresh NixOS Install (Flake-friendly)
-
-> **Important**: Before installing the OS, get Nix itself set up if you’re on another distro or live environment — see the section below.
-
-1. **Boot the NixOS installer** from USB or CD and partition your drive.
-
-2. **Generate initial hardware config**
-
-   ```bash
-   sudo nixos-generate-config --root /mnt
-   ```
-
-3. **Install Nix (with flakes support) in the installer** (if you need nix commands):
-
-   ```bash
-   curl -L https://nixos.org/nix/install | sh -s -- --daemon
-   . ~/.nix-profile/etc/profile.d/nix.sh
-   ```
-
-4. **Clone your config into the target**
-
-   ```bash
-   cd /mnt/etc/nixos
-   sudo nix-shell -p git --run "git clone https://github.com/ewanc26/dotfiles-nix.git ."
-   ```
-
-5. **Replace the generated `hardware-configuration.nix`** with the one from the installer.
-
-6. **Install NixOS with your flake**:
-
-   ```bash
-   sudo nixos-install --flake .#laptop
-   ```
-
-7. **Reboot into your new system**
-
----
-
-### 🧰 Installing Nix (Non-NixOS Linux or macOS)
-
-If you’re on another Linux distro (or doing stuff in the installer) and just want the **Nix package manager**:
-
-```bash
-curl -L https://nixos.org/nix/install | sh -s -- --daemon
-```
-
-- This sets up **multi-user mode** (recommended).
-- After install, open a new terminal and verify:
-
-```bash
-nix --version
-```
-
-Then enable flakes by adding to your nix config (`~/.config/nix/nix.conf`):
-
-```plaintext
-experimental-features = nix-command flakes
-```
 
 ### Option A: Switching from Stock NixOS (Recommended)
 
@@ -220,19 +129,19 @@ If you already have NixOS installed and want to switch to this configuration:
    cd dotfiles-nix
    ```
 
-4. **Update hardware configuration**:
+4. **Generate and update hardware configuration**:
 
    ```bash
-   # Copy your current hardware configuration
-   sudo cp /etc/nixos/hardware-configuration.nix ./hardware-configuration.nix
+   # Generate fresh hardware config
+   sudo nixos-generate-config --show-hardware-config > hosts/laptop/hardware-configuration.nix
    
    # Make sure file permissions are correct
-   sudo chown $USER:users ./hardware-configuration.nix
+   sudo chown $USER:users hosts/laptop/hardware-configuration.nix
    ```
 
 5. **Customize the configuration**:
 
-   - **Edit `configuration.nix`**: Update the hostname if needed (currently set to "laptop")
+   - **Edit `hosts/laptop/default.nix`**: Update the hostname if needed
    - **Edit `home/programs/git.nix`**: Set your git username and email
    - **Review `modules/packages.nix`**: Add or remove packages as needed
 
@@ -264,18 +173,6 @@ If you already have NixOS installed and want to switch to this configuration:
    sudo reboot
    ```
 
-10. **Post-installation cleanup**:
-
-    After rebooting and confirming everything works, you can clean up old generations:
-
-    ```bash
-    # Remove old system generations (keeps last 3)
-    sudo nix-collect-garbage --delete-older-than 3d
-    
-    # Or use the cleanup alias (if using the provided zsh config)
-    cleanup
-    ```
-
 ### Option B: Fresh Installation
 
 If you're installing NixOS from scratch:
@@ -299,13 +196,7 @@ If you're installing NixOS from scratch:
    sudo mount /dev/disk/by-label/boot /mnt/boot
    ```
 
-2. **Generate hardware config** (to get UUIDs):
-
-   ```bash
-   sudo nixos-generate-config --root /mnt
-   ```
-
-3. **Clone this repository**:
+2. **Clone this repository**:
 
    ```bash
    cd /mnt/etc/nixos
@@ -313,39 +204,36 @@ If you're installing NixOS from scratch:
    sudo git clone https://github.com/ewanc26/dotfiles-nix .
    ```
 
-4. **Update hardware-configuration.nix** with the UUIDs from the generated file:
+3. **Generate hardware configuration**:
 
    ```bash
-   # Copy the UUIDs from the generated file
-   cat /mnt/etc/nixos/hardware-configuration.nix
-   # Update the UUIDs in our hardware-configuration.nix
+   sudo nixos-generate-config --show-hardware-config > hosts/laptop/hardware-configuration.nix
    ```
 
-5. **Customize git config** in `home/programs/git.nix`:
+4. **Customize git config** in `home/programs/git.nix`:
    - Update `userName` and `userEmail`
 
-6. **Install NixOS**:
+5. **Install NixOS**:
 
    ```bash
    sudo nixos-install --flake .#laptop
    ```
 
-7. **Reboot** and login with your user account.
+6. **Reboot** and login with your user account.
 
 ## 🔄 Updating the System
 
 After making changes to the configuration:
 
 ```bash
-# Full system update (NixOS + Home Manager)
-update
-
-# Or separately:
-nrs   # NixOS rebuild switch
-hms   # Home Manager switch
+# Rebuild and switch to the new configuration
+sudo nixos-rebuild switch --flake .#laptop
 
 # Update flake inputs to get latest packages
 nix flake update
+
+# Then rebuild
+sudo nixos-rebuild switch --flake .#laptop
 ```
 
 ### Useful Commands
@@ -363,12 +251,41 @@ sudo nixos-rebuild test --flake .#laptop
 # Update flake inputs
 nix flake update
 
-# Clean up old generations
-cleanup
-
-# Or manually clean up
+# Clean up old generations (keeps last 7 days)
 sudo nix-collect-garbage --delete-older-than 7d
+
+# List system generations
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
 ```
+
+## 🖥️ Multi-Host Setup
+
+This configuration is designed to support multiple machines. To add a new host:
+
+1. **See the detailed guide**: `hosts/README.md`
+
+2. **Quick steps**:
+   ```bash
+   # Create new host directory
+   mkdir -p hosts/my-desktop
+   
+   # Generate hardware config
+   sudo nixos-generate-config --show-hardware-config > hosts/my-desktop/hardware-configuration.nix
+   
+   # Copy and customize default.nix from laptop
+   cp hosts/laptop/default.nix hosts/my-desktop/
+   
+   # Edit the hostname and other settings
+   nano hosts/my-desktop/default.nix
+   
+   # Add to flake.nix (see hosts/README.md for example)
+   nano flake.nix
+   ```
+
+3. **Build the new host**:
+   ```bash
+   sudo nixos-rebuild switch --flake .#my-desktop
+   ```
 
 ## 🎨 Customization
 
@@ -386,15 +303,27 @@ services.xserver = {
 
 ### Add More Packages
 
-Edit `modules/packages.nix` or `home/home.nix` to add more packages.
+#### Using Options (Preferred)
+
+Edit `modules/packages.nix` and add to the `programs` section:
+
+```nix
+programs = {
+  neovim.enable = true;  # Uses NixOS option
+};
+```
+
+#### Using System Packages (When No Option Exists)
+
+```nix
+environment.systemPackages = with pkgs; [
+  my-custom-package  # No official option available
+];
+```
 
 ### Modify Shell Configuration
 
 Edit `home/programs/zsh.nix` for shell aliases and settings.
-
-### Adjust Power Management
-
-Edit the TLP settings in `hardware-configuration.nix` to tune battery life vs performance.
 
 ### Change Wallpaper
 
@@ -407,38 +336,29 @@ The wallpaper is configured in `home/programs/gnome.nix`:
      source = ../../wallpapers/your-new-wallpaper.jpg;
    };
    ```
-3. Run `make switch` to apply
-
-The wallpaper is automatically set for both the desktop background and lock screen.
-
-### Change Hostname
-
-If you want to use a different hostname:
-
-1. Edit `configuration.nix` and change the `networking.hostName` value
-2. Edit `flake.nix` and rename the `laptop` configuration to match
-3. Rebuild with the new name: `sudo nixos-rebuild switch --flake .#your-new-name`
+3. Run `sudo nixos-rebuild switch --flake .#laptop` to apply
 
 ## 📝 Notes
 
 - **First Boot**: The first boot may take a while as Nix downloads and builds everything.
 - **Updates**: Run `nix flake update` periodically to update your packages.
 - **Rollbacks**: If something breaks, you can select an older generation from the boot menu.
-- **Garbage Collection**: Run `cleanup` regularly to free up disk space.
+- **Garbage Collection**: Run `sudo nix-collect-garbage --delete-older-than 7d` regularly to free up disk space.
 - **Flakes**: This configuration uses Nix flakes for reproducibility and easier dependency management.
+- **Options Over Packages**: We use `programs.*.enable` options instead of `environment.systemPackages` where possible for better integration.
 
 ## 🔧 Troubleshooting
 
 ### Boot Issues
 
-- Check that UUIDs in `hardware-configuration.nix` match your actual partitions
+- Check that UUIDs in `hosts/laptop/hardware-configuration.nix` match your actual partitions
 - Try booting from an older generation in the boot menu
-- Use `sudo nixos-rebuild test` to test changes before making them permanent
+- Use `sudo nixos-rebuild test --flake .#laptop` to test changes before making them permanent
 
 ### Graphics Issues
 
 - Intel graphics should work out of the box
-- If you experience issues, check `hardware-configuration.nix` graphics settings
+- If you experience issues, check hardware-configuration.nix graphics settings
 
 ### WiFi Not Working
 
@@ -447,8 +367,8 @@ If you want to use a different hostname:
 
 ### Home Manager Issues
 
-- If home-manager fails to build, try: `home-manager switch --flake .#ewan`
-- Clear home-manager cache: `rm -rf ~/.cache/nix`
+- If home-manager fails to build, try rebuilding the whole system: `sudo nixos-rebuild switch --flake .#laptop`
+- Check for syntax errors: `nix flake check`
 
 ### Configuration Errors
 
@@ -463,6 +383,7 @@ If you want to use a different hostname:
 - [Nix Package Search](https://search.nixos.org/)
 - [NixOS Wiki](https://nixos.wiki/)
 - [Nix Flakes Tutorial](https://nixos.wiki/wiki/Flakes)
+- [NixOS Options Search](https://search.nixos.org/options)
 
 ## 📄 License
 

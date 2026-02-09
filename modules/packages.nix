@@ -1,20 +1,30 @@
 { config, pkgs, ... }:
 
 {
-  # System-wide packages
+  # System-wide programs with built-in options
+  programs = {
+    # Firefox with proper NixOS options
+    firefox.enable = true;
+    
+    # Git configuration
+    git.enable = true;
+  };
+
+  # Packages that don't have dedicated options
   environment.systemPackages = with pkgs; [
-    # Core utilities
-    git
+    # Core utilities (these don't have program options)
     vim
     wget
     curl
     htop
-
+    unzip
+    zip
+    tree
+    ripgrep
+    fd
+    
     # System information
     fastfetch
-    
-    # Browsers
-    firefox
     
     # Development tools
     vscode
@@ -29,16 +39,11 @@
     # Gaming
     prismlauncher
     
-    # Additional utilities
-    unzip
-    zip
-    tree
-    ripgrep
-    fd
+    # GNOME utilities
     gnome-extension-manager
   ];
 
-  # VSCode with extensions
+  # VSCode configuration (separate from systemPackages for clarity)
   programs.vscode = {
     enable = true;
     package = pkgs.vscode;

@@ -12,11 +12,11 @@
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {
     nixosConfigurations = {
+      # Laptop configuration
       laptop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          ./configuration.nix
-          ./hardware-configuration.nix
+          ./hosts/laptop
           
           home-manager.nixosModules.home-manager
           {
@@ -26,6 +26,20 @@
           }
         ];
       };
+      
+      # Add more hosts here in the future, e.g.:
+      # desktop = nixpkgs.lib.nixosSystem {
+      #   system = "x86_64-linux";
+      #   modules = [
+      #     ./hosts/desktop
+      #     home-manager.nixosModules.home-manager
+      #     {
+      #       home-manager.useGlobalPkgs = true;
+      #       home-manager.useUserPackages = true;
+      #       home-manager.users.ewan = import ./home/home.nix;
+      #     }
+      #   ];
+      # };
     };
   };
 }
