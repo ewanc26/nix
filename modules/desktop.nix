@@ -18,6 +18,10 @@
   # Display manager / desktop environment (25.11+ correct)
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
+  
+  environment.systemPackages = with pkgs; [
+    gnome-tweaks
+  ];
 
   # Exclude some default GNOME apps to keep it minimal
   environment.gnome.excludePackages = with pkgs; [
