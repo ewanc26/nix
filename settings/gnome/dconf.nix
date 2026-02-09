@@ -51,9 +51,6 @@ with lib.hm.gvariant;
 
     "org/gnome/desktop/background" = {
       color-shading-type = "solid";
-      picture-options = "zoom";
-      picture-uri = "file:///run/current-system/sw/share/backgrounds/gnome/amber-l.jxl";
-      picture-uri-dark = "file:///run/current-system/sw/share/backgrounds/gnome/amber-d.jxl";
       primary-color = "#ff7800";
       secondary-color = "#000000";
     };
@@ -68,8 +65,8 @@ with lib.hm.gvariant;
       clock-show-weekday = true;
       color-scheme = "prefer-dark";
       enable-hot-corners = false;
-      gtk-theme = "Adwaita-dark";
-      icon-theme = "Adwaita";
+      gtk-theme = "Adwaita";
+      monospace-font-name = "FiraCode Nerd Font Mono 11";
       show-battery-percentage = true;
     };
 
@@ -131,6 +128,10 @@ with lib.hm.gvariant;
       use-system-font = false;
       use-theme-colors = false;
       visible-name = "Default";
+    };
+
+    "org/gnome/tweaks" = {
+      show-extensions-notice = false;
     };
 
     "org/gtk/settings/file-chooser" = {
