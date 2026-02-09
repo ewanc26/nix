@@ -9,7 +9,7 @@
     wget
     curl
     htop
-    
+
     # System information
     fastfetch
     
@@ -21,7 +21,8 @@
     
     # Communication
     discord
-    
+    signal-desktop
+
     # Media
     spotify
     
