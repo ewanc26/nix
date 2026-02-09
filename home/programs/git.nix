@@ -4,10 +4,15 @@
   programs.git = {
     enable = true;
     lfs.enable = true;
-    userName = "Ewan Croft";
-    userEmail = "git@ewancroft.uk";
 
-    extraConfig = {
+    # These three blocks have been moved into 'settings'
+    settings = {
+      user = {
+        name = "Ewan Croft";
+        email = "git@ewancroft.uk";
+        signingkey = "~/.ssh/id_ed25519.pub";
+      };
+
       safe.directory = "/etc/nixos";
       
       core = {
@@ -21,7 +26,6 @@
       commit.gpgsign = true;
       tag.gpgsign = true;
       gpg.format = "ssh";
-      user.signingkey = "~/.ssh/id_ed25519.pub";
 
       # Useful aliases
       alias = {
