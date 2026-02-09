@@ -109,19 +109,29 @@ environment.systemPackages = with pkgs; [ firefox steam ];
 If you already have NixOS installed and want to switch to this configuration:
 
 1. **Enable flakes and git** (if not already enabled):
-
-   ```bash
-   # Temporarily enable flakes for this session
-   nix-shell -p git nixFlakes
+   
+   ```nix
+   # Edit /etc/nixos/configuration.nix and add
+   nix.settings.experimental-features = [ "nix-command" "flakes" ];
    ```
 
-2. **Backup your current configuration**:
+   ```bash
+   # Build and switch
+   sudo nixos-rebuild switch
+   ```
+   
+   ```bash
+   # Temporarily enable git
+   nix-shell -p git
+   ```
+
+1. **Backup your current configuration**:
 
    ```bash
    sudo cp -r /etc/nixos /etc/nixos.backup
    ```
 
-3. **Clone this repository**:
+2. **Clone this repository**:
 
    ```bash
    cd /tmp
@@ -129,7 +139,7 @@ If you already have NixOS installed and want to switch to this configuration:
    cd dotfiles-nix
    ```
 
-4. **Generate and update hardware configuration**:
+3. **Generate and update hardware configuration**:
 
    ```bash
    # Generate fresh hardware config
@@ -139,13 +149,13 @@ If you already have NixOS installed and want to switch to this configuration:
    sudo chown $USER:users hosts/laptop/hardware-configuration.nix
    ```
 
-5. **Customize the configuration**:
+4. **Customize the configuration**:
 
    - **Edit `hosts/laptop/default.nix`**: Update the hostname if needed
    - **Edit `home/programs/git.nix`**: Set your git username and email
    - **Review `modules/packages.nix`**: Add or remove packages as needed
 
-6. **Test the configuration** (optional but recommended):
+5. **Test the configuration** (optional but recommended):
 
    ```bash
    sudo nixos-rebuild test --flake .#laptop
@@ -153,13 +163,13 @@ If you already have NixOS installed and want to switch to this configuration:
 
    This will apply the configuration temporarily without making it permanent. If something goes wrong, just reboot to go back to your old config.
 
-7. **Apply the configuration**:
+6. **Apply the configuration**:
 
    ```bash
    sudo nixos-rebuild switch --flake .#laptop
    ```
 
-8. **Move configuration to /etc/nixos** (optional but recommended):
+7. **Move configuration to /etc/nixos** (optional but recommended):
 
    ```bash
    sudo rm -rf /etc/nixos/*
@@ -167,7 +177,7 @@ If you already have NixOS installed and want to switch to this configuration:
    sudo chown -R root:root /etc/nixos
    ```
 
-9. **Reboot and enjoy**:
+8. **Reboot and enjoy**:
 
    ```bash
    sudo reboot
