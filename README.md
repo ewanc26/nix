@@ -63,7 +63,90 @@ dotfiles-nix/
 
 ## 🚀 Installation
 
-### First-time Setup
+### Option A: Switching from Stock NixOS (Recommended)
+
+If you already have NixOS installed and want to switch to this configuration:
+
+1. **Enable flakes and git** (if not already enabled):
+
+   ```bash
+   # Temporarily enable flakes for this session
+   nix-shell -p git nixFlakes
+   ```
+
+2. **Backup your current configuration**:
+
+   ```bash
+   sudo cp -r /etc/nixos /etc/nixos.backup
+   ```
+
+3. **Clone this repository**:
+
+   ```bash
+   cd /tmp
+   git clone https://github.com/ewanc26/dotfiles-nix
+   cd dotfiles-nix
+   ```
+
+4. **Update hardware configuration**:
+
+   ```bash
+   # Copy your current hardware configuration
+   sudo cp /etc/nixos/hardware-configuration.nix ./hardware-configuration.nix
+   
+   # Make sure file permissions are correct
+   sudo chown $USER:users ./hardware-configuration.nix
+   ```
+
+5. **Customize the configuration**:
+   
+   - **Edit `configuration.nix`**: Update the hostname if needed (currently set to "laptop")
+   - **Edit `home/programs/git.nix`**: Set your git username and email
+   - **Review `modules/packages.nix`**: Add or remove packages as needed
+
+6. **Test the configuration** (optional but recommended):
+
+   ```bash
+   sudo nixos-rebuild test --flake .#laptop
+   ```
+
+   This will apply the configuration temporarily without making it permanent. If something goes wrong, just reboot to go back to your old config.
+
+7. **Apply the configuration**:
+
+   ```bash
+   sudo nixos-rebuild switch --flake .#laptop
+   ```
+
+8. **Move configuration to /etc/nixos** (optional but recommended):
+
+   ```bash
+   sudo rm -rf /etc/nixos/*
+   sudo cp -r * /etc/nixos/
+   sudo chown -R root:root /etc/nixos
+   ```
+
+9. **Reboot and enjoy**:
+
+   ```bash
+   sudo reboot
+   ```
+
+10. **Post-installation cleanup**:
+
+    After rebooting and confirming everything works, you can clean up old generations:
+
+    ```bash
+    # Remove old system generations (keeps last 3)
+    sudo nix-collect-garbage --delete-older-than 3d
+    
+    # Or use the cleanup alias (if using the provided zsh config)
+    cleanup
+    ```
+
+### Option B: Fresh Installation
+
+If you're installing NixOS from scratch:
 
 1. **Boot NixOS installer** and partition your disk:
 
@@ -94,10 +177,11 @@ dotfiles-nix/
 
    ```bash
    cd /mnt/etc/nixos
-   git clone https://github.com/ewanc26/nix .
+   sudo nix-shell -p git
+   sudo git clone https://github.com/ewanc26/dotfiles-nix .
    ```
 
-4. **Update hardware-configuration.nix** with the UUIDs from `/mnt/etc/nixos/hardware-configuration.nix`:
+4. **Update hardware-configuration.nix** with the UUIDs from the generated file:
 
    ```bash
    # Copy the UUIDs from the generated file
@@ -116,7 +200,7 @@ dotfiles-nix/
 
 7. **Reboot** and login with your user account.
 
-### Updating the System
+## 🔄 Updating the System
 
 After making changes to the configuration:
 
@@ -127,6 +211,9 @@ update
 # Or separately:
 nrs   # NixOS rebuild switch
 hms   # Home Manager switch
+
+# Update flake inputs to get latest packages
+nix flake update
 ```
 
 ### Useful Commands
@@ -146,6 +233,9 @@ nix flake update
 
 # Clean up old generations
 cleanup
+
+# Or manually clean up
+sudo nix-collect-garbage --delete-older-than 7d
 ```
 
 ## 🎨 Customization
@@ -189,12 +279,21 @@ The wallpaper is configured in `home/programs/gnome.nix`:
 
 The wallpaper is automatically set for both the desktop background and lock screen.
 
+### Change Hostname
+
+If you want to use a different hostname:
+
+1. Edit `configuration.nix` and change the `networking.hostName` value
+2. Edit `flake.nix` and rename the `laptop` configuration to match
+3. Rebuild with the new name: `sudo nixos-rebuild switch --flake .#your-new-name`
+
 ## 📝 Notes
 
 - **First Boot**: The first boot may take a while as Nix downloads and builds everything.
 - **Updates**: Run `nix flake update` periodically to update your packages.
 - **Rollbacks**: If something breaks, you can select an older generation from the boot menu.
 - **Garbage Collection**: Run `cleanup` regularly to free up disk space.
+- **Flakes**: This configuration uses Nix flakes for reproducibility and easier dependency management.
 
 ## 🔧 Troubleshooting
 
@@ -202,6 +301,7 @@ The wallpaper is automatically set for both the desktop background and lock scre
 
 - Check that UUIDs in `hardware-configuration.nix` match your actual partitions
 - Try booting from an older generation in the boot menu
+- Use `sudo nixos-rebuild test` to test changes before making them permanent
 
 ### Graphics Issues
 
@@ -213,12 +313,24 @@ The wallpaper is automatically set for both the desktop background and lock scre
 - Ensure Intel WiFi firmware is loaded: `lsmod | grep iwlwifi`
 - Check NetworkManager status: `systemctl status NetworkManager`
 
+### Home Manager Issues
+
+- If home-manager fails to build, try: `home-manager switch --flake .#ewan`
+- Clear home-manager cache: `rm -rf ~/.cache/nix`
+
+### Configuration Errors
+
+- Use `nixos-rebuild test` instead of `switch` to test changes
+- Check syntax with: `nix flake check`
+- Rollback to previous generation from boot menu if needed
+
 ## 📚 Resources
 
 - [NixOS Manual](https://nixos.org/manual/nixos/stable/)
 - [Home Manager Manual](https://nix-community.github.io/home-manager/)
 - [Nix Package Search](https://search.nixos.org/)
 - [NixOS Wiki](https://nixos.wiki/)
+- [Nix Flakes Tutorial](https://nixos.wiki/wiki/Flakes)
 
 ## 📄 License
 
