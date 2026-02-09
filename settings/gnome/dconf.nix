@@ -10,8 +10,10 @@ with lib.hm.gvariant;
     };
 
     "org/gnome/Console" = {
+      custom-font = "FiraCode Nerd Font 10";
       last-window-maximised = false;
       last-window-size = mkTuple [ 732 528 ];
+      use-system-font = false;
     };
 
     "org/gnome/control-center" = {
@@ -132,7 +134,18 @@ with lib.hm.gvariant;
     };
 
     "org/gtk/settings/file-chooser" = {
+      date-format = "regular";
+      location-mode = "path-bar";
+      show-hidden = false;
+      show-size-column = true;
+      show-type-column = true;
+      sidebar-width = 167;
+      sort-column = "name";
       sort-directories-first = true;
+      sort-order = "ascending";
+      type-format = "category";
+      window-position = mkTuple [ 26 23 ];
+      window-size = mkTuple [ 1231 902 ];
     };
 
     "plugins/housekeeping" = {
