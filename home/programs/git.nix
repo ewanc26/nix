@@ -4,33 +4,24 @@
   programs.git = {
     enable = true;
     lfs.enable = true;
+    userName = "Ewan Croft";
+    userEmail = "git@ewancroft.uk";
 
-    settings = {
-      user = {
-        name = "Ewan Croft";
-        email = "git@ewancroft.uk";
-        signingkey = "~/.ssh/id_ed25519.pub";
-      };
-
-      init.defaultBranch = "main";
-
+    extraConfig = {
+      safe.directory = "/etc/nixos";
+      
       core = {
         editor = "code --wait";
         excludesfile = "~/.gitignore_global";
       };
 
+      init.defaultBranch = "main";
+
       # GPG signing with SSH
       commit.gpgsign = true;
       tag.gpgsign = true;
       gpg.format = "ssh";
-
-      # LFS support
-      filter.lfs = {
-        clean = "git-lfs clean -- %f";
-        smudge = "git-lfs smudge -- %f";
-        process = "git-lfs filter-process";
-        required = true;
-      };
+      user.signingkey = "~/.ssh/id_ed25519.pub";
 
       # Useful aliases
       alias = {
