@@ -1,95 +1,48 @@
 #!/usr/bin/env bash
+set -e
 
-# CONFIG
-TARGET_DIR="/etc/nixos/settings/gnome"
+# --- CONFIGURATION ---
 REPO_ROOT="/etc/nixos"
-CURRENT_USER=$(whoami)
+SETTINGS_DIR="$REPO_ROOT/settings/gnome"
+OUTPUT_FILE="dconf.nix"
 TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
 
-# 1. Temporary Build Space
-TEMP_EXPORT=$(mktemp -d)
-FULL_DUMP="/tmp/dconf_full_dump.txt"
+# --- 1. GENERATE SETTINGS (User Level) ---
+echo "📥 Dumping current dconf settings..."
+TEMP_NIX=$(mktemp)
 
-echo "📥 Creating master dconf dump..."
-dconf dump / > "$FULL_DUMP"
+# Pipe dconf into dconf2nix
+dconf dump / | nix run nixpkgs#dconf2nix > "$TEMP_NIX"
 
-# Extract headers
-HEADERS=$(grep '^\[.*\]$' "$FULL_DUMP" | tr -d '[]')
+if [ ! -s "$TEMP_NIX" ]; then
+    echo "❌ Error: Generated file is empty."
+    rm "$TEMP_NIX"
+    exit 1
+fi
 
-echo "✂️  Extracting blocks..."
-for header in $HEADERS; do
-    safe_name=$(echo "$header" | sed 's|/|-|g; s|:|--|g')
-    full_file_path="$TEMP_EXPORT/${safe_name}.nix"
-    
-    # Extract the block for this header
-    block_content=$(awk "/^\[$(echo "$header" | sed 's/\//\\\//g')\]/{flag=1;next}/^\[/{flag=0}NF==0{flag=0}flag" "$FULL_DUMP")
+# --- 2. MOVE TO TARGET (Sudo only for the write) ---
+echo "🔒 Moving files to $SETTINGS_DIR..."
 
-    [ -z "$block_content" ] && continue
+if [ ! -d "$SETTINGS_DIR" ]; then
+    sudo mkdir -p "$SETTINGS_DIR"
+fi
 
-    {
-        echo "{ ... }:"
-        echo "{"
-        echo "  dconf.settings.\"$header\" = {"
-        echo "$block_content" | while read -r line; do
-            if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
-                key="${BASH_REMATCH[1]}"
-                val="${BASH_REMATCH[2]}"
-                
-# TYPE DETECTION LOGIC
-                if [[ "$val" =~ ^[0-9]+$ || "$val" =~ ^[0-9]+\.[0-9]+$ ]]; then
-                    # Numbers
-                    echo "    \"$key\" = $val;"
-                elif [[ "$val" == "true" || "$val" == "false" ]]; then
-                    # Booleans
-                    echo "    \"$key\" = $val;"
-                elif [[ "$val" =~ ^\[.*\]$ ]] && [[ ! "$val" =~ "<" ]] && [[ ! "$val" =~ "(" ]]; then
-                    # Simple Lists: [ "a" "b" ]
-                    # We exclude < (Variants) and ( (Tuples)
-                    clean_list=$(echo "$val" | sed "s/'/\"/g" | sed "s/,//g")
-                    echo "    \"$key\" = $clean_list;"
-                else
-                    # Fallback: Strings, GVariants, and Tuples
-                    # We strip outer ' ' and wrap the whole thing in " "
-                    clean_val=$(echo "$val" | sed "s/^'//;s/'$//")
-                    clean_val=$(echo "$clean_val" | sed 's/"/\\"/g')
-                    
-                    echo "    \"$key\" = \"$clean_val\";"
-                fi
-            fi
-        done
-        echo "  };"
-        echo "}"
-    } > "$full_file_path"
-done
+# Move and ensure your user owns it so git works without sudo
+sudo mv "$TEMP_NIX" "$SETTINGS_DIR/$OUTPUT_FILE"
+sudo chown "$USER":users "$SETTINGS_DIR/$OUTPUT_FILE"
 
-# 2. Master default.nix
-{
-    echo "{ ... }:"
-    echo "{"
-    echo "  imports = ["
-    find "$TEMP_EXPORT" -name "*.nix" ! -name "default.nix" -printf "    ./%P\n" | sort
-    echo "  ];"
-    echo "}"
-} > "$TEMP_EXPORT/default.nix"
-
-# 3. Apply and Sync
-echo "🔄 Synchronizing to $TARGET_DIR..."
-sudo mkdir -p "$TARGET_DIR"
-sudo rsync -av --delete "$TEMP_EXPORT/" "$TARGET_DIR/"
-sudo chown -R "$CURRENT_USER":users "$TARGET_DIR"
-
-rm -rf "$TEMP_EXPORT"
-rm "$FULL_DUMP"
-
-# 4. Git Logic (CRITICAL FOR FLAKES)
+# --- 3. GIT OPERATIONS (User Level) ---
 cd "$REPO_ROOT" || exit
-# We must 'git add' so the flake sees the new files in the store
-git add "$TARGET_DIR"
+
+# Tell git it's okay to work in this directory even if it's in /etc
+git config --global --add safe.directory "$REPO_ROOT"
+
+echo "📝 Staging changes..."
+git add "$SETTINGS_DIR/$OUTPUT_FILE"
 
 if ! git diff --cached --quiet; then
-  echo "📝 Committing changes..."
-  git commit -m "dconf-export: $TIMESTAMP"
-  echo "✅ Success! Files staged and committed."
+    git commit -m "gnome: update dconf settings ($TIMESTAMP)"
+    echo "✅ Success! Settings updated and committed as $USER."
 else
-  echo "✅ No changes detected."
+    echo "✅ No changes detected."
 fi
