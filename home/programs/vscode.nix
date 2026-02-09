@@ -12,9 +12,6 @@
         ms-python.python
         rust-lang.rust-analyzer
 
-        # Git
-        eamodio.gitlens
-
         # Themes
         dracula-theme.theme-dracula
         pkief.material-icon-theme
@@ -28,7 +25,7 @@
       userSettings = {
         "workbench.colorTheme" = "Dracula";
         "workbench.iconTheme" = "material-icon-theme";
-        "editor.fontFamily" = "'JetBrains Mono', 'monospace'";
+        "editor.fontFamily" = "'FiraCode', 'monospace'";
         "editor.fontSize" = 14;
         "editor.lineHeight" = 22;
         "editor.fontLigatures" = true;
@@ -42,7 +39,7 @@
         "files.autoSaveDelay" = 1000;
         "git.autofetch" = true;
         "git.confirmSync" = false;
-        "terminal.integrated.fontFamily" = "'JetBrains Mono'";
+        "terminal.integrated.fontFamily" = "'FiraCode Nerd Font'";
         "terminal.integrated.fontSize" = 13;
         "workbench.startupEditor" = "none";
         "explorer.confirmDelete" = false;
