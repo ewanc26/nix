@@ -6,6 +6,7 @@
     ./modules/packages.nix
     ./modules/services.nix
     ./modules/gaming.nix
+    ./modules/secrets.nix
   ];
 
   # Boot configuration

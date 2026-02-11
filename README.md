@@ -18,7 +18,12 @@ dotfiles-nix/
 │   ├── desktop.nix             # Desktop environment (GNOME)
 │   ├── packages.nix            # System packages (uses options where possible)
 │   ├── services.nix            # System services
-│   └── gaming.nix              # Steam and gaming setup
+│   ├── gaming.nix              # Steam and gaming setup
+│   └── secrets.nix             # Encrypted secrets configuration
+├── secrets/                     # Encrypted secrets (ragenix)
+│   ├── README.md               # Secrets management guide
+│   ├── secrets.nix             # Public keys and secret definitions
+│   └── *.age                   # Encrypted secret files
 └── home/                        # Home Manager configuration
     ├── home.nix                # Main home-manager config
     └── programs/
@@ -310,6 +315,23 @@ services.xserver = {
   desktopManager.plasma5.enable = true;
 };
 ```
+
+### Secrets Management
+
+This configuration uses [ragenix](https://github.com/yaxitech/ragenix) for encrypted secrets management:
+
+1. **Setup** - See `secrets/README.md` for detailed instructions
+2. **Quick start**:
+   ```bash
+   # Generate age key
+   nix run github:yaxitech/ragenix -- --generate-age-key > ~/.config/age/keys.txt
+   
+   # Create/edit a secret
+   nix run github:yaxitech/ragenix -- -e secrets/my-secret.age
+   ```
+3. **Use in configuration** - Secrets are available at `/run/agenix/SECRET_NAME`
+
+For complete documentation, see `secrets/README.md`.
 
 ### Add More Packages
 
