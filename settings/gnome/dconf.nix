@@ -65,7 +65,7 @@ with lib.hm.gvariant;
       clock-show-weekday = true;
       color-scheme = "prefer-dark";
       enable-hot-corners = false;
-      gtk-theme = "Adwaita";
+      gtk-theme = "Adwaita-dark";
       monospace-font-name = "FiraCode Nerd Font Mono 11";
       show-battery-percentage = true;
     };
