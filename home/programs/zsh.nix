@@ -1,26 +1,38 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  # 1. Detect OS
+  isDarwin = pkgs.stdenv.isDarwin;
+  
+  # 2. Identify Hostname & User
+  # Falls back to "default" if not set in the config
+  hostName = config.networking.hostName or "default";
+  userName = if isDarwin then config.users.users.${builtins.getEnv "USER"}.name else config.services.getty.autologinUser or "user";
+
+  # 3. Dynamic Command Selection
+  rebuildCmd = if isDarwin then "darwin-rebuild" else "nixos-rebuild";
+  sudoPrefix = if isDarwin then "" else "sudo ";
+in
 {
   programs.zsh = {
     enable = true;
-
     enableCompletion = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
-    # Shell aliases
     shellAliases = {
+      # Navigation & General
       ll = "ls -lah";
       la = "ls -A";
       l = "ls -CF";
       ".." = "cd ..";
       "..." = "cd ../..";
 
-      # NixOS specific
-      nrs = "sudo nixos-rebuild switch --flake .#laptop";
-      nrb = "sudo nixos-rebuild boot --flake .#laptop";
-      nrt = "sudo nixos-rebuild test --flake .#laptop";
-      hms = "home-manager switch --flake .#ewan";
+      # Dynamic Nix Commands
+      nrs = "${sudoPrefix}${rebuildCmd} switch --flake .#${hostName}";
+      nrb = if isDarwin then "echo 'Boot not supported on Darwin'" else "sudo nixos-rebuild boot --flake .#${hostName}";
+      nrt = "${sudoPrefix}${rebuildCmd} test --flake .#${hostName}";
+      hms = "home-manager switch --flake .#${userName}";
 
       # Git shortcuts
       gs = "git status";
@@ -28,20 +40,22 @@
       gc = "git commit";
       gp = "git push";
       gl = "git pull";
-      gd = "git diff";
 
-      # System
-      update = "sudo nixos-rebuild switch --flake .#laptop && home-manager switch --flake .#ewan";
-      cleanup = "sudo nix-collect-garbage -d && nix-collect-garbage -d";
+      # Unified Update & Cleanup
+      update = "nrs && hms";
+      cleanup = if isDarwin 
+        then "nix-collect-garbage -d" 
+        else "sudo nix-collect-garbage -d && nix-collect-garbage -d";
+    } // (lib.optionalAttrs (!isDarwin) {
+      # Linux-specific aliases
       backup-gde = "bash '/etc/nixos/settings/gnome-export.sh'";
-    };
+    });
 
     # Additional configuration (25.11+ correct)
     initContent = ''
-      # Custom prompt components
       setopt PROMPT_SUBST
 
-      # History configuration
+      # History
       HISTSIZE=10000
       SAVEHIST=10000
       HISTFILE=~/.zsh_history
@@ -53,7 +67,7 @@
       bindkey '^[[A' history-beginning-search-backward
       bindkey '^[[B' history-beginning-search-forward
 
-      # Enable better tab completion
+      # Completion styling
       zstyle ':completion:*' menu select
       zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
     '';
