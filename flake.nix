@@ -1,5 +1,5 @@
 {
-  description = "NixOS configuration for Dell Inspiron 3501";
+  description = "NixOS configuration";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
