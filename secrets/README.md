@@ -1,25 +1,23 @@
 # Secrets Management with ragenix
 
-This directory contains encrypted secrets managed with [ragenix](https://github.com/yaxitech/ragenix). Secrets are encrypted using [age](https://age-encryption.org/) and decrypted at runtime by your NixOS host.
-
----
+This directory contains encrypted secrets managed with [ragenix](https://github.com/yaxitech/ragenix), a Rust-based implementation of agenix. Secrets are encrypted using [age](https://age-encryption.org/) and decrypted at runtime by your **nix-darwin** or **NixOS** host.
 
 ## 🚀 Quick Start (Automated)
 
-Instead of manually managing public keys, use the provided bootstrap script. It handles age key generation, SSH host key derivation, and `secrets.nix` updates.
+The provided bootstrap script manages your **Master Identity** (user key) and **Host Identity** (SSH-derived key) to ensure your `secrets.nix` is always in sync.
 
 ```bash
-# Run the bootstrap script
-sudo bash /etc/nixos/secrets/setup.sh
+# From the root of your dotfiles:
+bash ./secrets/setup.sh
 
 ```
 
 **What this script does:**
 
-1. Generates `~/.config/age/keys.txt` if missing.
-2. Converts `/etc/ssh/ssh_host_ed25519_key.pub` to an age key.
-3. Automatically populates or updates `secrets/secrets.nix` with the correct keys and Nix syntax.
-4. Rekeys existing secrets if new keys were added.
+1. **Master Identity:** Manages `~/.config/age/keys.txt`. (Copy this file to all your machines to maintain one "User" identity).
+2. **Host Identity:** Converts your machine's SSH host key to an age key and adds it to the `systems` block.
+3. **Additive Updates:** Adds new machines to `secrets.nix` without wiping out existing ones.
+4. **Validation:** Verifies Nix syntax and attempts to re-encrypt (rekey) secrets for the new hardware.
 
 ---
 
@@ -27,105 +25,98 @@ sudo bash /etc/nixos/secrets/setup.sh
 
 ### 1. Create or Edit a Secret
 
+`ragenix` requires an explicit editor flag and rules path if run from the repository root.
+
 ```bash
-# Edit a secret (opens in $EDITOR)
-nix run github:yaxitech/ragenix -- -e secrets/my-secret.age
+# Using VS Code as the editor (requires 'code' in $PATH)
+nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --editor "code --wait" -e secrets/wifi-password.age
+
+# Using Nano
+nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --editor "nano" -e secrets/wifi-password.age
 
 ```
 
-### 2. Update `secrets.nix`
+### 2. Registering Secrets
 
-If you add a new secret file, you must register it in `secrets/secrets.nix`:
+Before creating a `.age` file, you **must** define it in `secrets/secrets.nix`:
 
 ```nix
-let
-  users = {
-    ewan = "age1..."; 
-  };
-  systems = {
-    laptop = "age1...";
-  };
-  all = (builtins.attrValues users) ++ (builtins.attrValues systems);
 in
 {
-  "my-secret.age".publicKeys = all;
-  "wifi-password.age".publicKeys = [ users.ewan systems.laptop ];
+  "wifi-password.age".publicKeys = all; 
+  "github-token.age".publicKeys = [ users.ewan systems.MacMini ];
 }
 
 ```
 
 ### 3. Rekeying
 
-After changing `secrets.nix` (e.g., adding a new laptop), you must re-encrypt the secrets so the new key can open them:
+If you add a new machine to `secrets.nix`, you must re-encrypt all files so the new machine can read them:
 
 ```bash
-nix run github:yaxitech/ragenix -- -r
+nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --rekey
 
 ```
 
 ---
 
-## ❄️ Use in NixOS Configuration
+## ❄️ Use in Flake Configuration
 
-### 1. Define the Secret
+### 1. Configure the Module
 
-Map the encrypted file to a path on the system:
+Add the `ragenix` input and module to your system configuration:
 
 ```nix
-# modules/secrets.nix
-{ config, ... }:
+# flake.nix
 {
-  age.secrets.example-password = {
-    file = ../secrets/example-password.age;
-    owner = "ewan";
-    group = "users";
-    mode = "0440";
+  inputs.ragenix.url = "github:yaxitech/ragenix";
+  
+  outputs = { self, nix-darwin, ragenix, ... }: {
+    darwinConfigurations.MacMini = nix-darwin.lib.darwinSystem {
+      modules = [
+        ragenix.darwinModules.default # or ragenix.nixosModules.default
+        {
+          age.identityPaths = [ "/Users/ewan/.config/age/keys.txt" ];
+          age.secrets.wifi-password.file = ./secrets/wifi-password.age;
+        }
+      ];
+    };
   };
 }
 
 ```
 
-### 2. Consume the Secret
+### 2. Accessing Secrets
 
-Access the plaintext path via `config.age.secrets.<name>.path`:
+Secrets are decrypted to `/run/agenix/<name>` (Linux) or `/Library/Application Support/ragenix/secrets/<name>` (macOS).
 
 ```nix
-services.myservice = {
-  enable = true;
-  passwordFile = config.age.secrets.example-password.path;
-};
+# Access via config
+passwordFile = config.age.secrets.wifi-password.path;
 
 ```
-
-*Secrets are decrypted to `/run/agenix/<name>` at boot.*
 
 ---
 
-## 📂 Common File Structure
+## 📂 Structure
 
-```text
-/etc/nixos/
-├── secrets/
-│   ├── secrets.nix      # Public key mapping (safe to commit)
-│   ├── setup.sh         # The automation script
-│   ├── README.md        # This file
-│   └── *.age            # Encrypted secrets (safe to commit)
-├── configuration.nix
-└── flake.nix
-
-```
+* `secrets.nix`: Public key mapping (Safe to commit).
+* `setup.sh`: Automation for key management.
+* `*.age`: Encrypted secret data (Safe to commit).
+* `~/.config/age/keys.txt`: **Your Private Key (NEVER COMMIT).**
 
 ---
 
 ## ⚠️ Important Security Rules
 
-1. **Never commit plaintext.** Only commit `.age` files.
-2. **Backup your key.** If you lose `~/.config/age/keys.txt`, you lose access to all secrets.
-3. **Host Keys.** The host key (derived from SSH) allows the *machine* to decrypt secrets without you being logged in.
+1. **The Master Key:** Treat `~/.config/age/keys.txt` like your primary SSH private key. If you lose it, you lose your secrets.
+2. **Tailscale Sync:** Since we use a single Master User key, use `scp` or `ssh` over Tailscale to sync `keys.txt` from your main Mac to your Laptop.
+3. **Commit often:** It is perfectly safe to commit `.age` files to GitHub; they are useless without your private keys.
 
 ---
 
 ### Troubleshooting
 
-* **"Undefined variable age1..."**: This means a key in `secrets.nix` is missing double quotes. Run `setup.sh` to fix the syntax automatically.
-* **"No identity found"**: Ensure `~/.config/age/keys.txt` exists and has permissions `600`.
+* **"No rule for file"**: You added a `.age` file but forgot to add it to the list in `secrets.nix`.
+* **"Decryption failed"**: You likely added a new system key but didn't run `--rekey` using a machine that already has access.
+* **Path errors**: Always ensure you are pointing to `--rules secrets/secrets.nix` if running from the root.
