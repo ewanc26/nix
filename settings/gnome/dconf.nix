@@ -66,8 +66,17 @@ with lib.hm.gvariant;
       color-scheme = "prefer-dark";
       enable-hot-corners = false;
       gtk-theme = "Adwaita-dark";
+      icon-theme = "Adwaita";
       monospace-font-name = "FiraCode Nerd Font Mono 11";
       show-battery-percentage = true;
+    };
+
+    "org/gnome/desktop/notifications" = {
+      application-children = [ "gnome-about-panel" ];
+    };
+
+    "org/gnome/desktop/notifications/application/gnome-about-panel" = {
+      application-id = "gnome-about-panel.desktop";
     };
 
     "org/gnome/desktop/screensaver" = {
@@ -132,6 +141,10 @@ with lib.hm.gvariant;
 
     "org/gnome/tweaks" = {
       show-extensions-notice = false;
+    };
+
+    "org/gtk/gtk4/settings/file-chooser" = {
+      show-hidden = true;
     };
 
     "org/gtk/settings/file-chooser" = {
