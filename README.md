@@ -154,7 +154,7 @@ environment.systemPackages = with pkgs; [ firefox steam ];
 2. **Clone repository** into `/mnt/etc/nixos`:
 
    ```bash
-   sudo git clone <your-repo-url> .
+   sudo git clone https://github.com/ewanc26/nix .
    ```
 
 3. **Generate hardware configuration**:
