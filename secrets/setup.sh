@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Pathing
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(dirname "$SCRIPT_DIR")")"
 SECRETS_DIR="$ROOT/secrets"
 SECRETS_FILE="$SECRETS_DIR/secrets.nix"
 AGE_KEY="$HOME/.config/age/keys.txt"
@@ -12,31 +12,47 @@ fail() { echo "❌ $1"; exit 1; }
 echo "=== Ragenix Flake Bootstrap ==="
 
 USERNAME="$(id -un)"
-HOSTNAME="$(hostname)"
+HOSTNAME="$(hostname -s)"
+OS="$(uname -s)"
 
-# 1. Ensure Age Key exists
-if [ ! -f "$AGE_KEY" ]; then
-  echo "Generating age key..."
-  mkdir -p "$(dirname "$AGE_KEY")"
-  nix shell nixpkgs#age -c "age-keygen -o $AGE_KEY"
-  chmod 600 "$AGE_KEY"
+mkdir -p "$(dirname "$AGE_KEY")"
+
+# --- 1. Master Age Key Logic ---
+if [ ! -s "$AGE_KEY" ]; then
+    echo "⚠️ No key found at $AGE_KEY. Generating..."
+    nix run nixpkgs#age-keygen -- -o "$AGE_KEY"
+    chmod 600 "$AGE_KEY"
 fi
 
-USER_KEY="$(grep "# public key:" "$AGE_KEY" | awk '{print $4}')"
-[ -n "$USER_KEY" ] || fail "Could not read age public key"
+echo "Extracting public key..."
+# Method A: Try to grep it from the comment (Fastest)
+USER_KEY=$(grep "# public key:" "$AGE_KEY" | awk '{print $4}' | tr -d '\r\n' || echo "")
 
-# 2. Derive Host Key
-echo "Deriving host key from SSH..."
-# We wrap the ssh-to-age call to ensure we get a clean string
-HOST_KEY=$(sudo nix shell nixpkgs#ssh-to-age -c sh -c "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub" 2>/dev/null || echo "")
+# Method B: Fallback to age -y if grep failed
+if [ -z "$USER_KEY" ]; then
+    USER_KEY=$(nix run nixpkgs#age -- -y "$AGE_KEY" 2>/dev/null | tr -d '\r\n' || echo "")
+fi
 
-# 3. Generate secrets.nix 
-# We use a variable to hold the template to keep it clean
-echo "Generating $SECRETS_FILE..."
+if [ -z "$USER_KEY" ]; then
+    fail "Could not extract public key from $AGE_KEY. Is it a valid age key?"
+fi
+
+echo "✅ Master Identity ($USERNAME): $USER_KEY"
+
+# --- 2. Derive Host Key ---
+HOST_KEY=""
+if [ -f /etc/ssh/ssh_host_ed25519_key.pub ]; then
+    echo "Deriving host key..."
+    # Using 'nix run' with specific binary selection
+    HOST_KEY=$(nix run nixpkgs#ssh-to-age -- < /etc/ssh/ssh_host_ed25519_key.pub 2>/dev/null | tr -d '\r\n' || echo "")
+fi
+
+# --- 3. Update secrets.nix ---
 mkdir -p "$SECRETS_DIR"
 
-# Note the explicit double quotes around the variables below
-NEW_CONTENT=$(cat <<EOF
+if [ ! -f "$SECRETS_FILE" ]; then
+    echo "Creating $SECRETS_FILE..."
+    cat > "$SECRETS_FILE" <<EOF
 let
   users = {
     $USERNAME = "$USER_KEY";
@@ -49,31 +65,41 @@ let
   all = (builtins.attrValues users) ++ (builtins.attrValues systems);
 in
 {
-  # Add your secrets here, e.g.:
-  # "secret1.age".publicKeys = all;
 }
 EOF
-)
-
-# Write the file
-echo "$NEW_CONTENT" > "$SECRETS_FILE"
-
-# 4. Verification
-echo "Verifying Nix syntax..."
-if nix-instantiate --parse "$SECRETS_FILE" > /dev/null; then
-  echo "✅ secrets.nix is valid Nix"
 else
-  echo "--- Current File Content ---"
-  cat "$SECRETS_FILE"
-  echo "----------------------------"
-  fail "secrets.nix still has syntax errors!"
+    echo "Updating $SECRETS_FILE..."
+    SED_I=(sed -i '')
+    [ "$OS" != "Darwin" ] && SED_I=(sed -i)
+
+    # Sync User
+    if grep -q "$USERNAME =" "$SECRETS_FILE"; then
+        "${SED_I[@]}" "s|$USERNAME = \".*\";|$USERNAME = \"$USER_KEY\";|" "$SECRETS_FILE"
+    else
+        "${SED_I[@]}" "/users = {/a\\
+    $USERNAME = \"$USER_KEY\";" "$SECRETS_FILE"
+    fi
+
+    # Sync System
+    if [ -n "$HOST_KEY" ] && ! grep -q "$HOSTNAME =" "$SECRETS_FILE"; then
+        echo "Adding system: $HOSTNAME"
+        "${SED_I[@]}" "/systems = {/a\\
+    $HOSTNAME = \"$HOST_KEY\";" "$SECRETS_FILE"
+    fi
 fi
 
-# 5. Auto-Rekey (only if secrets exist)
-SECRETS_COUNT=$(find "$SECRETS_DIR" -name "*.age" 2>/dev/null | wc -l)
+# --- 4. Verify Nix syntax ---
+if nix-instantiate --parse "$SECRETS_FILE" > /dev/null; then
+    echo "✅ secrets.nix is valid Nix"
+else
+    fail "secrets.nix has syntax errors!"
+fi
+
+# --- 5. Rekey ---
+SECRETS_COUNT=$(find "$SECRETS_DIR" -name "*.age" 2>/dev/null | wc -l | tr -d ' ')
 if [ "$SECRETS_COUNT" -gt 0 ]; then
-  echo "Re-keying $SECRETS_COUNT secrets..."
-  nix run github:yaxitech/ragenix -- -r || echo "⚠️ Rekey failed"
+    echo "Re-keying $SECRETS_COUNT secrets..."
+    nix run github:yaxitech/ragenix -- -r || echo "⚠️ Rekey failed"
 fi
 
 echo -e "\nDone."

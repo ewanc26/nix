@@ -1,9 +1,10 @@
 let
   users = {
-    ewan = "age19k8hcgcnsvs9tvr2layhxpld6ahk0uylqeqk0rzpm8j5u5v2wqkqknuf9f";
+    ewan = "age1xl8ptkqm03skrdadqgprnez3trrc0k9t0ex052lweewqre2zc9qq7ljm3z";
   };
 
   systems = {
+    MacMini = "age10ysmz3603uupz0043mpznchtnh6jsnk5cu3eg05xalma4xjacppsgupgvj";
     laptop = "age1s4exn5venvd2rkrvw9g6g9rua05quut62m6le8k79st0dryhcy3qq4n55k";
   };
 
