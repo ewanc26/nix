@@ -1,63 +1,79 @@
 #!/usr/bin/env bash
-# Quick setup script for ragenix secrets
+set -euo pipefail
 
-set -e
+# Pathing
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+SECRETS_DIR="$ROOT/secrets"
+SECRETS_FILE="$SECRETS_DIR/secrets.nix"
+AGE_KEY="$HOME/.config/age/keys.txt"
 
-echo "=== Ragenix Secrets Setup ==="
-echo ""
+fail() { echo "❌ $1"; exit 1; }
 
-AGE_DIR="$HOME/.config/age"
-AGE_KEY="$AGE_DIR/keys.txt"
+echo "=== Ragenix Flake Bootstrap ==="
 
-# Ensure age dir exists
-if [ ! -d "$AGE_DIR" ]; then
-    echo "Creating age keys directory..."
-    mkdir -p "$AGE_DIR"
+USERNAME="$(id -un)"
+HOSTNAME="$(hostname)"
+
+# 1. Ensure Age Key exists
+if [ ! -f "$AGE_KEY" ]; then
+  echo "Generating age key..."
+  mkdir -p "$(dirname "$AGE_KEY")"
+  nix shell nixpkgs#age -c "age-keygen -o $AGE_KEY"
+  chmod 600 "$AGE_KEY"
 fi
 
-# Generate age key if missing
-if [ -f "$AGE_KEY" ]; then
-    echo "✓ Age key already exists at ~/.config/age/keys.txt"
+USER_KEY="$(grep "# public key:" "$AGE_KEY" | awk '{print $4}')"
+[ -n "$USER_KEY" ] || fail "Could not read age public key"
+
+# 2. Derive Host Key
+echo "Deriving host key from SSH..."
+# We wrap the ssh-to-age call to ensure we get a clean string
+HOST_KEY=$(sudo nix shell nixpkgs#ssh-to-age -c sh -c "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub" 2>/dev/null || echo "")
+
+# 3. Generate secrets.nix 
+# We use a variable to hold the template to keep it clean
+echo "Generating $SECRETS_FILE..."
+mkdir -p "$SECRETS_DIR"
+
+# Note the explicit double quotes around the variables below
+NEW_CONTENT=$(cat <<EOF
+let
+  users = {
+    $USERNAME = "$USER_KEY";
+  };
+
+  systems = {
+    $HOSTNAME = "$HOST_KEY";
+  };
+
+  all = (builtins.attrValues users) ++ (builtins.attrValues systems);
+in
+{
+  # Add your secrets here, e.g.:
+  # "secret1.age".publicKeys = all;
+}
+EOF
+)
+
+# Write the file
+echo "$NEW_CONTENT" > "$SECRETS_FILE"
+
+# 4. Verification
+echo "Verifying Nix syntax..."
+if nix-instantiate --parse "$SECRETS_FILE" > /dev/null; then
+  echo "✅ secrets.nix is valid Nix"
 else
-    echo "Generating new age key..."
-
-    if command -v age-keygen >/dev/null 2>&1; then
-        age-keygen -o "$AGE_KEY"
-    else
-        echo "age-keygen not found — using nix to run it..."
-        nix shell nixpkgs#age -c age-keygen -o "$AGE_KEY"
-    fi
-
-    chmod 600 "$AGE_KEY"
-    echo "✓ Age key generated at ~/.config/age/keys.txt"
+  echo "--- Current File Content ---"
+  cat "$SECRETS_FILE"
+  echo "----------------------------"
+  fail "secrets.nix still has syntax errors!"
 fi
 
-echo ""
-echo "Your public key:"
-grep "# public key:" "$AGE_KEY" || echo "(public key line not found — check file)"
-
-echo ""
-echo "=== Getting Host SSH Key ==="
-
-if [ -f "/etc/ssh/ssh_host_ed25519_key.pub" ]; then
-    echo "Converting SSH host key to age format..."
-
-    if command -v ssh-to-age >/dev/null 2>&1; then
-        cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age
-    else
-        echo "ssh-to-age not found — using nix shell..."
-        nix shell nixpkgs#ssh-to-age -c ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
-    fi
-else
-    echo "⚠ Could not find /etc/ssh/ssh_host_ed25519_key.pub"
-    echo "  You may need to run this with sudo or ensure SSH host keys exist"
+# 5. Auto-Rekey (only if secrets exist)
+SECRETS_COUNT=$(find "$SECRETS_DIR" -name "*.age" 2>/dev/null | wc -l)
+if [ "$SECRETS_COUNT" -gt 0 ]; then
+  echo "Re-keying $SECRETS_COUNT secrets..."
+  nix run github:yaxitech/ragenix -- -r || echo "⚠️ Rekey failed"
 fi
 
-echo ""
-echo "=== Next Steps ==="
-echo "1. Copy your public keys into secrets/secrets.nix"
-echo "2. Create a secret: nix run github:yaxitech/ragenix -- -e secrets/example.age"
-echo "3. Uncomment the secret in modules/secrets.nix"
-echo "4. Rebuild: sudo nixos-rebuild switch --flake .#laptop"
-echo ""
-echo "Done."
+echo -e "\nDone."

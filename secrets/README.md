@@ -1,242 +1,131 @@
 # Secrets Management with ragenix
 
-This directory contains encrypted secrets managed with [ragenix](https://github.com/yaxitech/ragenix), which uses [age](https://age-encryption.org/) encryption.
+This directory contains encrypted secrets managed with [ragenix](https://github.com/yaxitech/ragenix). Secrets are encrypted using [age](https://age-encryption.org/) and decrypted at runtime by your NixOS host.
 
 ---
 
-## Quick Start
+## 🚀 Quick Start (Automated)
 
-### 1. Generate Your Age Key
-
-Ragenix does **not** generate keys itself. Use `age-keygen`.
+Instead of manually managing public keys, use the provided bootstrap script. It handles age key generation, SSH host key derivation, and `secrets.nix` updates.
 
 ```bash
-# Generate a new age key
-mkdir -p ~/.config/age
+# Run the bootstrap script
+sudo bash /etc/nixos/secrets/setup.sh
 
-# If age-keygen is installed
-age-keygen -o ~/.config/age/keys.txt
-
-# Or via nix (no install required)
-nix shell nixpkgs#age -c age-keygen -o ~/.config/age/keys.txt
-
-chmod 600 ~/.config/age/keys.txt
-
-# View your public key
-grep "# public key:" ~/.config/age/keys.txt
 ```
 
-Back this file up somewhere safe. Lose it and you lose your secrets. No recovery button.
+**What this script does:**
+
+1. Generates `~/.config/age/keys.txt` if missing.
+2. Converts `/etc/ssh/ssh_host_ed25519_key.pub` to an age key.
+3. Automatically populates or updates `secrets/secrets.nix` with the correct keys and Nix syntax.
+4. Rekeys existing secrets if new keys were added.
 
 ---
 
-### 2. Get Your Host's SSH Key as Age Key
+## 🛠 Manual Operations
 
-Convert your system’s SSH host key to an age public key:
+### 1. Create or Edit a Secret
 
 ```bash
-# Option 1: If ssh-to-age is installed
-cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age
+# Edit a secret (opens in $EDITOR)
+nix run github:yaxitech/ragenix -- -e secrets/my-secret.age
 
-# Option 2: Using nix
-nix shell nixpkgs#ssh-to-age -c ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
-
-# Option 3: From remote host
-ssh-keyscan YOUR_HOSTNAME | ssh-to-age
 ```
 
----
+### 2. Update `secrets.nix`
 
-### 3. Update secrets.nix
-
-Edit `secrets/secrets.nix` and replace placeholder keys:
+If you add a new secret file, you must register it in `secrets/secrets.nix`:
 
 ```nix
 let
-  user1 = "age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";  # your age key
-  laptop = "age1yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"; # host key
-  
-  users = [ user1 ];
-  systems = [ laptop ];
-  all = users ++ systems;
+  users = {
+    ewan = "age1..."; 
+  };
+  systems = {
+    laptop = "age1...";
+  };
+  all = (builtins.attrValues users) ++ (builtins.attrValues systems);
 in
 {
-  "example-password.age".publicKeys = all;
+  "my-secret.age".publicKeys = all;
+  "wifi-password.age".publicKeys = [ users.ewan systems.laptop ];
 }
+
 ```
 
----
+### 3. Rekeying
 
-### 4. Create and Edit Secrets
+After changing `secrets.nix` (e.g., adding a new laptop), you must re-encrypt the secrets so the new key can open them:
 
 ```bash
-# Create or edit a secret
-nix run github:yaxitech/ragenix -- -e secrets/example-password.age
+nix run github:yaxitech/ragenix -- -r
 
-# If installed in your environment
-ragenix -e secrets/example-password.age
 ```
-
-Flow:
-
-1. Decrypts using your private key
-2. Opens in `$EDITOR`
-3. Re-encrypts on save + exit
 
 ---
 
-### 5. Use Secrets in NixOS Configuration
+## ❄️ Use in NixOS Configuration
+
+### 1. Define the Secret
+
+Map the encrypted file to a path on the system:
 
 ```nix
 # modules/secrets.nix
 { config, ... }:
 {
-  age.secrets = {
-    example-password = {
-      file = ../secrets/example-password.age;
-      owner = "ewan";
-      group = "users";
-      mode = "0440";
-    };
+  age.secrets.example-password = {
+    file = ../secrets/example-password.age;
+    owner = "ewan";
+    group = "users";
+    mode = "0440";
   };
 }
+
 ```
 
-Import it:
+### 2. Consume the Secret
 
-```nix
-{
-  imports = [
-    ./modules/secrets.nix
-  ];
-}
-```
-
-Use it:
+Access the plaintext path via `config.age.secrets.<name>.path`:
 
 ```nix
 services.myservice = {
   enable = true;
   passwordFile = config.age.secrets.example-password.path;
 };
-```
-
-Secrets appear at runtime under:
 
 ```
-/run/agenix/<name>
+
+*Secrets are decrypted to `/run/agenix/<name>` at boot.*
+
+---
+
+## 📂 Common File Structure
+
+```text
+/etc/nixos/
+├── secrets/
+│   ├── secrets.nix      # Public key mapping (safe to commit)
+│   ├── setup.sh         # The automation script
+│   ├── README.md        # This file
+│   └── *.age            # Encrypted secrets (safe to commit)
+├── configuration.nix
+└── flake.nix
+
 ```
 
 ---
 
-## Common Use Cases
+## ⚠️ Important Security Rules
 
-### WiFi Password
-
-```nix
-"wifi-password.age".publicKeys = all;
-
-age.secrets.wifi-password.file = ../secrets/wifi-password.age;
-
-networking.wireless.networks."MyNetwork".pskFile =
-  config.age.secrets.wifi-password.path;
-```
+1. **Never commit plaintext.** Only commit `.age` files.
+2. **Backup your key.** If you lose `~/.config/age/keys.txt`, you lose access to all secrets.
+3. **Host Keys.** The host key (derived from SSH) allows the *machine* to decrypt secrets without you being logged in.
 
 ---
 
-### SSH Private Key
+### Troubleshooting
 
-```nix
-age.secrets.ssh-private-key = {
-  file = ../secrets/ssh-private-key.age;
-  owner = "ewan";
-  mode = "0600";
-};
-
-programs.ssh.extraConfig = ''
-  Host github.com
-    IdentityFile ${config.age.secrets.ssh-private-key.path}
-'';
-```
-
----
-
-### Environment Variables
-
-Secret file contents:
-
-```
-API_KEY=secret123
-DB_PASSWORD=secret456
-```
-
-Config:
-
-```nix
-age.secrets.env-vars.file = ../secrets/env-vars.age;
-
-systemd.services.myservice.serviceConfig.EnvironmentFile =
-  config.age.secrets.env-vars.path;
-```
-
----
-
-## Rekeying Secrets
-
-After changing keys in `secrets.nix`:
-
-```bash
-# Rekey all
-nix run github:yaxitech/ragenix -- -r
-
-# Rekey one
-nix run github:yaxitech/ragenix -- -r secrets/example-password.age
-```
-
----
-
-## Tips
-
-* Only commit `.age` files — never plaintext
-* Back up `~/.config/age/keys.txt`
-* Don’t share private keys across machines
-* Rekey periodically
-* `secrets.nix` is safe to commit — public keys only
-
----
-
-## Troubleshooting
-
-### “No identity found”
-
-Ragenix looks for identities in:
-
-* `~/.config/age/keys.txt`
-* `~/.ssh/id_ed25519`
-* `~/.ssh/id_rsa`
-
----
-
-### Permission denied (key file)
-
-```bash
-chmod 600 ~/.config/age/keys.txt
-```
-
----
-
-### Secret not decrypting on boot
-
-Your host age key is missing from the secret’s `publicKeys` list. Add it and rekey.
-
----
-
-## File Structure
-
-```
-secrets/
-├── secrets.nix
-├── example-password.age
-├── wifi-password.age
-└── README.md
-```
+* **"Undefined variable age1..."**: This means a key in `secrets.nix` is missing double quotes. Run `setup.sh` to fix the syntax automatically.
+* **"No identity found"**: Ensure `~/.config/age/keys.txt` exists and has permissions `600`.
