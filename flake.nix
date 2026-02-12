@@ -35,6 +35,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix;
+            home-manager.extraSpecialArgs = { isDarwin = false; };
           }
         ];
       };
@@ -51,6 +52,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix;
+            home-manager.extraSpecialArgs = { isDarwin = false; };
           }
         ];
       };
@@ -65,6 +67,7 @@
       #       home-manager.useGlobalPkgs = true;
       #       home-manager.useUserPackages = true;
       #       home-manager.users.ewan = import ./home/home.nix;
+      #       home-manager.extraSpecialArgs = { isDarwin = false; };
       #     }
       #   ];
       # };
@@ -86,6 +89,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix;
+            home-manager.extraSpecialArgs = { isDarwin = true; };
           }
         ];
       };

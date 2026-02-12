@@ -62,6 +62,6 @@
   # Enable command-not-found
   programs.command-not-found.enable = true;
 
-  # Bash completion
-  programs.bash.enableCompletion = true;
+  # Bash completion (new format)
+  programs.bash.completion.enable = true;
 }

@@ -1,7 +1,8 @@
-{ config, ... }:
-let
-  decrypted = config.age.secrets.gnome-dconf-settings.path;
-in
+{ config, lib, pkgs, ... }:
+
 {
-  imports = [ (import decrypted) ];
+  # Import GNOME settings from a regular file (not encrypted)
+  imports = [
+    ./dconf-settings.nix
+  ];
 }

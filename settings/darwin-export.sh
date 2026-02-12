@@ -4,9 +4,7 @@ set -e
 # --- CONFIGURATION ---
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 SETTINGS_DIR="$REPO_ROOT/settings/darwin"
-SECRETS_DIR="$REPO_ROOT/secrets"
 DEFAULTS_FILE="defaults.nix"
-DEFAULTS_SECRET="darwin-defaults-settings.age"
 TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
 
 # The core desktop environment domains
@@ -28,7 +26,6 @@ mkdir -p "$TEMP_DIR/exports"
 mkdir -p "$SETTINGS_DIR/domains"
 
 # 1. Run defaults2nix with filters to keep the config clean
-# Note: We use 'sudo' only if necessary, but try without first to respect FDA
 echo "📥 Running defaults2nix..."
 nix run github:joshryandavis/defaults2nix -- -split \
     -filter dates,state,uuids \
@@ -73,40 +70,13 @@ done
 echo "  };" >> "$TEMP_COMBINED"
 echo "}" >> "$TEMP_COMBINED"
 
-# 3. Encryption Logic
-AGE_KEY="$HOME/.config/age/keys.txt"
-USE_ENCRYPTION=false
+# 3. Save the combined file (no encryption)
+cp "$TEMP_COMBINED" "$SETTINGS_DIR/$DEFAULTS_FILE"
 
-if [ -f "$AGE_KEY" ] && [ -f "$SECRETS_DIR/secrets.nix" ]; then
-    echo "🔐 Encrypting to age vault..."
-    if cat "$TEMP_COMBINED" | nix run github:yaxitech/ragenix -- \
-        --rules "$SECRETS_DIR/secrets.nix" \
-        --editor - \
-        --edit "$SECRETS_DIR/$DEFAULTS_SECRET"; then
-        USE_ENCRYPTION=true
-    fi
-fi
-
-# 4. Finalize Module
-if [ "$USE_ENCRYPTION" = true ]; then
-    cat > "$SETTINGS_DIR/$DEFAULTS_FILE" << EOF
-{ config, ... }:
-let
-  decrypted = config.age.secrets.darwin-defaults-settings.path;
-in
-{
-  imports = [ (import decrypted) ];
-}
-EOF
-else
-    cp "$TEMP_COMBINED" "$SETTINGS_DIR/$DEFAULTS_FILE"
-fi
-
-# 5. Git Sync
+# 4. Git Sync
 if git rev-parse --git-dir > /dev/null 2>&1; then
     cd "$REPO_ROOT"
     git add "$SETTINGS_DIR"
-    [ "$USE_ENCRYPTION" = true ] && git add "$SECRETS_DIR/$DEFAULTS_SECRET"
     git commit -m "darwin: update defaults via defaults2nix ($TIMESTAMP)" || true
 fi
 

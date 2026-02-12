@@ -11,13 +11,14 @@ let
   all = (builtins.attrValues users) ++ (builtins.attrValues systems);
 in
 {
-  # Add your secrets here, e.g.:
-  # "secret1.age".publicKeys = all;
-
-  # Desktop Environment Settings Exports
-  "darwin-defaults-settings.age".publicKeys = all;
-  "gnome-dconf-settings.age".publicKeys = all;
-
-  # Network Credentials
+  # Add your actual secrets here
+  # UI preferences are NOT secrets and should not be encrypted
+  
+  # Network Credentials (REAL secrets)
   "wifi-home.age".publicKeys = all;
+  
+  # Examples of what SHOULD be encrypted:
+  # "api-keys.age".publicKeys = all;
+  # "ssh-keys.age".publicKeys = all;
+  # "passwords.age".publicKeys = all;
 }

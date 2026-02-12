@@ -32,16 +32,17 @@
     enable = true;
     maxretry = 5;
     
+    # NEW FORMAT: Use .settings for jail configuration
     jails = {
-      sshd = ''
-        enabled = true
-        port = 22
-        filter = sshd
-        logpath = /var/log/auth.log
-        maxretry = 5
-        findtime = 600
-        bantime = 3600
-      '';
+      sshd.settings = {
+        enabled = true;
+        port = "22";
+        filter = "sshd";
+        logpath = "/var/log/auth.log";
+        maxretry = 5;
+        findtime = 600;
+        bantime = 3600;
+      };
     };
   };
 

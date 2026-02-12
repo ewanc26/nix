@@ -1,8 +1,5 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, isDarwin, ... }:
 
-let
-  isDarwin = pkgs.stdenv.isDarwin;
-in
 {
   imports = [
     ./programs/git.nix
