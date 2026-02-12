@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Post-commit hook: Automatically push to remote after commit (when network available)
+
+# Check if we're on main branch
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+if [[ "$BRANCH" != "main" ]]; then
+    echo "Not on main branch, skipping auto-push"
+    exit 0
+fi
+
+# Check network connectivity
+check_network() {
+    # Try to reach GitHub (or your git remote)
+    if [[ "$(uname)" == "Darwin" ]]; then
+        # macOS: use ping with timeout
+        if ping -c 1 -W 2 github.com &>/dev/null || ping -c 1 -W 2 8.8.8.8 &>/dev/null; then
+            return 0
+        fi
+    else
+        # Linux: use ping with timeout
+        if ping -c 1 -W 2 github.com &>/dev/null || ping -c 1 -W 2 8.8.8.8 &>/dev/null; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# Only attempt push if network is available
+if ! check_network; then
+    echo "⚠️  No network connectivity - skipping push"
+    echo "Changes are committed locally and will be pushed later"
+    exit 0
+fi
+
+# Push to remote
+echo "Pushing changes to remote..."
+if git push origin main 2>/dev/null; then
+    echo "✓ Successfully pushed to remote"
+else
+    echo "⚠️  Push failed - changes are committed locally"
+    echo "Will retry on next successful network connection"
+fi
+
+exit 0
