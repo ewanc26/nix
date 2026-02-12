@@ -3,36 +3,17 @@
 {
   imports = [
     ./hardware-configuration.nix
+    ../../modules/common.nix
+    ../../modules/users.nix
     ../../modules/desktop.nix
     ../../modules/packages.nix
     ../../modules/services.nix
     ../../modules/gaming.nix
+    ../../modules/git-backup.nix
   ];
 
-  # Boot configuration
-  boot = {
-    loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
-    };
-    kernelPackages = pkgs.linuxPackages_latest;
-  };
-
   # Networking
-  networking = {
-    hostName = "laptop";
-    networkmanager.enable = true;
-  };
-
-  # Timezone and locale
-  time.timeZone = "Europe/London";
-  i18n.defaultLocale = "en_GB.UTF-8";
-
-  # Console configuration
-  console = {
-    font = "Lat2-Terminus16";
-    keyMap = "uk";
-  };
+  networking.hostName = "laptop";
 
   # Sound
   security.rtkit.enable = true;
@@ -43,23 +24,6 @@
     pulse.enable = true;
     jack.enable = true;
   };
-
-  # User configuration
-  users.users.ewan = {
-    isNormalUser = true;
-    description = "Ewan";
-    extraGroups = [ "networkmanager" "wheel" "audio" "video" ];
-    shell = pkgs.zsh;
-  };
-
-  # Enable zsh system-wide
-  programs.zsh.enable = true;
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
-  # Enable flakes
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # System version
   system.stateVersion = "25.11";
