@@ -1,6 +1,20 @@
-# NixOS Configuration
+# Nix Configuration
 
-A hyper-organized, flake-based NixOS configuration designed for flexibility across multiple machines.
+A hyper-organized, flake-based configuration for **NixOS** and **macOS** (via nix-darwin), designed for flexibility across multiple machines with shared dotfiles.
+
+## 🖥️ Supported Platforms
+
+- **NixOS** (Linux): Full system configuration with GNOME desktop
+  - Host: `laptop` (configured)
+- **macOS** (nix-darwin): System configuration with Homebrew integration  
+  - Host: `macmini` (configured)
+
+**Shared dotfiles** across all platforms:
+- Git configuration
+- Zsh shell with OS-specific aliases
+- Starship prompt
+- Fastfetch
+- VSCode settings
 
 ## 📁 Structure
 
@@ -14,12 +28,16 @@ nix/
 │       └── hardware-configuration.nix  # Hardware-specific settings
 ├── wallpapers/                  # Wallpaper images
 │   └── wallpaper.jpg           # Default wallpaper
-├── modules/                     # Reusable NixOS modules
-│   ├── desktop.nix             # Desktop environment (GNOME)
-│   ├── packages.nix            # System packages (uses options where possible)
-│   ├── services.nix            # System services
-│   ├── gaming.nix              # Steam and gaming setup
-│   └── secrets.nix             # Encrypted secrets configuration
+├── modules/                     # Reusable modules
+│   ├── desktop.nix             # Desktop environment (GNOME) - Linux only
+│   ├── packages.nix            # System packages - Linux only
+│   ├── services.nix            # System services - Linux only
+│   ├── gaming.nix              # Steam and gaming setup - Linux only
+│   ├── secrets.nix             # Encrypted secrets configuration
+│   └── darwin/                 # macOS-specific modules
+│       ├── packages.nix        # Nix-managed CLI packages
+│       ├── homebrew.nix        # Homebrew formulae and casks
+│       └── system.nix          # macOS system settings
 ├── secrets/                     # Encrypted secrets (ragenix)
 │   ├── README.md               # Secrets management guide
 │   ├── secrets.nix             # Public keys and secret definitions
@@ -102,7 +120,9 @@ environment.systemPackages = with pkgs; [ firefox steam ];
 
 ## 🚀 Installation
 
-### Option A: Switching from Existing NixOS
+### For NixOS (Linux)
+
+#### Option A: Switching from Existing NixOS
 
 1. **Enable flakes and git** (if not already):
 
@@ -173,12 +193,36 @@ environment.systemPackages = with pkgs; [ firefox steam ];
 
 6. **Reboot** and login.
 
+### For macOS (nix-darwin)
+
+See **[MACOS_SETUP.md](MACOS_SETUP.md)** for complete installation instructions.
+
+**Quick start:**
+
+```bash
+# Install nix-darwin
+nix run nix-darwin -- switch --flake ~/.config/nix-config#macmini
+
+# Rebuild after changes
+darwin-rebuild switch --flake ~/.config/nix-config#macmini
+```
+
 ## 🔄 Updating the System
+
+### NixOS
 
 ```bash
 sudo nixos-rebuild switch --flake .#<hostname>
 nix flake update
 sudo nixos-rebuild switch --flake .#<hostname>
+```
+
+### macOS
+
+```bash
+darwin-rebuild switch --flake ~/.config/nix-config#macmini
+nix flake update
+darwin-rebuild switch --flake ~/.config/nix-config#macmini
 ```
 
 ## 🖥️ Multi-Host Setup
@@ -220,10 +264,12 @@ sudo nixos-rebuild switch --flake .#<hostname>
 ## 📚 Resources
 
 * [NixOS Manual](https://nixos.org/manual/nixos/stable/)
+* [nix-darwin](https://github.com/LnL7/nix-darwin) - Nix for macOS
 * [Home Manager Manual](https://nix-community.github.io/home-manager/)
 * [Nix Package Search](https://search.nixos.org/)
 * [NixOS Wiki](https://nixos.wiki/)
 * [Nix Flakes Tutorial](https://nixos.wiki/wiki/Flakes)
+* [macOS Defaults](https://macos-defaults.com/) - macOS system settings reference
 
 ## 📄 License
 

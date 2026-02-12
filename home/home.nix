@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  isDarwin = pkgs.stdenv.isDarwin;
+in
 {
   imports = [
     ./programs/git.nix
@@ -7,27 +10,30 @@
     ./programs/starship.nix
     ./programs/fastfetch.nix
     ./programs/vscode.nix
+  ] ++ lib.optionals (!isDarwin) [
+    # Linux-only imports
     ./programs/gnome.nix
   ];
 
   # Home Manager settings
   home = {
     username = "ewan";
-    homeDirectory = "/home/ewan";
+    homeDirectory = if isDarwin then "/Users/ewan" else "/home/ewan";
     stateVersion = "25.11";
 
     # Additional user packages
     packages = with pkgs; [
-      vlc
-      dconf2nix # For exporting GNOME settings to Nix
-
-      # Nerd Fonts
+      # Nerd Fonts (available on all platforms)
       nerd-fonts.fira-code
       nerd-fonts.jetbrains-mono
       nerd-fonts.meslo-lg
       nerd-fonts.roboto-mono
       nerd-fonts.sauce-code-pro
       nerd-fonts.ubuntu-mono
+    ] ++ lib.optionals (!isDarwin) [
+      # Linux-only packages
+      vlc
+      dconf2nix # For exporting GNOME settings to Nix
     ]; 
 
     # Global gitignore file
@@ -61,8 +67,8 @@
   # Font configuration
   fonts.fontconfig.enable = true;
 
-  # GTK theme configuration
-  gtk = {
+  # Linux-specific theming (GTK/Qt)
+  gtk = lib.mkIf (!isDarwin) {
     enable = true;
     theme = {
       name = "Adwaita-dark";
@@ -74,8 +80,7 @@
     };
   };
 
-  # Qt theme configuration
-  qt = {
+  qt = lib.mkIf (!isDarwin) {
     enable = true;
     platformTheme.name = "adwaita";
     style.name = "adwaita-dark";

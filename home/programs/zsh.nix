@@ -7,7 +7,7 @@ let
   # 2. Identify Hostname & User
   # Falls back to "default" if not set in the config
   hostName = config.networking.hostName or "default";
-  userName = if isDarwin then config.users.users.${builtins.getEnv "USER"}.name else config.services.getty.autologinUser or "user";
+  userName = "ewan";  # Same username on all systems
 
   # 3. Dynamic Command Selection
   rebuildCmd = if isDarwin then "darwin-rebuild" else "nixos-rebuild";
