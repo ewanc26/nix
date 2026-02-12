@@ -11,17 +11,48 @@ Each host has its own subdirectory with the following files:
 
 ## Current Hosts
 
-- **laptop** - Dell Inspiron 3501
+### Desktop/Laptop Systems
+- **laptop** - Dell Inspiron 3501 (Full GNOME desktop environment)
+
+### Server Systems
+- **server** - Minimal server configuration (No GUI)
+  - See [server/README.md](server/README.md) for detailed server setup
+
+### macOS Systems
+- **macmini** - Apple Silicon Mac Mini (nix-darwin)
+  - Configured in separate section (see [../README.md](../README.md))
 
 ## Adding a New Host
+
+### Quick Start
 
 1. Create a new directory under `hosts/` with your hostname
 2. Copy your hardware configuration:
    ```bash
    sudo nixos-generate-config --show-hardware-config > hosts/YOUR-HOST/hardware-configuration.nix
    ```
-3. Create a `default.nix` using the template below
+3. Create a `default.nix` using one of the templates below
 4. Add the host to `flake.nix` in the `nixosConfigurations` section
+
+### Configuration Types
+
+**Desktop/Laptop Configuration:**
+- Use `../../modules/desktop.nix` for GNOME
+- Use `../../modules/packages.nix` for desktop packages
+- Use `../../modules/gaming.nix` if you want gaming support
+- See `laptop/default.nix` as example
+
+**Server Configuration:**
+- Use `../../modules/server-packages.nix` for server tools
+- Use `../../modules/server-services.nix` for SSH, fail2ban, etc.
+- No desktop environment
+- See `server/default.nix` as example
+
+**Both Types Include:**
+- `../../modules/git-backup.nix` - Automatic git backups
+- Auto-updates with `system.autoUpgrade`
+- Automatic file placement
+- Home Manager for dotfiles
 
 ### Template default.nix
 
