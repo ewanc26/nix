@@ -1,4 +1,4 @@
-# GNOME dconf settings exported at 2026-02-12 21:03:42
+# GNOME dconf settings exported at 2026-02-12 22:44:39
 # Generated via dconf2nix: https://github.com/gvolpe/dconf2nix
 { lib, ... }:
 
@@ -61,6 +61,9 @@ with lib.hm.gvariant;
 
     "org/gnome/desktop/background" = {
       color-shading-type = "solid";
+      picture-options = "zoom";
+      picture-uri = "file:///nix/store/q6fxas6bj13wj5lqy0dd8jzpkbz07r4j-wallpaper.jpg";
+      picture-uri-dark = "file:///nix/store/q6fxas6bj13wj5lqy0dd8jzpkbz07r4j-wallpaper.jpg";
       primary-color = "#ff7800";
       secondary-color = "#000000";
     };
@@ -95,6 +98,10 @@ with lib.hm.gvariant;
 
     "org/gnome/desktop/notifications/application/gnome-power-panel" = {
       application-id = "gnome-power-panel.desktop";
+    };
+
+    "org/gnome/desktop/peripherals/keyboard" = {
+      numlock-state = false;
     };
 
     "org/gnome/desktop/screensaver" = {
@@ -136,7 +143,7 @@ with lib.hm.gvariant;
     "org/gnome/shell" = {
       app-picker-layout = "\"[{'org.gnome.Calculator.desktop': <{'position': <0>}>, 'org.gnome.Contacts.desktop': <{'position': <1>}>, 'org.gnome.Weather.desktop': <{'position': <2>}>, 'org.gnome.clocks.desktop': <{'position': <3>}>, 'org.gnome.Maps.desktop': <{'position': <4>}>, 'org.gnome.Extensions.desktop': <{'position': <5>}>, 'org.gnome.SimpleScan.desktop': <{'position': <6>}>, 'org.gnome.Settings.desktop': <{'position': <7>}>, 'htop.desktop': <{'position': <8>}>, 'org.gnome.Showtime.desktop': <{'position': <9>}>, 'org.gnome.Snapshot.desktop': <{'position': <10>}>, 'cups.desktop': <{'position': <11>}>, 'nixos-manual.desktop': <{'position': <12>}>, 'org.gnome.seahorse.Application.desktop': <{'position': <13>}>, 'org.gnome.Console.desktop': <{'position': <14>}>, 'org.gnome.TextEditor.desktop': <{'position': <15>}>, 'org.gnome.Yelp.desktop': <{'position': <16>}>}, {'vim.desktop': <{'position': <0>}>, 'vlc.desktop': <{'position': <1>}>, 'xterm.desktop': <{'position': <2>}>, 'org.gnome.Decibels.desktop': <{'position': <3>}>, 'org.gnome.Connections.desktop': <{'position': <4>}>, 'org.gnome.baobab.desktop': <{'position': <5>}>, 'org.gnome.DiskUtility.desktop': <{'position': <6>}>, 'org.gnome.Papers.desktop': <{'position': <7>}>, 'org.gnome.font-viewer.desktop': <{'position': <8>}>, 'org.gnome.Loupe.desktop': <{'position': <9>}>, 'org.gnome.Logs.desktop': <{'position': <10>}>, 'org.gnome.SystemMonitor.desktop': <{'position': <11>}>, 'org.gnome.Calendar.desktop': <{'position': <12>}>, 'spotify.desktop': <{'position': <13>}>}]\"";
       enabled-extensions = [ "system-monitor@gnome-shell-extensions.gcampax.github.com" "extension-list@tu.berry" "drive-menu@gnome-shell-extensions.gcampax.github.com" "add-to-desktop@tommimon.github.com" "fq@megh" ];
-      favorite-apps = [ "org.gnome.Nautilus.desktop" "steam.desktop" "org.prismlauncher.PrismLauncher.desktop" "firefox.desktop" "spotify.desktop" "discord.desktop" "code.desktop" ];
+      favorite-apps = [ "org.gnome.Nautilus.desktop" "steam.desktop" "org.prismlauncher.PrismLauncher.desktop" "firefox.desktop" "spotify.desktop" "signal.desktop" "discord.desktop" "code.desktop" ];
       welcome-dialog-last-shown-version = "49.2";
     };
 
