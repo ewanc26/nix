@@ -39,6 +39,22 @@
         ];
       };
       
+      # Server configuration
+      server = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/server
+          ragenix.nixosModules.default
+          
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.ewan = import ./home/home.nix;
+          }
+        ];
+      };
+      
       # Add more hosts here in the future, e.g.:
       # desktop = nixpkgs.lib.nixosSystem {
       #   system = "x86_64-linux";
