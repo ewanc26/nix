@@ -6,7 +6,6 @@
     ../../modules/darwin/packages.nix
     ../../modules/darwin/homebrew.nix
     ../../modules/darwin/system.nix
-    ../../modules/darwin/git-backup.nix
   ];
 
   # System configuration

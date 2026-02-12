@@ -9,7 +9,6 @@
     ../../modules/packages.nix
     ../../modules/services.nix
     ../../modules/gaming.nix
-    ../../modules/git-backup.nix
   ];
 
   # Networking

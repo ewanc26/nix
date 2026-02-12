@@ -7,7 +7,6 @@
     ../../modules/users.nix
     ../../modules/server-packages.nix
     ../../modules/server-services.nix
-    ../../modules/git-backup.nix
   ];
 
   # Networking
