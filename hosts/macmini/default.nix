@@ -2,9 +2,11 @@
 
 {
   imports = [
+    ../../modules/darwin/common.nix
     ../../modules/darwin/packages.nix
     ../../modules/darwin/homebrew.nix
     ../../modules/darwin/system.nix
+    ../../modules/darwin/git-backup.nix
   ];
 
   # System configuration
@@ -18,31 +20,6 @@
     home = "/Users/ewan";
     shell = pkgs.zsh;
   };
-
-  # Enable zsh system-wide
-  programs.zsh.enable = true;
-
-  # Nix settings
-  nix = {
-    settings = {
-      experimental-features = [ "nix-command" "flakes" ];
-      # Auto-optimize nix store
-      auto-optimise-store = true;
-    };
-    
-    # Automatic garbage collection
-    gc = {
-      automatic = true;
-      interval = { Weekday = 0; Hour = 2; Minute = 0; };
-      options = "--delete-older-than 30d";
-    };
-  };
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
-  # Auto upgrade nix package and the daemon service
-  services.nix-daemon.enable = true;
 
   # Used for backwards compatibility
   system.stateVersion = 5;
