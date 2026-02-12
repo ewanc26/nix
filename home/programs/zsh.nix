@@ -46,9 +46,14 @@ in
       cleanup = if isDarwin 
         then "nix-collect-garbage -d" 
         else "sudo nix-collect-garbage -d && nix-collect-garbage -d";
-    } // (lib.optionalAttrs (!isDarwin) {
-      # Linux-specific aliases
+    } 
+    # Linux-specific aliases
+    // (lib.optionalAttrs (!isDarwin) {
       backup-gde = "bash '/etc/nixos/settings/gnome-export.sh'";
+    })
+    # macOS-specific aliases
+    // (lib.optionalAttrs (isDarwin) {
+      backup-dde = "bash '$HOME/.config/nix-config/settings/darwin-export.sh'";
     });
 
     # Additional configuration (25.11+ correct)

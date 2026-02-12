@@ -5,7 +5,6 @@
     enable = true;
     lfs.enable = true;
 
-    # These three blocks have been moved into 'settings'
     settings = {
       user = {
         name = "Ewan Croft";

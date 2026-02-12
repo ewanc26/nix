@@ -13,4 +13,11 @@ in
 {
   # Add your secrets here, e.g.:
   # "secret1.age".publicKeys = all;
+
+  # Desktop Environment Settings Exports
+  "darwin-defaults-settings.age".publicKeys = all;
+  "gnome-dconf-settings.age".publicKeys = all;
+
+  # Network Credentials
+  "wifi-home.age".publicKeys = all;
 }
