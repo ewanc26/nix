@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./minimal-hardware.nix
     ../../modules/common.nix
     ../../modules/users.nix
     ../../profiles/server-hardened.nix
