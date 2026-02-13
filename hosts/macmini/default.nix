@@ -8,6 +8,9 @@
     ../../modules/darwin/system.nix
   ];
 
+  # Primary user for homebrew and user-specific options
+  system.primaryUser = "ewan";
+
   # System configuration
   networking = {
     hostName = "macmini";

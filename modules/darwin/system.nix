@@ -1,8 +1,8 @@
 { config, pkgs, ... }:
 
 {
-  # Import Darwin defaults (encrypted settings)
-  # This will load all system.defaults settings from settings/darwin/defaults.nix
+  # Import Darwin defaults (settings)
+  # This will load all system.defaults settings from settings/darwin/default.nix
   imports = [
     ../../settings/darwin
   ];
@@ -16,12 +16,9 @@
   # Startup chime
   system.startup.chime = false;
 
-  # Additional system configuration
-  system.activationScripts.postUserActivation.text = ''
-    # Restart affected apps after configuration changes
-    /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
-  '';
+  # NOTE: system.activationScripts.postUserActivation has been removed
+  # All activation now runs as root, use postActivation if needed
 
-  # Security settings
-  security.pam.enableSudoTouchIdAuth = true;  # Enable Touch ID for sudo
+  # Security settings (new format)
+  security.pam.services.sudo_local.touchIdAuth = true;  # Enable Touch ID for sudo
 }

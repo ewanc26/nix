@@ -10,9 +10,10 @@
   nix = {
     settings = {
       experimental-features = [ "nix-command" "flakes" ];
-      # Auto-optimize nix store
-      auto-optimise-store = true;
     };
+    
+    # Auto-optimize nix store (new format)
+    optimise.automatic = true;
     
     # Automatic garbage collection
     gc = {
@@ -29,8 +30,8 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   
-  # Auto upgrade nix package and the daemon service
-  services.nix-daemon.enable = true;
+  # NOTE: services.nix-daemon.enable is no longer needed
+  # nix-darwin manages nix-daemon automatically when nix.enable is on
   
   # Activation script for git hooks
   system.activationScripts.postActivation.text = ''
