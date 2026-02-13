@@ -1,12 +1,10 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, hostName ? "default", ... }:
 
 let
   # 1. Detect OS
   isDarwin = pkgs.stdenv.isDarwin;
   
-  # 2. Identify Hostname & User
-  # Falls back to "default" if not set in the config
-  hostName = config.networking.hostName or "default";
+  # 2. User config
   userName = "ewan";  # Same username on all systems
 
   # 3. Dynamic Command Selection

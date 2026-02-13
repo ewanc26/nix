@@ -23,6 +23,23 @@
 
   outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, ... }@inputs: {
     nixosConfigurations = {
+      # Default configuration (points to laptop)
+      default = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/laptop
+          ragenix.nixosModules.default
+          
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.ewan = import ./home/home.nix;
+            home-manager.extraSpecialArgs = { isDarwin = false; hostName = "laptop"; };
+          }
+        ];
+      };
+      
       # Laptop configuration
       laptop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -35,7 +52,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix;
-            home-manager.extraSpecialArgs = { isDarwin = false; };
+            home-manager.extraSpecialArgs = { isDarwin = false; hostName = "laptop"; };
           }
         ];
       };
@@ -52,7 +69,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix;
-            home-manager.extraSpecialArgs = { isDarwin = false; };
+            home-manager.extraSpecialArgs = { isDarwin = false; hostName = "server"; };
           }
         ];
       };
@@ -89,7 +106,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix;
-            home-manager.extraSpecialArgs = { isDarwin = true; };
+            home-manager.extraSpecialArgs = { isDarwin = true; hostName = "macmini"; };
             home-manager.backupFileExtension = "backup";
           }
         ];
