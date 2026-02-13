@@ -1,4 +1,4 @@
-# GNOME dconf settings exported at 2026-02-13 16:37:14
+# GNOME dconf settings exported at 2026-02-13 16:41:19
 # Generated via dconf2nix: https://github.com/gvolpe/dconf2nix
 { lib, ... }:
 
