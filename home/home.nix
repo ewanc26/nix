@@ -1,5 +1,8 @@
-{ config, pkgs, lib, isDarwin, ... }:
+{ config, pkgs, lib, isDarwin, extraSpecialArgs, ... }:
 
+let
+  homeDir = extraSpecialArgs.homeDirectory or (if isDarwin then "/Users/ewan" else "/home/ewan");
+in
 {
   imports = [
     ./programs/git.nix
@@ -8,19 +11,15 @@
     ./programs/fastfetch.nix
     ./programs/vscode.nix
   ] ++ lib.optionals (!isDarwin) [
-    # Linux-only imports
     ./programs/gnome.nix
   ];
 
-  # Home Manager settings
   home = {
     username = "ewan";
-    homeDirectory = if isDarwin then "/Users/ewan" else "/home/ewan";
+    homeDirectory = homeDir;
     stateVersion = "25.11";
 
-    # Additional user packages
     packages = with pkgs; [
-      # Nerd Fonts (available on all platforms)
       nerd-fonts.fira-code
       nerd-fonts.jetbrains-mono
       nerd-fonts.meslo-lg
@@ -28,12 +27,10 @@
       nerd-fonts.sauce-code-pro
       nerd-fonts.ubuntu-mono
     ] ++ lib.optionals (!isDarwin) [
-      # Linux-only packages
       vlc
-      dconf2nix # For exporting GNOME settings to Nix
-    ]; 
+      dconf2nix
+    ];
 
-    # Global gitignore file
     file.".gitignore_global".text = ''
       # OS generated files
       .DS_Store
@@ -58,13 +55,10 @@
     '';
   };
 
-  # Let Home Manager manage itself
   programs.home-manager.enable = true;
 
-  # Font configuration
   fonts.fontconfig.enable = true;
 
-  # Linux-specific theming (GTK/Qt)
   gtk = lib.mkIf (!isDarwin) {
     enable = true;
     theme = {

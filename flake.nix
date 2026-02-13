@@ -74,7 +74,7 @@
         ];
       };
 
-      # UTM Apple Silicon virual machine server
+      # UTM Apple Silicon virtual machine server
       vm = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         modules = [
@@ -86,7 +86,11 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix;
-            home-manager.extraSpecialArgs = { isDarwin = false; hostName = "vm"; };
+            home-manager.extraSpecialArgs = {
+              isDarwin = false;
+              hostName = "vm";
+              homeDirectory = "/home/ewan"; # VM home dir
+            };
           }
         ];
       };
