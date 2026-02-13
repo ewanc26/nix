@@ -23,8 +23,8 @@
   programs.dconf.enable = true;
   
   # Expose schemas for gtk4-desktop-icons extension
-  services.xserver.desktopManager.gnome.extraGSettingsOverridePackages = with pkgs; [
-    gnome.nautilus
+  services.desktopManager.gnome.extraGSettingsOverridePackages = with pkgs; [
+    nautilus
   ];
   
   environment.systemPackages = with pkgs; [
