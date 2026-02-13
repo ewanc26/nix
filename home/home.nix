@@ -1,7 +1,6 @@
-{ config, pkgs, lib, isDarwin, extraSpecialArgs ? {} , ... }:
+{ config, pkgs, lib, isDarwin, extraSpecialArgs ? {}, ... }:
 
 let
-  # Use extraSpecialArgs.homeDirectory if provided, otherwise default
   homeDir = extraSpecialArgs.homeDirectory or (if isDarwin then "/Users/ewan" else "/home/ewan");
 in
 {
@@ -41,14 +40,14 @@ in
       .Trashes
       ehthumbs.db
       Thumbs.db
-      
+
       # Editor files
       .vscode/
       .idea/
       *.swp
       *.swo
       *~
-      
+
       # Temporary files
       *.tmp
       *.bak

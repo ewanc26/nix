@@ -21,21 +21,23 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, ... }@inputs: {
+  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, ... }: let
+    lib = nixpkgs.lib;
+  in {
 
     nixosConfigurations = {
-      # Default configuration (points to laptop)
+
       default = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./hosts/laptop
           ragenix.nixosModules.default
-
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix {
+              inherit pkgs lib;
               isDarwin = false;
               extraSpecialArgs = {
                 hostName = "laptop";
@@ -46,38 +48,19 @@
         ];
       };
 
-      laptop = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          ./hosts/laptop
-          ragenix.nixosModules.default
-
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.ewan = import ./home/home.nix {
-              isDarwin = false;
-              extraSpecialArgs = {
-                hostName = "laptop";
-                homeDirectory = "/home/ewan";
-              };
-            };
-          }
-        ];
-      };
+      laptop = default;
 
       server = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./hosts/server
           ragenix.nixosModules.default
-
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix {
+              inherit pkgs lib;
               isDarwin = false;
               extraSpecialArgs = {
                 hostName = "server";
@@ -93,12 +76,12 @@
         modules = [
           ./hosts/vm
           ragenix.nixosModules.default
-
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix {
+              inherit pkgs lib;
               isDarwin = false;
               extraSpecialArgs = {
                 hostName = "vm";
@@ -113,16 +96,15 @@
     darwinConfigurations = {
       macmini = nix-darwin.lib.darwinSystem {
         system = "aarch64-darwin";
-
         modules = [
           ./hosts/macmini
           ragenix.darwinModules.default
-
           home-manager.darwinModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix {
+              inherit pkgs lib;
               isDarwin = true;
               extraSpecialArgs = {
                 hostName = "macmini";
