@@ -14,9 +14,9 @@
     };
     
     # Taps (repositories)
+    # Note: homebrew/cask and homebrew/core are now built-in and don't need to be tapped
     taps = [
-      "homebrew/cask"
-      "homebrew/core"
+      # Add custom taps here if needed
     ];
     
     # Formulae (CLI tools better managed by Homebrew)

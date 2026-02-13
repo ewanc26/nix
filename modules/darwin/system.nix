@@ -10,7 +10,7 @@
   # Keyboard settings
   system.keyboard = {
     enableKeyMapping = true;
-    remapCapsLockToControl = true;  # Remap Caps Lock to Control
+    remapCapsLockToControl = false;  # Keep Caps Lock as Caps Lock
   };
 
   # Startup chime
