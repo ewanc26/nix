@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/users.nix
     ../../profiles/server-hardened.nix
