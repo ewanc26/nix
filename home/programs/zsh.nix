@@ -54,7 +54,6 @@ in
     // (lib.optionalAttrs isDarwin {
       # Nix rebuild commands
       nrs = "darwin-rebuild switch --flake .#${hostName}";
-      nrb = "echo 'Boot not supported on Darwin'";
       nrt = "darwin-rebuild test --flake .#${hostName}";
       hms = "home-manager switch --flake .#${userName}";
       
