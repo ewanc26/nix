@@ -235,14 +235,13 @@ Manual cleanup:
 ```bash
 make clean  # Or:
 sudo nix-collect-garbage -d
-nix-collect-garbage -d
 ```
 
 ### Garbage Collection (macOS)
 
 ```bash
-nix-collect-garbage -d
-darwin-rebuild switch --flake .#macmini
+sudo nix-collect-garbage -d
+sudo darwin-rebuild switch --flake .#macmini
 ```
 
 ## Inputs
@@ -261,7 +260,6 @@ Additional documentation can be found in:
 - [hosts/README.md](hosts/README.md) - Host configuration guide
 - [secrets/README.md](secrets/README.md) - Secrets management
 - [settings/SETTINGS_GUIDE.md](settings/SETTINGS_GUIDE.md) - Settings export/import
-- [docs/BACKUP_SETUP.md](docs/BACKUP_SETUP.md) - Backup configuration
 - [docs/REFERENCE.md](docs/REFERENCE.md) - Additional reference material
 
 ## Contributing
