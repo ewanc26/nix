@@ -32,7 +32,7 @@
         "astra-monitor@astraext.github.io"                    # Astra Monitor
         "mediacontrols@cliffniff.github.com"                  # Media Controls
         "dash-to-dock@micxgx.gmail.com"                       # Dash to Dock
-        "ding@rastersoft.com"                                 # Desktop Icons NG
+        "gtk4-ding@smedius.gitlab.com"                       # GTK4 Desktop Icons NG
         
         # Your existing extensions
         "system-monitor@gnome-shell-extensions.gcampax.github.com"
@@ -115,8 +115,8 @@
       sensors-header-show = true;
     };
 
-    # Desktop Icons NG (DING) configuration
-    "org/gnome/shell/extensions/ding" = {
+    # GTK4 Desktop Icons NG (DING) configuration
+    "org/gnome/shell/extensions/gtk4-ding" = {
       icon-size = "small";                   # Icon size: small, standard, large
       show-home = true;                       # Show Home folder
       show-trash = true;                      # Show Trash
