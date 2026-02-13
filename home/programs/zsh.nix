@@ -21,18 +21,12 @@ in
     syntaxHighlighting.enable = true;
 
     shellAliases = {
-      # Navigation & General
+      # Common aliases (work on all platforms)
       ll = "ls -lah";
       la = "ls -A";
       l = "ls -CF";
       ".." = "cd ..";
       "..." = "cd ../..";
-
-      # Dynamic Nix Commands
-      nrs = "${sudoPrefix}${rebuildCmd} switch --flake .#${hostName}";
-      nrb = if isDarwin then "echo 'Boot not supported on Darwin'" else "sudo nixos-rebuild boot --flake .#${hostName}";
-      nrt = "${sudoPrefix}${rebuildCmd} test --flake .#${hostName}";
-      hms = "home-manager switch --flake .#${userName}";
 
       # Git shortcuts
       gs = "git status";
@@ -40,21 +34,37 @@ in
       gc = "git commit";
       gp = "git push";
       gl = "git pull";
-
-      # Unified Update & Cleanup
-      update = "nrs && hms";
-      cleanup = if isDarwin 
-        then "nix-collect-garbage -d" 
-        else "sudo nix-collect-garbage -d && nix-collect-garbage -d";
     } 
     # Linux-specific aliases
     // (lib.optionalAttrs (!isDarwin) {
+      # Nix rebuild commands
+      nrs = "sudo nixos-rebuild switch --flake .#${hostName}";
+      nrb = "sudo nixos-rebuild boot --flake .#${hostName}";
+      nrt = "sudo nixos-rebuild test --flake .#${hostName}";
+      hms = "home-manager switch --flake .#${userName}";
+      
+      # Combined operations
+      update = "sudo nixos-rebuild switch --flake .#${hostName} && home-manager switch --flake .#${userName}";
+      cleanup = "sudo nix-collect-garbage -d && nix-collect-garbage -d";
+      
+      # GNOME settings export
       backup-gde = "bash '/etc/nixos/settings/gnome-export.sh'";
     })
     # macOS-specific aliases
-    // (lib.optionalAttrs (isDarwin) {
+    // (lib.optionalAttrs isDarwin {
+      # Nix rebuild commands
+      nrs = "darwin-rebuild switch --flake .#${hostName}";
+      nrb = "echo 'Boot not supported on Darwin'";
+      nrt = "darwin-rebuild test --flake .#${hostName}";
+      hms = "home-manager switch --flake .#${userName}";
+      
+      # Combined operations
+      update = "darwin-rebuild switch --flake .#${hostName} && home-manager switch --flake .#${userName}";
+      cleanup = "nix-collect-garbage -d";
+      
+      # Darwin settings export
       backup-dde = "bash '$HOME/.config/nix-config/settings/darwin-export.sh'";
-    });
+    });}
 
     # Additional configuration (25.11+ correct)
     initContent = ''
