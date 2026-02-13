@@ -58,6 +58,12 @@ in
 
     # Additional configuration (25.11+ correct)
     initContent = ''
+      # Display system info on shell start
+      fastfetch
+
+      # Initialize Starship prompt
+      eval "$(starship init zsh)"
+
       setopt PROMPT_SUBST
 
       # History
