@@ -23,12 +23,6 @@
   # Boot configuration - clean /tmp on boot
   boot.tmp.cleanOnBoot = true;
 
-  # User SSH keys for remote access
-  users.users.ewan.openssh.authorizedKeys.keys = [
-    # Add your SSH public keys here
-    # "ssh-ed25519 AAAAC3... user@host"
-  ];
-
   # Security settings
   security.sudo = {
     enable = true;
