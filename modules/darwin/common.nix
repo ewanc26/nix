@@ -29,18 +29,4 @@
   
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-  
-  # NOTE: services.nix-daemon.enable is no longer needed
-  # nix-darwin manages nix-daemon automatically when nix.enable is on
-  
-  # Activation script for git hooks
-  system.activationScripts.postActivation.text = ''
-    # Setup git hooks
-    if [ -d /Users/ewan/.config/nix-config/.git ]; then
-      ${pkgs.bash}/bin/bash /Users/ewan/.config/nix-config/scripts/setup-hooks.sh
-    fi
-    
-    # Ensure nix-darwin config is always accessible
-    echo "Configuration is managed at /Users/ewan/.config/nix-config"
-  '';
 }
