@@ -13,7 +13,7 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 
 ### macOS Systems (nix-darwin)
 
-- **macmini** - Apple Silicon Mac Mini (M1/M2/M3)
+- **macmini** - Apple Silicon Mac Mini (M2)
 
 ## Repository Structure
 
