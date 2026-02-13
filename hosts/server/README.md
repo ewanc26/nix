@@ -70,9 +70,9 @@ networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 If installing from scratch:
 
 ```bash
-# On the installer, clone the config
+# On the installer, download the config (no git required)
 cd /mnt/etc/nixos
-sudo git clone https://github.com/yourusername/nix-config .
+curl -L https://github.com/yourusername/nix-config/archive/refs/heads/main.tar.gz | sudo tar -xz --strip-components=1
 
 # Install
 sudo nixos-install --flake .#server
@@ -86,9 +86,10 @@ reboot
 If converting an existing system:
 
 ```bash
-# Clone config to expected location
+# Download config to a temporary location (no git required)
 cd /tmp
-git clone https://github.com/yourusername/nix-config
+curl -L https://github.com/yourusername/nix-config/archive/refs/heads/main.tar.gz | tar -xz
+mv nix-config-main nix-config
 cd nix-config
 
 # Copy your hardware config

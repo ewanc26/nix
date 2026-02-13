@@ -26,13 +26,20 @@ Each host has its own subdirectory with the following files:
 
 ### Quick Start
 
-1. Create a new directory under `hosts/` with your hostname
-2. Copy your hardware configuration:
+1. If you haven't already, download the repository (no git required):
+   ```bash
+   mkdir -p ~/.config
+   curl -L https://github.com/ewanc26/nix/archive/refs/heads/main.tar.gz | tar -xz -C ~/.config
+   mv ~/.config/nix-main ~/.config/nix-config
+   cd ~/.config/nix-config
+   ```
+2. Create a new directory under `hosts/` with your hostname
+3. Copy your hardware configuration:
    ```bash
    sudo nixos-generate-config --show-hardware-config > hosts/YOUR-HOST/hardware-configuration.nix
    ```
-3. Create a `default.nix` using one of the templates below
-4. Add the host to `flake.nix` in the `nixosConfigurations` section
+4. Create a `default.nix` using one of the templates below
+5. Add the host to `flake.nix` in the `nixosConfigurations` section
 
 ### Configuration Types
 

@@ -4,26 +4,39 @@ This host configuration is for the MacMini running macOS with nix-darwin.
 
 ## Initial Setup
 
-### 1. Install Nix (if not already installed)
+### 1. Download this repository
+
+macOS includes `curl` by default, so no git is needed:
+
+```bash
+mkdir -p ~/.config
+curl -L https://github.com/ewanc26/nix/archive/refs/heads/main.tar.gz | tar -xz -C ~/.config
+mv ~/.config/nix-main ~/.config/nix-config
+```
+
+> **Note:** Once nix-darwin is applied, `git` will be available via Nix. You can then
+> convert this into a proper repo: `cd ~/.config/nix-config && git init && git remote add origin https://github.com/ewanc26/nix.git`
+
+### 2. Install Nix (if not already installed)
 
 ```bash
 sh <(curl -L https://nixos.org/nix/install)
 ```
 
-### 2. Enable Flakes
+### 3. Enable Flakes
 
 Add to `~/.config/nix/nix.conf`:
 ```
 experimental-features = nix-command flakes
 ```
 
-### 3. Install nix-darwin
+### 4. Install nix-darwin
 
 ```bash
 nix run nix-darwin -- switch --flake ~/.config/nix-config#macmini
 ```
 
-### 4. Add nix-darwin to your PATH
+### 5. Add nix-darwin to your PATH
 
 After the first installation, add this to your shell profile:
 ```bash

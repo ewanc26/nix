@@ -85,12 +85,17 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 
 ### Initial Setup
 
-1. Clone this repository:
+1. Download this repository:
 
    ```bash
-   git clone https://github.com/ewanc26/nix.git ~/.config/nix-config
+   # Using curl (no git required)
+   mkdir -p ~/.config
+   curl -L https://github.com/ewanc26/nix/archive/refs/heads/main.tar.gz | tar -xz -C ~/.config
+   mv ~/.config/nix-main ~/.config/nix-config
    cd ~/.config/nix-config
    ```
+
+   > **Note:** Once your system is built, `git` will be available (it's included in the Nix configuration). You can then convert the directory into a proper git repo with `git init && git remote add origin https://github.com/ewanc26/nix.git` if desired.
 
 2. For NixOS systems, build and activate:
 
