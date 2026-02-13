@@ -8,11 +8,12 @@
   ];
 
   # Install GNOME extensions
+  # Note: gtk4-desktop-icons-ng-ding is installed at system level in modules/desktop.nix
+  # for proper GSettings schema compilation
   home.packages = with pkgs.gnomeExtensions; [
     astra-monitor
     media-controls
     dash-to-dock
-    gtk4-desktop-icons-ng-ding  # GTK4 Desktop Icons NG (DING)
   ];
 
   # GNOME wallpaper and extension configuration

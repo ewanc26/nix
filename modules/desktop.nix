@@ -28,6 +28,9 @@
     # GTK4 Desktop Icons dependencies
     poppler           # PDF thumbnails (includes glib bindings)
     libadwaita        # GTK4 theming support
+    
+    # GNOME Extensions (system-level for proper schema compilation)
+    gnomeExtensions.gtk4-desktop-icons-ng-ding
   ];
 
   # Exclude some default GNOME apps to keep it minimal
