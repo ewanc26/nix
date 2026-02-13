@@ -64,7 +64,7 @@ in
       
       # Darwin settings export
       backup-dde = "bash '$HOME/.config/nix-config/settings/darwin-export.sh'";
-    });}
+    });
 
     # Additional configuration (25.11+ correct)
     initContent = ''
