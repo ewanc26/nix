@@ -100,7 +100,8 @@
     libffi
     
     # === Monitoring & Analysis ===
-    screenresolution      # macOS screen resolution tool
+    # Note: screenresolution not available in nixpkgs
+    # Use system_profiler or defaults write for screen resolution changes
   ];
 
   # Enable programs with dedicated options
