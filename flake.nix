@@ -90,6 +90,7 @@
             home-manager.useUserPackages = true;
             home-manager.users.ewan = import ./home/home.nix;
             home-manager.extraSpecialArgs = { isDarwin = true; };
+            home-manager.backupFileExtension = "backup";
           }
         ];
       };

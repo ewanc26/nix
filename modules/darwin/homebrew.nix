@@ -9,8 +9,8 @@
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      # Cleanup old versions
-      cleanup = "zap";
+      # Cleanup old versions (uninstall is safer than zap)
+      cleanup = "uninstall";
     };
     
     # Taps (repositories)
