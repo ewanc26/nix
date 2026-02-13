@@ -51,13 +51,13 @@ in
     # macOS-specific aliases
     // (lib.optionalAttrs isDarwin {
       # Nix rebuild commands
-      nrs = "darwin-rebuild switch --flake .#${hostName}";
-      nrt = "darwin-rebuild test --flake .#${hostName}";
+      nrs = "sudo darwin-rebuild switch --flake .#${hostName}";
+      nrt = "sudo darwin-rebuild test --flake .#${hostName}";
       hms = "home-manager switch --flake .#${userName}";
       
       # Combined operations
-      update = "darwin-rebuild switch --flake .#${hostName} && home-manager switch --flake .#${userName}";
-      cleanup = "nix-collect-garbage -d";
+      update = "sudo darwin-rebuild switch --flake .#${hostName} && home-manager switch --flake .#${userName}";
+      cleanup = "sudo nix-collect-garbage -d";
       
       # Darwin settings export
       backup-dde = "bash '$HOME/.config/nix-config/settings/darwin-export.sh'";
