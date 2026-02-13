@@ -27,14 +27,15 @@
     lib = nixpkgs.lib;
 
     # helper that returns the value to use as the home manager user module
-    homeUser = { pkgsFor, isDarwin }: import ./home/home.nix {
+    homeUser = { pkgsFor, isDarwin, hostName }: import ./home/home.nix {
       pkgs = pkgsFor;
       lib = lib;
       isDarwin = isDarwin;
+      hostName = hostName;
     };
 
     # DRY NixOS builder: compute pkgsForSystem and pass it explicitly into homeUser
-    mkNixOS = { system, hostFile }: let
+    mkNixOS = { system, hostFile, hostName }: let
       pkgsForSystem = import nixpkgs {
   inherit system;
   config = { allowUnfree = true; };
@@ -49,13 +50,13 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.ewan = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; };
+          home-manager.users.ewan = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit hostName; };
         }
       ];
     };
 
     # DRY Darwin builder: compute pkgs for Darwin and pass into homeUser
-    mkDarwin = { system, hostFile }: let
+    mkDarwin = { system, hostFile, hostName }: let
       pkgsForDarwin = import nixpkgs-darwin {
   inherit system;
   config = { allowUnfree = true; };
@@ -70,20 +71,20 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.ewan = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; };
+          home-manager.users.ewan = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit hostName; };
           home-manager.backupFileExtension = "backup";
         }
       ];
     };
   in {
       nixosConfigurations = rec {
-        default = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; };
+        default = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; hostName = "laptop"; };
         laptop  = default;
-        server  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/server; };
+        server  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/server; hostName = "server"; };
       };
 
     darwinConfigurations = {
-      macmini = mkDarwin { system = "aarch64-darwin"; hostFile = ./hosts/macmini; };
+      macmini = mkDarwin { system = "aarch64-darwin"; hostFile = ./hosts/macmini; hostName = "macmini"; };
     };
   };
 }

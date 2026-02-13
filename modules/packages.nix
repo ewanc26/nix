@@ -3,10 +3,7 @@
 {
   # System-wide programs with built-in options
   programs = {
-    # Firefox with proper NixOS options
     firefox.enable = true;
-    
-    # Git configuration
     git.enable = true;
   };
 
@@ -16,36 +13,18 @@
     vim
     wget
     curl
-    htop
-    unzip
-    zip
-    tree
-    ripgrep
-    fd
-    
-    # System information
-    fastfetch
-    
-    # Development tools
-    vscode
-    
+
     # Communication
     discord
     signal-desktop
 
     # Media
     spotify
-    
+
     # Gaming
     prismlauncher
-    
+
     # GNOME utilities
     gnome-extension-manager
   ];
-
-  # VSCode configuration (separate from systemPackages for clarity)
-  programs.vscode = {
-    enable = true;
-    package = pkgs.vscode;
-  };
 }

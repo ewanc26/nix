@@ -1,4 +1,4 @@
-{ pkgs, lib, isDarwin, extraSpecialArgs ? {}, ... }:
+{ pkgs, lib, isDarwin, hostName, extraSpecialArgs ? {}, ... }:
 { config, ... }:
 
 let
@@ -22,16 +22,36 @@ in
     stateVersion = "25.11";
 
     packages = with pkgs; [
+      # Fonts
       nerd-fonts.fira-code
       nerd-fonts.jetbrains-mono
       nerd-fonts.meslo-lg
       nerd-fonts.roboto-mono
       nerd-fonts.sauce-code-pro
       nerd-fonts.ubuntu-mono
+
+      # Common cross-platform user tools
+      fastfetch
+      htop
+      tree
+      ripgrep
+      fd
+      unzip
+      zip
     ] ++ lib.optionals (!isDarwin) [
       vlc
       dconf2nix
     ];
+
+    file.".ssh/authorized_keys" = {
+      text =
+        let
+          allKeys = import ../modules/ssh-keys.nix;
+          filteredKeys = lib.attrValues (lib.filterAttrs (name: _: name != hostName) allKeys);
+        in
+          builtins.concatStringsSep "\n" filteredKeys;
+      onChange = "chmod 600 ${homeDir}/.ssh/authorized_keys";
+    };
 
     file.".gitignore_global".text = ''
       # OS generated files
