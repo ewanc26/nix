@@ -22,17 +22,9 @@
     };
   };
   
-  # Auto-update system
-  system.autoUpgrade = {
-    enable = true;
-    operation = "switch";
-    flake = "/Users/ewan/.config/nix-config";
-    flags = [
-      "--update-input" "nixpkgs"
-      "--update-input" "nixpkgs-darwin"
-      "--commit-lock-file"
-    ];
-  };
+  # NOTE: system.autoUpgrade doesn't exist in nix-darwin
+  # To auto-update, you need to manually create a launchd service
+  # For now, run: darwin-rebuild switch --flake ~/.config/nix-config#macmini
   
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -49,6 +41,5 @@
     
     # Ensure nix-darwin config is always accessible
     echo "Configuration is managed at /Users/ewan/.config/nix-config"
-    echo "Auto-updates are enabled and will run automatically"
   '';
 }
