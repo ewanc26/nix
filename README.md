@@ -1,391 +1,281 @@
 # Nix Configuration
 
-My Nix-darwin and NixOS configurations
+Personal NixOS and nix-darwin configurations for managing multiple machines with a unified setup.
 
-## ✨ Key Features
+> **Note:** This is a personal configuration repository. While you're welcome to use it as reference, it's specifically tailored to my needs and setup.
 
-- 🔄 **Fully Automated** - Updates, backups, and file placement happen automatically
-- 🔒 **Encrypted Settings** - All system preferences stored securely with ragenix
-- 📦 **Git Backups** - Configuration automatically committed and pushed every 6 hours
-- 🌐 **Network-Aware** - Always commits locally, only pushes when online - works perfectly offline
-- 🔧 **Zero Maintenance** - Set it and forget it - everything just works
-- 💎 **Cross-Platform** - Same dotfiles on NixOS and macOS
-- 🧠 **Smart Hooks** - Git hooks validate config before commits and auto-push changes
-- 📦 **DRY Architecture** - Common settings defined once, shared across all hosts
+## Managed Systems
 
-## 🖥️ Supported Platforms
+### Linux Systems (NixOS)
 
-- **NixOS** (Linux): Full system configuration with GNOME desktop
-  - Host: `laptop` (configured)
-- **NixOS** (Linux): Minimal server configuration
-  - Host: `server` (configured)
-- **macOS** (nix-darwin): System configuration with Homebrew integration  
-  - Host: `macmini` (configured)
+- **laptop** - Dell Inspiron 3501 with GNOME desktop environment
+- **server** - Minimal headless server configuration
 
-**Shared dotfiles** across all platforms:
-- Git configuration
-- Zsh shell (default on all hosts) with OS-specific aliases
-- Starship prompt
-- Fastfetch
-- VSCode settings
+### macOS Systems (nix-darwin)
 
-## 📁 Structure
+- **macmini** - Apple Silicon Mac Mini (M1/M2/M3)
+
+## Repository Structure
 
 ```
-nix/
-├── flake.nix                    # Main flake configuration
-├── hosts/                       # Host-specific configurations
-│   ├── README.md               # Guide for adding new hosts
-│   └── <hostname>/             # Directory for a specific machine
-│       ├── default.nix         # Main host configuration
-│       └── hardware-configuration.nix  # Hardware-specific settings
-├── scripts/                     # Automation scripts
-│   ├── README.md               # Scripts documentation
-│   ├── auto-backup.sh          # Automatic git backup script
-│   ├── setup-hooks.sh          # Git hooks installation
-│   ├── pre-commit              # Validates Nix config before commit
-│   └── post-commit             # Auto-pushes commits to remote
-├── settings/                    # System settings (encrypted)
-│   ├── SETTINGS_GUIDE.md       # Settings management guide
-│   ├── gnome/                  # GNOME settings
-│   │   └── default.nix         # Imports encrypted dconf
-│   └── darwin/                 # macOS settings
-│       └── defaults.nix        # Imports encrypted defaults
-├── wallpapers/                  # Wallpaper images
-│   └── wallpaper.jpg           # Default wallpaper
-├── modules/                     # Reusable modules
-│   ├── common.nix              # Common NixOS settings (all hosts)
-│   ├── users.nix               # Standard user configuration
-│   ├── desktop.nix             # Desktop environment (GNOME) - Linux desktop
-│   ├── packages.nix            # Desktop packages - Linux desktop
-│   ├── services.nix            # Desktop services - Linux desktop
-│   ├── gaming.nix              # Steam and gaming setup - Linux desktop
-│   ├── server-packages.nix     # Server packages - Linux server
-│   ├── server-services.nix     # Server services (SSH, fail2ban) - Linux server
-│   ├── git-backup.nix          # Auto-backup service (Linux)
-│   ├── secrets.nix             # Encrypted secrets configuration
-│   └── darwin/                 # macOS-specific modules
-│       ├── common.nix          # Common Darwin settings (all macOS hosts)
-│       ├── packages.nix        # Nix-managed CLI packages
-│       ├── homebrew.nix        # Homebrew formulae and casks
-│       ├── system.nix          # macOS system settings
-│       └── git-backup.nix      # Auto-backup agent (macOS)
-├── secrets/                     # Encrypted secrets (ragenix)
-│   ├── README.md               # Secrets management guide
-│   ├── secrets.nix             # Public keys and secret definitions
-│   └── *.age                   # Encrypted secret files
-└── home/                        # Home Manager configuration
-    ├── home.nix                # Main home-manager config
-    └── programs/
-        ├── git.nix             # Git configuration
-        ├── zsh.nix             # Zsh shell setup (default on all hosts)
-        ├── starship.nix        # Starship prompt
-        ├── fastfetch.nix       # Fastfetch config
-        ├── gnome.nix           # GNOME settings & wallpaper
-        └── vscode.nix          # VSCode settings
+.
+├── flake.nix                 # Main flake configuration
+├── flake.lock               # Locked dependency versions
+├── configuration.nix        # Legacy configuration (deprecated in favor of modular setup)
+├── Makefile                 # Convenience commands for building/updating
+│
+├── hosts/                   # Host-specific configurations
+│   ├── laptop/              # Dell Inspiron 3501 (NixOS + GNOME)
+│   ├── server/              # Headless server (NixOS)
+│   └── macmini/             # Mac Mini (nix-darwin)
+│
+├── modules/                 # Reusable system modules
+│   ├── common.nix           # Shared settings across all hosts
+│   ├── desktop.nix          # GNOME desktop environment
+│   ├── gaming.nix           # Gaming packages and Steam
+│   ├── packages.nix         # Common packages for desktop systems
+│   ├── services.nix         # System services configuration
+│   ├── secrets.nix          # Secret management with ragenix
+│   ├── users.nix            # User account configuration
+│   ├── server-packages.nix  # Server-specific tools
+│   ├── server-services.nix  # Server services (SSH, fail2ban, etc.)
+│   └── darwin/              # macOS-specific modules
+│       ├── common.nix       # Shared macOS settings
+│       ├── homebrew.nix     # Homebrew package management
+│       ├── packages.nix     # macOS packages
+│       └── system.nix       # macOS system preferences
+│
+├── home/                    # Home Manager configurations
+│   ├── home.nix             # Main home-manager config
+│   ├── configs/             # Application config files
+│   │   ├── fastfetch.jsonc
+│   │   └── starship.toml
+│   └── programs/            # Program-specific configs
+│       ├── fastfetch.nix
+│       ├── git.nix
+│       ├── gnome.nix
+│       ├── starship.nix
+│       ├── vscode.nix
+│       └── zsh.nix
+│
+├── settings/                # System settings export/import
+│   ├── gnome/               # GNOME dconf settings
+│   ├── darwin/              # macOS defaults
+│   ├── gnome-export.sh      # Script to export GNOME settings
+│   └── darwin-export.sh     # Script to export macOS settings
+│
+├── secrets/                 # Encrypted secrets with ragenix
+│   ├── secrets.nix          # Public key mappings
+│   ├── setup.sh             # Automated key management
+│   └── *.age                # Encrypted secret files
+│
+├── wallpapers/              # Desktop wallpapers
+├── scripts/                 # Utility scripts
+└── docs/                    # Additional documentation
+    ├── BACKUP_SETUP.md
+    └── REFERENCE.md
 ```
 
-## 🏗️ Architecture
+## Quick Start
 
-### Hosts Directory
+### Prerequisites
 
-This configuration uses a **hosts-based architecture** for multi-machine management:
+- **NixOS:** Install NixOS on your system
+- **macOS:** Install Nix using the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer)
 
-* Each physical machine gets its own directory under `hosts/`
-* Host-specific settings (hostname, hardware config) are isolated
-* Shared modules (desktop, packages, services) are imported by each host
-* Easy to add new machines — see `hosts/README.md` for details
+### Initial Setup
 
-### Options vs System Packages
-
-This configuration follows NixOS best practices by using **declarative options** instead of only adding packages:
-
-**✅ Recommended (Using Options):**
-
-```nix
-programs.firefox.enable = true;
-programs.steam.enable = true;
-```
-
-**❌ Less Ideal (Only System Packages):**
-
-```nix
-environment.systemPackages = with pkgs; [ firefox steam ];
-```
-
-**Benefits of Options:**
-
-* Declarative and clear
-* Additional configuration options available
-* Better integration with NixOS
-* Automatically enables/disables related services
-* Some programs require options (e.g., Steam needs firewall rules)
-
-**When to Use System Packages:**
-
-* No official NixOS option exists
-* Simple utilities without complex configuration
-* See `modules/packages.nix` for details
-
-## 📦 Included Software
-
-### System Tools
-
-* **git** — Version control
-* **fastfetch** — System information
-* **starship** — Modern shell prompt
-* **zsh** — Z Shell (default shell on all hosts)
-
-### Applications
-
-* **Firefox** — Web browser
-* **VSCode** — Code editor with extensions
-* **Spotify** — Music streaming
-* **Discord** — Communication
-* **Steam** — Gaming platform (with GameMode)
-* **Prism Launcher** — Minecraft launcher
-
-### Desktop Environment
-
-* **GNOME** — Default desktop environment
-* **GDM** — Display manager
-
-## 🚀 Installation
-
-### For NixOS (Linux)
-
-#### Option A: Switching from Existing NixOS
-
-1. **Enable flakes and git** (if not already):
-
-   ```nix
-   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-   ```
-
-2. **Backup your current configuration**:
+1. Clone this repository:
 
    ```bash
-   sudo cp -r /etc/nixos /etc/nixos.backup
+   git clone https://github.com/ewanc26/nix.git ~/.config/nix-config
+   cd ~/.config/nix-config
    ```
 
-3. **Clone this repository**:
+2. For NixOS systems, build and activate:
 
    ```bash
-   cd /tmp
-   git clone https://github.com/ewanc26/nix nix-config
-   cd nix-config
+   # For laptop
+   sudo nixos-rebuild switch --flake .#laptop
+
+   # For server
+   sudo nixos-rebuild switch --flake .#server
    ```
 
-4. **Generate hardware configuration**:
+3. For macOS systems:
 
    ```bash
-   sudo nixos-generate-config --show-hardware-config > hosts/<hostname>/hardware-configuration.nix
+   # First time setup
+   sudo nix run nix-darwin -- switch --flake .#macmini
+
+   # Subsequent updates
+   sudo darwin-rebuild switch --flake .#macmini
    ```
 
-5. **Customize your configuration**:
+### Using the Makefile (NixOS only)
 
-   * Edit `hosts/<hostname>/default.nix` for hostname and host-specific settings
-   * Configure git, shell, or applications in `home/programs/`
-
-6. **Test configuration**:
-
-   ```bash
-   sudo nixos-rebuild test --flake .#<hostname>
-   ```
-
-7. **Apply configuration**:
-
-   ```bash
-   sudo nixos-rebuild switch --flake .#<hostname>
-   ```
-
-### Option B: Fresh Installation
-
-1. **Boot NixOS installer** and partition your disk.
-
-2. **Clone repository** into `/mnt/etc/nixos`:
-
-   ```bash
-   sudo git clone https://github.com/ewanc26/nix .
-   ```
-
-3. **Generate hardware configuration**:
-
-   ```bash
-   sudo nixos-generate-config --show-hardware-config > hosts/<hostname>/hardware-configuration.nix
-   ```
-
-4. **Configure user settings** (git, shell, etc.)
-
-5. **Install NixOS**:
-
-   ```bash
-   sudo nixos-install --flake .#<hostname>
-   ```
-
-6. **Reboot** and login.
-
-### For macOS (nix-darwin)
-
-See **[MACOS_SETUP.md](MACOS_SETUP.md)** for complete installation instructions.
-
-**Quick start:**
+The Makefile provides convenient shortcuts for common operations:
 
 ```bash
-# Install nix-darwin
-nix run nix-darwin -- switch --flake ~/.config/nix-config#macmini
-
-# Rebuild after changes
-darwin-rebuild switch --flake ~/.config/nix-config#macmini
+make switch    # Build and activate configuration
+make boot      # Build for next boot
+make test      # Test without setting default
+make update    # Update flake inputs
+make clean     # Garbage collection
+make fmt       # Format Nix files
+make check     # Check flake for errors
 ```
 
-## 🛠️ Quick Commands
+## Features
 
-### Build Specific Hosts
+### Common Features (All Systems)
 
-**Desktop/Laptop (with GUI):**
+- **Flakes-based configuration** for reproducible builds
+- **Home Manager** for user environment management
+- **Automatic updates** with configurable schedules
+- **Secrets management** with ragenix (age encryption)
+- **Unified dotfiles** across all machines
+- **Git configuration** with global gitignore
+- **Shell configuration** (Zsh with Starship prompt)
+- **VS Code** with extensions and settings sync
+
+### NixOS-Specific Features
+
+- **GNOME desktop** (laptop only) with custom settings
+- **Gaming support** with Steam and necessary libraries
+- **PipeWire** audio system
+- **NetworkManager** for network management
+- **Automatic garbage collection** (weekly, keeps last 30 days)
+- **systemd-boot** bootloader
+- **Latest kernel** packages
+
+### macOS-Specific Features
+
+- **Homebrew integration** for GUI apps
+- **macOS defaults** configuration
+- **nix-darwin** system management
+
+### Server Features (NixOS server)
+
+- **Headless configuration** (no GUI)
+- **SSH server** with security hardening
+- **fail2ban** for intrusion prevention
+- **Minimal package set** optimized for servers
+
+## Secrets Management
+
+This configuration uses [ragenix](https://github.com/yaxitech/ragenix) for managing encrypted secrets. See [secrets/README.md](secrets/README.md) for detailed usage instructions.
+
+Key points:
+
+- Secrets are encrypted using age with SSH keys
+- Run `bash ./secrets/setup.sh` to initialize keys
+- Master key stored in `~/.config/age/keys.txt` (NEVER commit this!)
+- Encrypted `.age` files are safe to commit to git
+
+## Adding a New Host
+
+See [hosts/README.md](hosts/README.md) for detailed instructions on adding new machines to this configuration.
+
+Quick summary:
+
+1. Create a new directory under `hosts/YOUR-HOSTNAME`
+2. Generate hardware configuration: `nixos-generate-config --show-hardware-config`
+3. Create `default.nix` based on templates in hosts/README.md
+4. Add entry to `flake.nix`
+5. Build with `sudo nixos-rebuild switch --flake .#YOUR-HOSTNAME`
+
+## Settings Management
+
+### GNOME Settings (Linux)
+
+Export current GNOME settings to Nix:
+
 ```bash
-sudo nixos-rebuild switch --flake /home/ewan/.config/nix-config#laptop
+cd settings
+./gnome-export.sh
 ```
 
-**Server (no GUI):**
-```bash
-sudo nixos-rebuild switch --flake /home/ewan/.config/nix-config#server
-```
+Settings are automatically applied via dconf during system activation.
 
-**macOS:**
-```bash
-darwin-rebuild switch --flake ~/.config/nix-config#macmini
-```
+### macOS Settings
 
-### Test Before Applying
-```bash
-# Test configuration without switching
-sudo nixos-rebuild test --flake /home/ewan/.config/nix-config#<hostname>
-
-# Build and show what would change
-sudo nixos-rebuild dry-build --flake /home/ewan/.config/nix-config#<hostname>
-```
-
-## 🔄 Updating the System
-
-### Automatic Updates & Backups
-
-All hosts are configured with **automatic updates and git backups**:
-
-**Automatic Updates:**
-* **NixOS**: Updates run daily with a random delay of up to 45 minutes
-* **macOS**: Uses the system auto-upgrade feature
-* Flake inputs are automatically updated and committed
-* Configuration files are automatically placed in the correct system locations
-
-**Automatic Git Backups:**
-* Configuration changes are automatically committed and pushed every 6 hours
-* Git hooks validate configuration before commits
-* **Network-aware** - Always commits locally, only pushes when online
-* Works perfectly offline - accumulated commits pushed when network available
-* No manual intervention required - your config is always backed up
-* See `scripts/README.md` for details and management
-
-### Manual Updates
-
-If you prefer to update manually:
-
-#### NixOS
+Export current macOS defaults:
 
 ```bash
-sudo nixos-rebuild switch --flake /home/ewan/.config/nix-config#<hostname>
-nix flake update /home/ewan/.config/nix-config
-sudo nixos-rebuild switch --flake /home/ewan/.config/nix-config#<hostname>
+cd settings
+./darwin-export.sh
 ```
 
-#### macOS
+Settings are stored in `settings/darwin/default.nix` and applied during rebuild.
+
+## Updating
+
+### Update Flake Inputs
 
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config#macmini
-nix flake update ~/.config/nix-config
-darwin-rebuild switch --flake ~/.config/nix-config#macmini
+nix flake update
+# Then rebuild with your preferred method
 ```
 
-### File Management
+### Update Individual Input
 
-* **NixOS**: Configuration is automatically symlinked from `/home/ewan/.config/nix-config` to `/etc/nixos`
-* **macOS**: Configuration remains in `/Users/ewan/.config/nix-config` and is referenced directly
-* All hosts automatically place configuration files in their correct system locations on activation
+```bash
+nix flake lock --update-input nixpkgs
+```
 
-## 🖥️ Multi-Host Setup
+## Maintenance
 
-1. **Create a new host directory**:
+### Garbage Collection (NixOS)
 
-   ```bash
-   mkdir -p hosts/<new-hostname>
-   sudo nixos-generate-config --show-hardware-config > hosts/<new-hostname>/hardware-configuration.nix
-   cp hosts/<existing-host>/default.nix hosts/<new-hostname>/
-   ```
+Automatic weekly garbage collection is enabled, keeping generations from the last 30 days.
 
-2. **Edit hostname and settings**:
+Manual cleanup:
 
-   ```bash
-   nano hosts/<new-hostname>/default.nix
-   ```
+```bash
+make clean  # Or:
+sudo nix-collect-garbage -d
+nix-collect-garbage -d
+```
 
-3. **Build the new host**:
+### Garbage Collection (macOS)
 
-   ```bash
-   sudo nixos-rebuild switch --flake .#<new-hostname>
-   ```
+```bash
+nix-collect-garbage -d
+darwin-rebuild switch --flake .#macmini
+```
 
-## 🎨 Customization
+## Inputs
 
-### Settings Management
+This configuration uses the following major inputs:
 
-All system settings are managed through encrypted configuration files:
+- [nixpkgs](https://github.com/NixOS/nixpkgs) (25.11 stable)
+- [home-manager](https://github.com/nix-community/home-manager) (release-25.11)
+- [nix-darwin](https://github.com/LnL7/nix-darwin) (nix-darwin-25.11)
+- [ragenix](https://github.com/yaxitech/ragenix) (for secrets management)
 
-* **GNOME Settings** (Linux): Configured via `settings/gnome/default.nix` (encrypted dconf settings)
-  - Automatically imported by `home/programs/gnome.nix`
-  - To export current settings: `settings/gnome-export.sh`
-  - Settings are always applied from the encrypted file, no hardcoded defaults
+## Documentation
 
-* **macOS Settings** (Darwin): Configured via `settings/darwin/defaults.nix` (encrypted system defaults)
-  - Automatically imported by `modules/darwin/system.nix`
-  - To export current settings: `settings/darwin-export.sh`
-  - Settings are always applied from the encrypted file, no hardcoded defaults
+Additional documentation can be found in:
 
-### Other Customization Options
+- [hosts/README.md](hosts/README.md) - Host configuration guide
+- [secrets/README.md](secrets/README.md) - Secrets management
+- [settings/SETTINGS_GUIDE.md](settings/SETTINGS_GUIDE.md) - Settings export/import
+- [docs/BACKUP_SETUP.md](docs/BACKUP_SETUP.md) - Backup configuration
+- [docs/REFERENCE.md](docs/REFERENCE.md) - Additional reference material
 
-* **Desktop Environment**: Change DE/WM in `modules/desktop.nix`
-* **Secrets**: Managed via [ragenix](https://github.com/yaxitech/ragenix)
-* **Additional Packages**: Add via `modules/packages.nix`
-* **Shell Configuration**: Edit `home/programs/zsh.nix`
-* **Wallpaper**: Replace images in `wallpapers/` (wallpaper path configured in GNOME settings)
+## Contributing
 
-## 🔧 Troubleshooting
+This is a personal configuration repository. While I don't accept pull requests unless asked for, feel free to fork and adapt it for your own use!
 
-* Boot, graphics, WiFi, or Home Manager issues can usually be resolved by rebuilding or checking hardware configuration
-* Use `nixos-rebuild test` to safely test changes
-* Rollback to previous generations if needed
+## License
 
-## 📚 Documentation
+This configuration is provided as-is for personal use. See individual package licenses for included software.
 
-### This Repository
-* **[BACKUP_SETUP.md](BACKUP_SETUP.md)** - Automatic git backup system
-* **[SERVER_SETUP.md](SERVER_SETUP.md)** - NixOS server configuration guide
-* **[DRY_REFACTORING.md](DRY_REFACTORING.md)** - DRY architecture and common modules
-* **[settings/SETTINGS_GUIDE.md](settings/SETTINGS_GUIDE.md)** - Settings management guide
-* **[scripts/README.md](scripts/README.md)** - Automation scripts documentation
-* **[secrets/README.md](secrets/README.md)** - Secrets management with ragenix
-* **[hosts/README.md](hosts/README.md)** - Adding new hosts
-* **[hosts/server/README.md](hosts/server/README.md)** - Server host detailed setup
+## Acknowledgments
 
-### External Resources
-* [NixOS Manual](https://nixos.org/manual/nixos/stable/)
-* [nix-darwin](https://github.com/LnL7/nix-darwin) - Nix for macOS
-* [Home Manager Manual](https://nix-community.github.io/home-manager/)
-* [Nix Package Search](https://search.nixos.org/)
-* [NixOS Wiki](https://nixos.wiki/)
-* [Nix Flakes Tutorial](https://nixos.wiki/wiki/Flakes)
-* [macOS Defaults](https://macos-defaults.com/) - macOS system settings reference
+This configuration was inspired by and built upon the excellent work of the Nix community, particularly:
 
-## 📄 License
-
-This configuration is free to use and modify.
+- The NixOS and nix-darwin documentation
+- Various community dotfiles repositories
+- The Home Manager project
