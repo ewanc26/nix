@@ -12,6 +12,7 @@
     astra-monitor
     media-controls
     dash-to-dock
+    desktop-icons-ng-ding  # Desktop Icons NG (DING)
   ];
 
   # GNOME wallpaper and extension configuration
@@ -31,6 +32,7 @@
         "astra-monitor@astraext.github.io"                    # Astra Monitor
         "mediacontrols@cliffniff.github.com"                  # Media Controls
         "dash-to-dock@micxgx.gmail.com"                       # Dash to Dock
+        "ding@rastersoft.com"                                 # Desktop Icons NG
         
         # Your existing extensions
         "system-monitor@gnome-shell-extensions.gcampax.github.com"
@@ -111,6 +113,20 @@
       
       # Sensors (temperature)
       sensors-header-show = true;
+    };
+
+    # Desktop Icons NG (DING) configuration
+    "org/gnome/shell/extensions/ding" = {
+      icon-size = "small";                   # Icon size: small, standard, large
+      show-home = true;                       # Show Home folder
+      show-trash = true;                      # Show Trash
+      show-volumes = true;                    # Show mounted volumes
+      start-corner = "top-left";             # Where icons start appearing
+      add-volumes-opposite = false;          # Add volumes in the same corner
+      keep-arranged = false;                  # Allow free positioning
+      keep-stacked = false;                   # Allow free positioning
+      show-network-volumes = true;           # Show network mounted drives
+      show-hidden-files = false;             # Hide hidden files by default
     };
   };
 }
