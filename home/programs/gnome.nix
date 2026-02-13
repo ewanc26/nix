@@ -9,7 +9,10 @@
 
   # Install GNOME extensions
   # Note: gtk4-desktop-icons-ng-ding is installed at system level in modules/desktop.nix
-  # for proper GSettings schema compilation
+  # for proper GSettings schema compilation.
+  # After rebuild, you may need to manually enable it with:
+  #   rm -rf ~/.cache/thumbnails/
+  #   gnome-extensions enable gtk4-ding@smedius.gitlab.com
   home.packages = with pkgs.gnomeExtensions; [
     astra-monitor
     media-controls

@@ -22,10 +22,18 @@
   # Enable GTK4 in system environment
   programs.dconf.enable = true;
   
+  # Expose schemas for gtk4-desktop-icons extension
+  services.xserver.desktopManager.gnome.extraGSettingsOverridePackages = with pkgs; [
+    gnome.nautilus
+  ];
+  
   environment.systemPackages = with pkgs; [
     gnome-tweaks
     
-    # GTK4 Desktop Icons dependencies
+    # GTK4 Desktop Icons dependencies (required by gtk4-ding)
+    gjs               # JavaScript bindings for GNOME
+    gdk-pixbuf        # Image loading library
+    imagemagick       # For converting jpg to png thumbnails
     poppler           # PDF thumbnails (includes glib bindings)
     libadwaita        # GTK4 theming support
     
