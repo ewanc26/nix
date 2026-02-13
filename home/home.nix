@@ -1,7 +1,9 @@
-{ config, pkgs, lib, isDarwin, ... }:
+{ pkgs, lib, isDarwin, extraSpecialArgs ? {}, ... }:
+{ config, ... }:
 
 let
-  homeDir = if isDarwin then "/Users/ewan" else "/home/ewan";
+  # prefer explicit override, otherwise pick sensible default per platform
+  homeDir = extraSpecialArgs.homeDirectory or (if isDarwin then "/Users/ewan" else "/home/ewan");
 in
 {
   imports = [

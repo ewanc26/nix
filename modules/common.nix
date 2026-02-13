@@ -7,7 +7,6 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   
   # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
   
   # Enable zsh system-wide
   programs.zsh.enable = true;

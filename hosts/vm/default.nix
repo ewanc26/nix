@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ../../modules/users.nix
     ../../profiles/server-base.nix
     ../../profiles/server-hardened.nix
   ];

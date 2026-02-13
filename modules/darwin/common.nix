@@ -28,5 +28,4 @@
   # For now, run: darwin-rebuild switch --flake ~/.config/nix-config#macmini
   
   # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
 }

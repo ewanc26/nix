@@ -22,58 +22,69 @@
   };
 
   outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, ... }:
-    let
-      lib = nixpkgs.lib;
+  let
+    # generic lib from the main nixpkgs input
+    lib = nixpkgs.lib;
 
-      # Reusable function for NixOS configurations
-      mkNixOS = { system, hostFile }: nixpkgs.lib.nixosSystem {
-        inherit system;
-        pkgs = nixpkgs.legacyPackages.${system};
-        modules = [
-          hostFile
-          ragenix.nixosModules.default
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.ewan = import ./home/home.nix {
-              inherit pkgs lib;
-              isDarwin = false;
-            };
-          }
-        ];
-      };
+    # helper that returns the value to use as the home manager user module
+    homeUser = { pkgsFor, isDarwin }: import ./home/home.nix {
+      pkgs = pkgsFor;
+      lib = lib;
+      isDarwin = isDarwin;
+    };
 
-      # Reusable function for Darwin configurations
-      mkDarwin = { system, hostFile }: nix-darwin.lib.darwinSystem {
-        inherit system;
-        pkgs = nixpkgs-darwin.legacyPackages.${system};
-        modules = [
-          hostFile
-          ragenix.darwinModules.default
-          home-manager.darwinModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.ewan = import ./home/home.nix {
-              inherit pkgs lib;
-              isDarwin = true;
-            };
-            home-manager.backupFileExtension = "backup";
-          }
-        ];
-      };
-    in {
+    # DRY NixOS builder: compute pkgsForSystem and pass it explicitly into homeUser
+    mkNixOS = { system, hostFile }: let
+      pkgsForSystem = import nixpkgs {
+  inherit system;
+  config = { allowUnfree = true; };
+};
+    in nixpkgs.lib.nixosSystem {
+      inherit system;
+      pkgs = pkgsForSystem;
+      modules = [
+        hostFile
+        ragenix.nixosModules.default
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.ewan = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; };
+        }
+      ];
+    };
 
-      nixosConfigurations = {
+    # DRY Darwin builder: compute pkgs for Darwin and pass into homeUser
+    mkDarwin = { system, hostFile }: let
+      pkgsForDarwin = import nixpkgs-darwin {
+  inherit system;
+  config = { allowUnfree = true; };
+};
+    in nix-darwin.lib.darwinSystem {
+      inherit system;
+      pkgs = pkgsForDarwin;
+      modules = [
+        hostFile
+        ragenix.darwinModules.default
+        home-manager.darwinModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.ewan = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; };
+          home-manager.backupFileExtension = "backup";
+        }
+      ];
+    };
+  in {
+      nixosConfigurations = rec {
         default = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; };
-        laptop  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; };
+        laptop  = default;
         server  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/server; };
         vm      = mkNixOS { system = "aarch64-linux"; hostFile = ./hosts/vm; };
       };
 
-      darwinConfigurations = {
-        macmini = mkDarwin { system = "aarch64-darwin"; hostFile = ./hosts/macmini; };
-      };
+    darwinConfigurations = {
+      macmini = mkDarwin { system = "aarch64-darwin"; hostFile = ./hosts/macmini; };
     };
+  };
 }
