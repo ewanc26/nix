@@ -116,17 +116,7 @@
     };
 
     # GTK4 Desktop Icons NG (DING) configuration
-    "org/gnome/shell/extensions/gtk4-ding" = {
-      icon-size = "small";                   # Icon size: small, standard, large
-      show-home = true;                       # Show Home folder
-      show-trash = true;                      # Show Trash
-      show-volumes = true;                    # Show mounted volumes
-      start-corner = "top-left";             # Where icons start appearing
-      add-volumes-opposite = false;          # Add volumes in the same corner
-      keep-arranged = false;                  # Allow free positioning
-      keep-stacked = false;                   # Allow free positioning
-      show-network-volumes = true;           # Show network mounted drives
-      show-hidden-files = false;             # Hide hidden files by default
-    };
+    # Note: Settings are configured through the extension's preferences UI
+    # Programmatic dconf settings require the gschema to be properly compiled
   };
 }

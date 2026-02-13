@@ -19,8 +19,15 @@
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
   
+  # Enable GTK4 in system environment
+  programs.dconf.enable = true;
+  
   environment.systemPackages = with pkgs; [
     gnome-tweaks
+    
+    # GTK4 Desktop Icons dependencies
+    poppler_glib      # PDF thumbnails
+    libadwaita        # GTK4 theming support
   ];
 
   # Exclude some default GNOME apps to keep it minimal

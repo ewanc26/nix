@@ -12,7 +12,7 @@
 
   # Packages that don't have dedicated options
   environment.systemPackages = with pkgs; [
-    # Core utilities (these don't have program options)
+    # Core utilities
     vim
     wget
     curl
