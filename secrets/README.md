@@ -29,10 +29,10 @@ bash ./secrets/setup.sh
 
 ```bash
 # Using VS Code as the editor (requires 'code' in $PATH)
-nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --editor "code --wait" -e secrets/wifi-password.age
+nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --editor "code --wait" -e secrets/age/wifi-password.age
 
 # Using Nano
-nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --editor "nano" -e secrets/wifi-password.age
+nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --editor "nano" -e secrets/age/wifi-password.age
 
 ```
 
@@ -43,7 +43,7 @@ Before creating a `.age` file, you **must** define it in `secrets/secrets.nix`:
 ```nix
 in
 {
-  "wifi-password.age".publicKeys = all; 
+  "wifi-password.age".publicKeys = all;
   "github-token.age".publicKeys = [ users.ewan systems.MacMini ];
 }
 
@@ -70,7 +70,7 @@ Add the `ragenix` input and module to your system configuration:
 # flake.nix
 {
   inputs.ragenix.url = "github:yaxitech/ragenix";
-  
+
   outputs = { self, nix-darwin, ragenix, ... }: {
     darwinConfigurations.MacMini = nix-darwin.lib.darwinSystem {
       modules = [
@@ -100,10 +100,10 @@ passwordFile = config.age.secrets.wifi-password.path;
 
 ## 📂 Structure
 
-* `secrets.nix`: Public key mapping (Safe to commit).
-* `setup.sh`: Automation for key management.
-* `*.age`: Encrypted secret data (Safe to commit).
-* `~/.config/age/keys.txt`: **Your Private Key (NEVER COMMIT).**
+- `secrets.nix`: Public key mapping (Safe to commit).
+- `setup.sh`: Automation for key management.
+- `*.age`: Encrypted secret data (Safe to commit).
+- `~/.config/age/keys.txt`: **Your Private Key (NEVER COMMIT).**
 
 ---
 
@@ -117,6 +117,6 @@ passwordFile = config.age.secrets.wifi-password.path;
 
 ### Troubleshooting
 
-* **"No rule for file"**: You added a `.age` file but forgot to add it to the list in `secrets.nix`.
-* **"Decryption failed"**: You likely added a new system key but didn't run `--rekey` using a machine that already has access.
-* **Path errors**: Always ensure you are pointing to `--rules secrets/secrets.nix` if running from the root.
+- **"No rule for file"**: You added a `.age` file but forgot to add it to the list in `secrets.nix`.
+- **"Decryption failed"**: You likely added a new system key but didn't run `--rekey` using a machine that already has access.
+- **Path errors**: Always ensure you are pointing to `--rules secrets/secrets.nix` if running from the root.

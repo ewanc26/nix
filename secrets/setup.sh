@@ -99,7 +99,7 @@ fi
 SECRETS_COUNT=$(find "$SECRETS_DIR" -name "*.age" 2>/dev/null | wc -l | tr -d ' ')
 if [ "$SECRETS_COUNT" -gt 0 ]; then
     echo "Re-keying $SECRETS_COUNT secrets..."
-    nix run github:yaxitech/ragenix -- -r || echo "⚠️ Rekey failed"
+    nix run github:yaxitech/ragenix -- --rules "$SECRETS_FILE" --identity "$AGE_KEY" -r || echo "⚠️ Rekey failed"
 fi
 
 echo -e "\nDone."
