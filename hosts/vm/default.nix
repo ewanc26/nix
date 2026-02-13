@@ -19,9 +19,5 @@
   # Enable QEMU guest support
   services.qemuGuest.enable = true;
 
-  # Optional: minimal memory and CPUs for UTM
-  virtualisation.memorySize = 1024;   # 1GB RAM
-  virtualisation.cores = 2;
-
   system.stateVersion = "25.11";
 }
