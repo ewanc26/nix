@@ -8,11 +8,8 @@
   ];
 
   # Install GNOME extensions
-  # Note: gtk4-desktop-icons-ng-ding is installed at system level in modules/desktop.nix
-  # for proper GSettings schema compilation.
-  # After rebuild, you may need to manually enable it with:
-  #   rm -rf ~/.cache/thumbnails/
-  #   gnome-extensions enable gtk4-ding@smedius.gitlab.com
+  # Note: Desktop icons extensions (gtk4-ding, desktop-icons-ng) are broken on NixOS.
+  # Install manually from https://extensions.gnome.org if needed
   home.packages = with pkgs.gnomeExtensions; [
     astra-monitor
     media-controls
@@ -36,7 +33,6 @@
         "astra-monitor@astraext.github.io"                    # Astra Monitor
         "mediacontrols@cliffniff.github.com"                  # Media Controls
         "dash-to-dock@micxgx.gmail.com"                       # Dash to Dock
-        "gtk4-ding@smedius.gitlab.com"                       # GTK4 Desktop Icons NG
         
         # Your existing extensions
         "system-monitor@gnome-shell-extensions.gcampax.github.com"

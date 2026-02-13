@@ -22,23 +22,11 @@
   # Enable GTK4 in system environment
   programs.dconf.enable = true;
   
-  # Expose schemas for gtk4-desktop-icons extension
-  services.desktopManager.gnome.extraGSettingsOverridePackages = with pkgs; [
-    nautilus
-  ];
-  
   environment.systemPackages = with pkgs; [
     gnome-tweaks
     
-    # GTK4 Desktop Icons dependencies (required by gtk4-ding)
-    gjs               # JavaScript bindings for GNOME
-    gdk-pixbuf        # Image loading library
-    imagemagick       # For converting jpg to png thumbnails
-    poppler           # PDF thumbnails (includes glib bindings)
-    libadwaita        # GTK4 theming support
-    
-    # GNOME Extensions (system-level for proper schema compilation)
-    gnomeExtensions.gtk4-desktop-icons-ng-ding
+    # Note: Desktop icons extensions (gtk4-ding, desktop-icons-ng) are broken on NixOS
+    # due to GSettings schema issues. Install manually from extensions.gnome.org instead
   ];
 
   # Exclude some default GNOME apps to keep it minimal
