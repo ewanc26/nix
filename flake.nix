@@ -21,17 +21,16 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, ... }: let
-    lib = nixpkgs.lib;
-  in {
+  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, ... }:
+    let
+      lib = nixpkgs.lib;
 
-    nixosConfigurations = {
-
-      default = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      # Reusable function for NixOS configurations
+      mkNixOS = { system, hostFile }: nixpkgs.lib.nixosSystem {
+        inherit system;
+        pkgs = nixpkgs.legacyPackages.${system};
         modules = [
-          ./hosts/laptop
+          hostFile
           ragenix.nixosModules.default
           home-manager.nixosModules.home-manager
           {
@@ -40,68 +39,17 @@
             home-manager.users.ewan = import ./home/home.nix {
               inherit pkgs lib;
               isDarwin = false;
-              extraSpecialArgs = {
-                hostName = "laptop";
-                homeDirectory = "/home/ewan";
-              };
             };
           }
         ];
       };
 
-      laptop = default;
-
-      server = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      # Reusable function for Darwin configurations
+      mkDarwin = { system, hostFile }: nix-darwin.lib.darwinSystem {
+        inherit system;
+        pkgs = nixpkgs-darwin.legacyPackages.${system};
         modules = [
-          ./hosts/server
-          ragenix.nixosModules.default
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.ewan = import ./home/home.nix {
-              inherit pkgs lib;
-              isDarwin = false;
-              extraSpecialArgs = {
-                hostName = "server";
-                homeDirectory = "/home/ewan";
-              };
-            };
-          }
-        ];
-      };
-
-      vm = nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
-        pkgs = nixpkgs.legacyPackages.aarch64-linux;
-        modules = [
-          ./hosts/vm
-          ragenix.nixosModules.default
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.ewan = import ./home/home.nix {
-              inherit pkgs lib;
-              isDarwin = false;
-              extraSpecialArgs = {
-                hostName = "vm";
-                homeDirectory = "/home/ewan";
-              };
-            };
-          }
-        ];
-      };
-    };
-
-    darwinConfigurations = {
-      macmini = nix-darwin.lib.darwinSystem {
-        system = "aarch64-darwin";
-        pkgs = nixpkgs-darwin.legacyPackages.aarch64-darwin;
-        modules = [
-          ./hosts/macmini
+          hostFile
           ragenix.darwinModules.default
           home-manager.darwinModules.home-manager
           {
@@ -110,15 +58,22 @@
             home-manager.users.ewan = import ./home/home.nix {
               inherit pkgs lib;
               isDarwin = true;
-              extraSpecialArgs = {
-                hostName = "macmini";
-                homeDirectory = "/Users/ewan";
-              };
             };
             home-manager.backupFileExtension = "backup";
           }
         ];
       };
+    in {
+
+      nixosConfigurations = {
+        default = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; };
+        laptop  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; };
+        server  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/server; };
+        vm      = mkNixOS { system = "aarch64-linux"; hostFile = ./hosts/vm; };
+      };
+
+      darwinConfigurations = {
+        macmini = mkDarwin { system = "aarch64-darwin"; hostFile = ./hosts/macmini; };
+      };
     };
-  };
 }
