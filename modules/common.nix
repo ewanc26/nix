@@ -34,11 +34,11 @@
     randomizedDelaySec = "45min";
   };
   
-  # Automatic garbage collection
+  # Automatic garbage collection - runs weekly
   nix.gc = {
     automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
+    dates = "weekly";  # Runs once per week
+    options = "--delete-older-than 30d";  # Delete generations older than 30 days
   };
   
   # Optimize nix store automatically

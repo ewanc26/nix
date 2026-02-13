@@ -15,11 +15,11 @@
     # Auto-optimize nix store (new format)
     optimise.automatic = true;
     
-    # Automatic garbage collection
+    # Automatic garbage collection - runs weekly
     gc = {
       automatic = true;
-      interval = { Weekday = 0; Hour = 2; Minute = 0; };
-      options = "--delete-older-than 30d";
+      interval = { Weekday = 0; Hour = 2; Minute = 0; };  # Every Sunday at 2 AM
+      options = "--delete-older-than 30d";  # Delete generations older than 30 days
     };
   };
   
