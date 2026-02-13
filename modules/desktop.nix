@@ -26,7 +26,7 @@
     gnome-tweaks
     
     # GTK4 Desktop Icons dependencies
-    poppler_glib      # PDF thumbnails
+    poppler           # PDF thumbnails (includes glib bindings)
     libadwaita        # GTK4 theming support
   ];
 
