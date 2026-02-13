@@ -73,6 +73,23 @@
           }
         ];
       };
+
+      # UTM Apple Silicon virual machine server
+      vm = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        modules = [
+          ./hosts/vm
+          ragenix.nixosModules.default
+
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.ewan = import ./home/home.nix;
+            home-manager.extraSpecialArgs = { isDarwin = false; hostName = "vm"; };
+          }
+        ];
+      };
       
       # Add more hosts here in the future, e.g.:
       # desktop = nixpkgs.lib.nixosSystem {
