@@ -4,7 +4,7 @@ set -e
 # --- CONFIGURATION ---
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 SETTINGS_DIR="$REPO_ROOT/settings/darwin"
-DEFAULTS_FILE="defaults.nix"
+DEFAULTS_FILE="default.nix"
 TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
 
 # The core desktop environment domains

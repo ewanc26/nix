@@ -1,0 +1,68 @@
+diff --git a/flake.lock b/flake.lock
+index f37060f..647d8dd 100644
+--- a/flake.lock
++++ b/flake.lock
+@@ -130,26 +130,27 @@
+         ]
+       },
+       "locked": {
+-        "lastModified": 1770922915,
+-        "narHash": "sha256-6J/JoK9iL7sHvKJcGW2KId2agaKv1OGypsa7kN+ZBD4=",
++        "lastModified": 1767634391,
++        "narHash": "sha256-owcSz2ICqTSvhBbhPP+1eWzi88e54rRZtfCNE5E/wwg=",
+         "owner": "LnL7",
+         "repo": "nix-darwin",
+-        "rev": "6c5a56295d2a24e43bcd8af838def1b9a95746b2",
++        "rev": "08585aacc3d6d6c280a02da195fdbd4b9cf083c2",
+         "type": "github"
+       },
+       "original": {
+         "owner": "LnL7",
++        "ref": "nix-darwin-25.11",
+         "repo": "nix-darwin",
+         "type": "github"
+       }
+     },
+     "nixpkgs": {
+       "locked": {
+-        "lastModified": 1770464364,
+-        "narHash": "sha256-z5NJPSBwsLf/OfD8WTmh79tlSU8XgIbwmk6qB1/TFzY=",
++        "lastModified": 1770770419,
++        "narHash": "sha256-iKZMkr6Cm9JzWlRYW/VPoL0A9jVKtZYiU4zSrVeetIs=",
+         "owner": "nixos",
+         "repo": "nixpkgs",
+-        "rev": "23d72dabcb3b12469f57b37170fcbc1789bd7457",
++        "rev": "6c5e707c6b5339359a9a9e215c5e66d6d802fd7a",
+         "type": "github"
+       },
+       "original": {
+diff --git a/flake.nix b/flake.nix
+index 3298b2c..2b9f398 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -11,7 +11,7 @@
+     };
+     
+     nix-darwin = {
+-      url = "github:LnL7/nix-darwin";
++      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
+       inputs.nixpkgs.follows = "nixpkgs-darwin";
+     };
+     
+diff --git a/settings/darwin-export.sh b/settings/darwin-export.sh
+index 9aa6368..516f6ef 100644
+--- a/settings/darwin-export.sh
++++ b/settings/darwin-export.sh
+@@ -4,7 +4,7 @@ set -e
+ # --- CONFIGURATION ---
+ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+ SETTINGS_DIR="$REPO_ROOT/settings/darwin"
+-DEFAULTS_FILE="defaults.nix"
++DEFAULTS_FILE="default.nix"
+ TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
+ 
+ # The core desktop environment domains
+diff --git a/settings/darwin/defaults.nix b/settings/darwin/default.nix
+similarity index 100%
+rename from settings/darwin/defaults.nix
+rename to settings/darwin/default.nix
