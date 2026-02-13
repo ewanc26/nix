@@ -12,7 +12,7 @@
     astra-monitor
     media-controls
     dash-to-dock
-    desktop-icons-ng-ding  # Desktop Icons NG (DING)
+    gtk4-desktop-icons-ng-ding  # GTK4 Desktop Icons NG (DING)
   ];
 
   # GNOME wallpaper and extension configuration
