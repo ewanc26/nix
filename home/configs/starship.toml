@@ -11,20 +11,47 @@ $directory\
 $git_branch\
 $git_status\
 [](fg:color_sage bg:color_emerald)\
+$aws\
 $c\
 $cpp\
-$rust\
+$cmake\
+$crystal\
+$dart\
+$deno\
+$elixir\
+$elm\
+$fennel\
+$fortran\
 $golang\
-$nodejs\
-$php\
-$java\
-$kotlin\
+$gradle\
 $haskell\
+$haxe\
+$java\
+$julia\
+$kotlin\
+$lua\
+$meson\
+$nim\
+$nodejs\
+$ocaml\
+$perl\
+$php\
 $python\
+$rlang\
+$ruby\
+$rust\
+$scala\
+$swift\
+$xmake\
+$zig\
 [](fg:color_emerald bg:color_bg3)\
 $docker_context\
 $conda\
 $pixi\
+$nix_shell\
+$guix_shell\
+$package\
+$memory_usage\
 [](fg:color_bg3 bg:color_bg1)\
 $time\
 [ ](fg:color_bg1)\
@@ -44,33 +71,62 @@ color_fern = '#005f2a'
 color_forest = '#00570c'
 color_leaf = '#88b115'
 
+# --- OS & USER ---
+
 [os]
 disabled = false
 style = "bg:color_lime fg:color_fg0"
 
 [os.symbols]
-Windows = "󰍲"
-Ubuntu = "󰕈"
-SUSE = ""
-Raspbian = "󰐿"
-Mint = "󰣭"
-Macos = "󰀵"
-Manjaro = ""
-Linux = "󰌽"
-Gentoo = "󰣨"
-Fedora = "󰣛"
-Alpine = ""
-Amazon = ""
-Android = ""
-AOSC = ""
-Arch = "󰣇"
-Artix = "󰣇"
-EndeavourOS = ""
-CentOS = ""
-Debian = "󰣚"
-Redhat = "󱄛"
-RedHatEnterprise = "󱄛"
-Pop = ""
+Alpaquita = " "
+Alpine = " "
+AlmaLinux = " "
+Amazon = " "
+Android = " "
+AOSC = " "
+Arch = " "
+Artix = " "
+CachyOS = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+Elementary = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = "󰛓 "
+Gentoo = " "
+HardenedBSD = "󰞌 "
+Illumos = "󰈸 "
+Ios = "󰀷 "
+Kali = " "
+Linux = " "
+Mabox = " "
+Macos = " "
+Manjaro = " "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+Nobara = " "
+OpenBSD = "󰈺 "
+openSUSE = " "
+OracleLinux = "󰌷 "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+RockyLinux = " "
+Redox = "󰀘 "
+Solus = "󰠳 "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Void = " "
+Windows = "󰍲 "
+Zorin = " "
 
 [username]
 show_always = true
@@ -80,7 +136,8 @@ format = '[ $user ]($style)'
 
 [directory]
 style = "fg:color_fg0 bg:color_leaf"
-format = "[ $path ]($style)"
+format = "[ $path ]($style)[$read_only]($style)"
+read_only = " 󰌾"
 truncation_length = 3
 truncation_symbol = "…/"
 
@@ -91,25 +148,44 @@ truncation_symbol = "…/"
 "Pictures" = " "
 "Developer" = "󰲋 "
 
+# --- GIT ---
+
 [git_branch]
-symbol = ""
+symbol = " "
 style = "bg:color_sage"
-format = '[[ $symbol $branch ](fg:color_fg0 bg:color_sage)]($style)'
+format = '[[ $symbol$branch ](fg:color_fg0 bg:color_sage)]($style)'
 
 [git_status]
 style = "bg:color_sage"
 format = '[[($all_status$ahead_behind )](fg:color_fg0 bg:color_sage)]($style)'
 
-[nodejs]
-symbol = ""
+[git_commit]
+tag_symbol = '  '
+
+# --- LANGUAGES & TOOLS (Emerald Block) ---
+
+[aws]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $profile) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[buf]
+symbol = " "
 style = "bg:color_emerald"
 format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
-detect_files = ['package.json', 'package-lock.json', '.node-version']
-detect_folders = ['node_modules']
-detect_extensions = []
+
+[bun]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
 
 [c]
 symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[cmake]
+symbol = " "
 style = "bg:color_emerald"
 format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
 
@@ -118,53 +194,196 @@ symbol = " "
 style = "bg:color_emerald"
 format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
 
-[rust]
-symbol = ""
+[crystal]
+symbol = " "
 style = "bg:color_emerald"
 format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[dart]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[deno]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[elixir]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[elm]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[fennel]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[fortran]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[gcloud]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $account) ](fg:color_fg0 bg:color_emerald)]($style)'
 
 [golang]
-symbol = ""
+symbol = " "
 style = "bg:color_emerald"
 format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
 
-[php]
-symbol = ""
-style = "bg:color_emerald"
-format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
-
-[java]
-symbol = ""
-style = "bg:color_emerald"
-format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
-
-[kotlin]
-symbol = ""
+[gradle]
+symbol = " "
 style = "bg:color_emerald"
 format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
 
 [haskell]
-symbol = ""
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[haxe]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[java]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[julia]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[kotlin]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[lua]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[meson]
+symbol = "󰔷 "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[nim]
+symbol = "󰆥 "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[nodejs]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+detect_files = ['package.json', 'package-lock.json', '.node-version']
+detect_folders = ['node_modules']
+
+[ocaml]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[perl]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[php]
+symbol = " "
 style = "bg:color_emerald"
 format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
 
 [python]
-symbol = ""
+symbol = " "
 style = "bg:color_emerald"
 format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
 
+[rlang]
+symbol = "󰟔 "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[ruby]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[rust]
+symbol = "󱘗 "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[scala]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[swift]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[xmake]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+[zig]
+symbol = " "
+style = "bg:color_emerald"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_emerald)]($style)'
+
+# --- CONTAINERS & ENV (Darker Green Block) ---
+
 [docker_context]
-symbol = ""
+symbol = " "
 style = "bg:color_bg3"
 format = '[[ $symbol( $context) ](fg:#83a598 bg:color_bg3)]($style)'
 
 [conda]
+symbol = " "
 style = "bg:color_bg3"
 format = '[[ $symbol( $environment) ](fg:#83a598 bg:color_bg3)]($style)'
 
 [pixi]
+symbol = "󰏗 "
 style = "bg:color_bg3"
 format = '[[ $symbol( $version)( $environment) ](fg:color_fg0 bg:color_bg3)]($style)'
+
+[nix_shell]
+symbol = " "
+style = "bg:color_bg3"
+format = '[[ $symbol( $state) ](fg:color_fg0 bg:color_bg3)]($style)'
+
+[guix_shell]
+symbol = " "
+style = "bg:color_bg3"
+format = '[[ $symbol ](fg:color_fg0 bg:color_bg3)]($style)'
+
+[package]
+symbol = "󰏗 "
+style = "bg:color_bg3"
+format = '[[ $symbol( $version) ](fg:color_fg0 bg:color_bg3)]($style)'
+
+[memory_usage]
+symbol = "󰍛 "
+style = "bg:color_bg3"
+format = '[[ $symbol( $ram) ](fg:color_fg0 bg:color_bg3)]($style)'
+
+# --- SYSTEM & TIME ---
 
 [time]
 disabled = false
