@@ -29,6 +29,7 @@
 
       default = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
         modules = [
           ./hosts/laptop
           ragenix.nixosModules.default
@@ -52,6 +53,7 @@
 
       server = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
         modules = [
           ./hosts/server
           ragenix.nixosModules.default
@@ -73,6 +75,7 @@
 
       vm = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
+        pkgs = nixpkgs.legacyPackages.aarch64-linux;
         modules = [
           ./hosts/vm
           ragenix.nixosModules.default
@@ -96,6 +99,7 @@
     darwinConfigurations = {
       macmini = nix-darwin.lib.darwinSystem {
         system = "aarch64-darwin";
+        pkgs = nixpkgs-darwin.legacyPackages.aarch64-darwin;
         modules = [
           ./hosts/macmini
           ragenix.darwinModules.default
