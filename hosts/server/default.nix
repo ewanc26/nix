@@ -5,8 +5,7 @@
     ./hardware-configuration.nix
     ../../modules/common.nix
     ../../modules/users.nix
-    ../../modules/server-packages.nix
-    ../../modules/server-services.nix
+    ../../profiles/server-hardened.nix
   ];
 
   # Networking
