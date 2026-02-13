@@ -80,7 +80,6 @@
         default = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; };
         laptop  = default;
         server  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/server; };
-        vm      = mkNixOS { system = "aarch64-linux"; hostFile = ./hosts/vm; };
       };
 
     darwinConfigurations = {
