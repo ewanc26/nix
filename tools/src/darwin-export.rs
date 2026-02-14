@@ -9,7 +9,6 @@ const DESKTOP_DOMAINS: &[&str] = &[
     "com.apple.dock",
     "com.apple.finder",
     "com.apple.screencapture",
-    "com.apple.desktopservices",
     "com.apple.menuextra.clock",
     "com.apple.systemuiserver",
     "com.apple.AppleMultitouchTrackpad",
