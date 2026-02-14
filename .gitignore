@@ -1,0 +1,62 @@
+# ==============================================================================
+# MASTER GITIGNORE - NixOS / Flake / Rust / Ragenix
+# ==============================================================================
+
+# --- Nix Build Outputs ---
+# These are symlinks created by nix build, nixos-rebuild, etc.
+result
+result-*
+
+# --- Rust / Tools Specific ---
+# Your ./tools directory is a Rust project; ignore its build artifacts
+/tools/target/
+
+# --- SECRETS (Deny-by-Default Strategy) ---
+# 1. Ignore everything in the secrets directory by default
+/secrets/*
+
+# 2. Whitelist specific Ragenix/Config files that MUST be in Git
+!/secrets/age/
+!/secrets/age/*.age
+!/secrets/secrets.nix
+!/secrets/setup.sh
+
+# 3. Explicitly block sensitive patterns everywhere just in case
+*.txt
+*.key
+*.pem
+*_rsa
+*_ed25519
+*.secret
+.env
+
+# --- Editor & IDE Files ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.log
+
+# --- OS Specific ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# --- Temporary / Backups ---
+*.tmp
+*.bak
+*.old
+# Keep actual hardware-configuration.nix, but ignore the .backup versions
+hardware-configuration.nix.backup
+
+# --- Whitelist Project Metadata ---
+# Ensure these are always tracked even if they match patterns above
+!.gitignore
+!README.md
+!LICENSE
