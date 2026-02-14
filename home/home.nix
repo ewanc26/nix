@@ -40,7 +40,6 @@ in
           filteredKeys = lib.attrValues (lib.filterAttrs (name: _: name != hostName) allKeys);
         in
           builtins.concatStringsSep "\n" filteredKeys;
-      onChange = "chmod 600 ${homeDir}/.ssh/authorized_keys";
     };
 
     file.".ssh/allowed_signers".text = let
