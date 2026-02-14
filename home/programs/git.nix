@@ -20,6 +20,11 @@
 
       init.defaultBranch = "main";
 
+      # SSH commit signing
+      gpg.format = "ssh";
+      user.signingkey = "~/.ssh/id_ed25519.pub";
+      commit.gpgsign = true;
+
       alias = {
         la  = "log --all --graph --pretty=format:'%C(auto)%h%d %s %C(bold black)(%ar by <%aN>)%Creset'";
         law = "log --all --graph --pretty=format:'%C(auto)%h%d %w(100,0,8)%s %C(bold black)(%ar by <%aN>)%Creset'";
