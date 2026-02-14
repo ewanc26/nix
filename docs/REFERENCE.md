@@ -1,91 +1,82 @@
 # NixOS Configuration Reference Card
 
-## 📁 File Structure
+## File Structure
 ```
-├── flake.nix                 # Main flake entry point
-├── configuration.nix          # Main system config
-├── hardware-configuration.nix # Hardware-specific settings
+├── flake.nix
+├── configuration.nix          # Legacy entry point
+├── hosts/
+│   ├── laptop/
+│   ├── server/
+│   └── macmini/
 ├── modules/
-│   ├── desktop.nix           # Desktop environment (GNOME)
-│   ├── packages.nix          # System packages
-│   ├── services.nix          # System services
-│   └── gaming.nix            # Gaming (Steam, GameMode)
-└── home/
-    ├── home.nix              # Home Manager entry point
-    └── programs/
-        ├── git.nix           # Git config
-        ├── zsh.nix           # Shell config
-        ├── starship.nix      # Prompt config
-        └── vscode.nix        # VSCode config
+│   ├── desktop.nix
+│   ├── packages.nix
+│   ├── services.nix
+│   ├── gaming.nix
+│   └── darwin/
+├── home/
+│   ├── home.nix
+│   └── programs/
+│       ├── git.nix
+│       ├── zsh.nix
+│       ├── starship.nix
+│       ├── vscode.nix
+│       └── gnome.nix
+└── settings/
+    └── config/                # ⭐ Edit here
+        ├── user.nix
+        ├── packages.nix
+        ├── desktop.nix
+        └── ...
 ```
 
-## ⚡ Essential Commands
+## Essential Commands
+
 | Command | Description |
-|---------|-------------|
-| `make switch` | Apply configuration changes |
-| `make update` | Update flake inputs |
-| `make clean` | Remove old generations |
-| `make check` | Check for errors |
-| `nrs` | Quick rebuild (alias) |
-| `update` | Full update (alias) |
-| `cleanup` | Clean old gens (alias) |
+|---|---|
+| `sudo nixos-rebuild switch --flake .#laptop` | Apply configuration |
+| `sudo nixos-rebuild boot --flake .#laptop` | Apply on next boot |
+| `sudo nixos-rebuild test --flake .#laptop` | Test without making default |
+| `nix flake update` | Update all flake inputs |
+| `sudo nix-collect-garbage -d` | Remove old generations |
+| `nix flake check` | Check for errors |
+| `nrs` | Quick rebuild (shell alias) |
+| `update` | Full update (shell alias) |
+| `cleanup` | Collect garbage (shell alias) |
 
-## 🎯 Quick Edits
+## Quick Edits
+
 | What | Where |
-|------|-------|
-| Add package | `modules/packages.nix` |
-| Change DE | `modules/desktop.nix` |
-| Shell aliases | `home/programs/zsh.nix` |
-| Git settings | `home/programs/git.nix` |
-| VSCode config | `home/programs/vscode.nix` |
-| Power tuning | `hardware-configuration.nix` |
-| Wallpaper | `home/programs/gnome.nix` |
-| GNOME settings | `home/programs/gnome.nix` |
+|---|---|
+| Username / email | `settings/config/user.nix` |
+| Add package (Linux) | `settings/config/packages.nix` |
+| Add package (macOS) | `settings/config/darwin.nix` → `packages` |
+| Add Homebrew cask | `settings/config/darwin.nix` → `homebrew.casks` |
+| Theme / fonts | `settings/config/desktop.nix` |
+| GNOME extensions | `settings/config/desktop.nix` → `gnome.*` |
+| Shell aliases | `settings/config/shell.nix` |
+| Git settings | `settings/config/git.nix` |
+| VS Code | `settings/config/development.nix` |
+| Wallpaper | `wallpapers/wallpaper.jpg` |
+| Firewall ports | `settings/config/server.nix` |
 
-## 🔧 Hardware Info
+## Hardware (laptop)
 - **Model**: Dell Inspiron 3501
 - **CPU**: Intel i3-1115G4 (Tiger Lake)
-- **RAM**: 8GB DDR4-3200
-- **Storage**: 256GB NVMe SSD
+- **RAM**: 8 GB DDR4-3200
+- **Storage**: 256 GB NVMe SSD
 - **GPU**: Intel UHD Graphics
 - **WiFi**: Intel 9462AC
-- **Battery**: 42Wh
 
-## 📦 Installed Software
-- **Shell**: zsh + starship
-- **Browser**: Firefox
-- **Editor**: VSCode
-- **Communication**: Discord
-- **Media**: Spotify
-- **Gaming**: Steam, Prism Launcher
-- **Tools**: git, fastfetch
-
-## 🆘 Emergency
+## Emergency Recovery
 ```bash
-# Boot older generation (from boot menu)
 # Check logs
 journalctl -xe
 
-# Rollback
+# Rollback active system generation
 sudo nix-env --rollback --profile /nix/var/nix/profiles/system
 
-# Safe mode (from installer)
+# From installer (safe mode)
 nixos-enter
 nix-env --rollback --profile /nix/var/nix/profiles/system
 ```
-
-## 📋 Before Installation
-1. ⚠️ Update UUIDs in `hardware-configuration.nix`
-2. ✏️ Set git name/email in `home/programs/git.nix`
-3. 🔍 Review `TODO.md`
-4. 📖 Read `README.md` installation section
-
-## 🌟 Features
-- ✅ Flakes-based configuration
-- ✅ Home Manager integration
-- ✅ Modular structure
-- ✅ Power management (TLP)
-- ✅ Intel graphics optimized
-- ✅ Gaming ready (Steam + Minecraft)
-- ✅ Development tools
-- ✅ Complete documentation

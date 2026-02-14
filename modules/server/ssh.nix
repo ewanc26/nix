@@ -1,17 +1,22 @@
 { lib, ... }:
+
+let
+  cfg = import ../../settings/config.nix;
+in
 {
   services.openssh = {
-    enable = lib.mkDefault true;
+    enable = lib.mkDefault cfg.server.sshd.enable;
+    ports  = [ cfg.server.sshd.port ];
+
     settings = {
-      PermitRootLogin = "no";
-      PasswordAuthentication = false;
-      KbdInteractiveAuthentication = false;
-      AllowUsers = [ "ewan" ];
-      MaxAuthTries = 3;
-      ClientAliveInterval = 300;
-      ClientAliveCountMax = 2;
-      X11Forwarding = false;
+      PermitRootLogin                = cfg.server.sshd.permitRootLogin;
+      PasswordAuthentication         = cfg.server.sshd.passwordAuthentication;
+      KbdInteractiveAuthentication   = cfg.server.sshd.kbdInteractiveAuthentication;
+      AllowUsers                     = [ cfg.user.username ];
+      MaxAuthTries                   = cfg.server.sshd.maxAuthTries;
+      ClientAliveInterval            = cfg.server.sshd.clientAliveInterval;
+      ClientAliveCountMax            = cfg.server.sshd.clientAliveCountMax;
+      X11Forwarding                  = cfg.server.sshd.x11Forwarding;
     };
-    ports = [ 22 ];
   };
 }

@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  cfg = import ../../settings/config.nix;
+in
 {
   imports = [
     ../../modules/darwin/common.nix
@@ -9,20 +12,18 @@
   ];
 
   # Primary user for homebrew and user-specific options
-  system.primaryUser = "ewan";
+  system.primaryUser = cfg.user.username;
 
-  # System configuration
   networking = {
-    hostName = "macmini";
+    hostName     = "macmini";
     computerName = "MacMini";
   };
 
-  # User configuration
-  users.users.ewan = {
-    home = "/Users/ewan";
-    shell = pkgs.zsh;
+  users.users.${cfg.user.username} = {
+    home  = "/Users/${cfg.user.username}";
+    shell = pkgs.${cfg.user.shell};
   };
 
-  # Used for backwards compatibility
+  # nix-darwin uses an integer for stateVersion
   system.stateVersion = 5;
 }

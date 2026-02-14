@@ -1,5 +1,12 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+# NOTE: This file is a legacy entry point kept for compatibility.
+# The canonical host configuration lives in hosts/laptop/default.nix.
+# All configurable values come from settings/config/.
+
+let
+  cfg = import ./settings/config.nix;
+in
 {
   imports = [
     ./modules/desktop.nix
@@ -9,59 +16,52 @@
     ./modules/secrets.nix
   ];
 
-  # Boot configuration
   boot = {
     loader = {
-      systemd-boot.enable = true;
+      systemd-boot.enable      = cfg.system.boot.loader == "systemd-boot";
       efi.canTouchEfiVariables = true;
     };
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages =
+      if cfg.system.kernel.useLatest then pkgs.linuxPackages_latest else pkgs.linuxPackages;
   };
 
-  # Networking
   networking = {
-    hostName = "laptop";
-    networkmanager.enable = true;
+    hostName                  = "laptop";
+    networkmanager.enable     = cfg.system.network.enableNetworkManager;
   };
 
-  # Timezone and locale
-  time.timeZone = "Europe/London";
-  i18n.defaultLocale = "en_GB.UTF-8";
+  time.timeZone       = cfg.system.timeZone;
+  i18n.defaultLocale  = cfg.system.locale;
 
-  # Console configuration
   console = {
-    font = "Lat2-Terminus16";
+    font   = "Lat2-Terminus16";
     keyMap = "uk";
   };
 
-  # Sound
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
+  # Audio
+  security.rtkit.enable = cfg.audio.enable;
+  services.pipewire = lib.mkIf (cfg.audio.enable && cfg.audio.backend == "pipewire") {
+    enable            = true;
+    alsa.enable       = true;
     alsa.support32Bit = true;
-    pulse.enable = true;
-    jack.enable = true;
+    pulse.enable      = true;
+    jack.enable       = true;
   };
 
-  # User configuration
-  users.users.ewan = {
-    isNormalUser = true;
-    description = "Ewan";
-    extraGroups = [ "networkmanager" "wheel" "audio" "video" ];
-    shell = pkgs.zsh;
+  users.users.${cfg.user.username} = {
+    isNormalUser  = true;
+    description   = cfg.user.fullName;
+    extraGroups   = [ "networkmanager" "wheel" "audio" "video" ];
+    shell         = pkgs.${cfg.user.shell};
   };
 
   security.sudo.extraConfig = ''
     Defaults env_keep += "SSH_AUTH_SOCK"
   '';
 
-  # Enable zsh system-wide
   programs.zsh.enable = true;
 
-  # Enable flakes
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = cfg.nix.experimentalFeatures;
 
-  # System version
-  system.stateVersion = "25.11";
+  system.stateVersion = cfg.system.stateVersion;
 }

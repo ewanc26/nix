@@ -1,48 +1,33 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  cfg = import ../settings/config.nix;
+in
 {
   # X11 windowing system
   services.xserver = {
     enable = true;
 
-    # Video drivers
     videoDrivers = [ "modesetting" ];
 
-    # Keyboard layout
     xkb = {
-      layout = "gb";
+      layout  = "gb";
       variant = "";
     };
   };
 
-  # Display manager / desktop environment (25.11+ correct)
-  services.displayManager.gdm.enable = true;
-  services.desktopManager.gnome.enable = true;
-  
+  # Display manager – driven from settings/config/desktop.nix
+  services.displayManager.gdm.enable    = cfg.desktop.displayManager == "gdm";
+  services.desktopManager.gnome.enable  = cfg.desktop.environment    == "gnome";
+
   # Enable GTK4 in system environment
   programs.dconf.enable = true;
-  
+
   environment.systemPackages = with pkgs; [
     gnome-tweaks
-    
-    # Note: Desktop icons extensions (gtk4-ding, desktop-icons-ng) are broken on NixOS
-    # due to GSettings schema issues. Install manually from extensions.gnome.org instead
   ];
 
-  # Exclude some default GNOME apps to keep it minimal
-  environment.gnome.excludePackages = with pkgs; [
-    gnome-photos
-    gnome-tour
-    cheese
-    gnome-music
-    gedit
-    epiphany
-    geary
-    gnome-characters
-    totem
-    tali
-    iagno
-    hitori
-    atomix
-  ];
+  # Exclude default GNOME apps – list driven from settings/config/desktop.nix
+  environment.gnome.excludePackages =
+    map (name: pkgs.${name}) cfg.desktop.gnome.excludePackages;
 }

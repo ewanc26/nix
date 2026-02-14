@@ -1,43 +1,48 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  cfg = import ../settings/config.nix;
+in
 {
-  # Enable CUPS for printing
+  # Desktop system services
+
+  # Printing (CUPS)
   services.printing.enable = true;
 
-  # Enable Avahi for network discovery
+  # Avahi – local network discovery
   services.avahi = {
-    enable = true;
-    nssmdns4 = true;
+    enable       = true;
+    nssmdns4     = true;
     openFirewall = true;
   };
 
-  # Enable SSH daemon
+  # SSH daemon (desktop – password auth enabled for convenience)
   services.openssh = {
-    enable = true;
+    enable  = true;
     settings = {
-      PermitRootLogin = "no";
-      PasswordAuthentication = true;
+      PermitRootLogin         = cfg.server.sshd.permitRootLogin;
+      PasswordAuthentication  = true;  # Desktop: allow password login
     };
   };
 
-  # Enable locate database
+  # Locate database
   services.locate = {
-    enable = true;
+    enable  = true;
     package = pkgs.plocate;
   };
 
-  # Enable GVfs for virtual file systems
+  # Virtual file systems (GVfs)
   services.gvfs.enable = true;
 
-  # Enable GNOME Keyring
+  # GNOME Keyring
   services.gnome.gnome-keyring.enable = true;
 
-  # Enable D-Bus
+  # D-Bus
   services.dbus.enable = true;
 
-  # Enable udisks2 for disk management
+  # Disk management
   services.udisks2.enable = true;
 
-  # Enable Tailscale VPN
+  # Tailscale VPN
   services.tailscale.enable = true;
 }

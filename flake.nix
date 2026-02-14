@@ -25,7 +25,11 @@
   let
     # generic lib from the main nixpkgs input
     lib = nixpkgs.lib;
-
+    
+    # Central configuration - single source of truth
+    config = import ./settings/config.nix;
+    userConfig = config.user;
+    
     # helper that returns the value to use as the home manager user module
     homeUser = { pkgsFor, isDarwin, hostName }: import ./home/home.nix {
       pkgs = pkgsFor;
@@ -38,7 +42,7 @@
     mkNixOS = { system, hostFile, hostName }: let
       pkgsForSystem = import nixpkgs {
   inherit system;
-  config = { allowUnfree = true; };
+  config = { allowUnfree = config.packages.allowUnfree; };
 };
     in nixpkgs.lib.nixosSystem {
       inherit system;
@@ -50,7 +54,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.ewan = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit hostName; };
+          home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit hostName; };
         }
       ];
     };
@@ -59,7 +63,7 @@
     mkDarwin = { system, hostFile, hostName }: let
       pkgsForDarwin = import nixpkgs-darwin {
   inherit system;
-  config = { allowUnfree = true; };
+  config = { allowUnfree = config.packages.allowUnfree; };
 };
     in nix-darwin.lib.darwinSystem {
       inherit system;
@@ -71,7 +75,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.ewan = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit hostName; };
+          home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit hostName; };
           home-manager.backupFileExtension = "backup";
         }
       ];

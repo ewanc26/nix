@@ -1,23 +1,24 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  cfg = import ../settings/config.nix;
+in
 {
-  # Steam
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-    dedicatedServer.openFirewall = true;
-    gamescopeSession.enable = true;
+  # Gaming – only active when settings/config/gaming.nix sets enable = true
+
+  programs.steam = lib.mkIf cfg.gaming.enable {
+    enable                           = cfg.gaming.steam.enable;
+    remotePlay.openFirewall          = cfg.gaming.steam.openFirewall;
+    dedicatedServer.openFirewall     = cfg.gaming.steam.openFirewall;
+    gamescopeSession.enable          = true;
   };
 
-  # GameMode for performance optimization
-  programs.gamemode.enable = true;
+  programs.gamemode.enable = lib.mkIf cfg.gaming.enable cfg.gaming.steam.enable;
 
-  # Enable 32-bit graphics support for gaming
-  hardware.graphics.enable32Bit = true;
+  hardware.graphics.enable32Bit = lib.mkIf cfg.gaming.enable true;
 
-  # Additional gaming packages
-  environment.systemPackages = with pkgs; [
-    mangohud  # Performance overlay
-    gamescope # Gaming compositor
-  ];
+  environment.systemPackages = lib.optionals cfg.gaming.enable (with pkgs; [
+    mangohud   # Performance overlay
+    gamescope  # Gaming compositor
+  ]);
 }

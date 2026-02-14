@@ -1,16 +1,21 @@
 { lib, ... }:
+
+let
+  cfg = import ../../settings/config.nix;
+in
 {
   services.fail2ban = {
-    enable = lib.mkDefault true;
-    maxretry = 5;
+    enable   = lib.mkDefault cfg.server.fail2ban.enable;
+    maxretry = cfg.server.fail2ban.maxRetry;
+
     jails.sshd.settings = {
-      enabled = true;
-      port = "22";
-      filter = "sshd";
-      logpath = "/var/log/auth.log";
-      maxretry = 5;
-      findtime = 600;
-      bantime = 3600;
+      enabled  = true;
+      port     = toString cfg.server.sshd.port;
+      filter   = "sshd";
+      logpath  = "/var/log/auth.log";
+      maxretry = cfg.server.fail2ban.maxRetry;
+      findtime = cfg.server.fail2ban.findTime;
+      bantime  = cfg.server.fail2ban.banTime;
     };
   };
 }

@@ -1,31 +1,30 @@
 { config, pkgs, lib, ... }:
 
+let
+  cfg = import ../../settings/config.nix;
+in
 {
   # Common Darwin (macOS) settings shared across all hosts
-  
+
   # Enable zsh system-wide
   programs.zsh.enable = true;
-  
-  # Nix settings
+
   nix = {
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = cfg.nix.experimentalFeatures;
     };
-    
-    # Auto-optimize nix store (new format)
-    optimise.automatic = true;
-    
-    # Automatic garbage collection - runs weekly
+
+    # Auto-optimise nix store
+    optimise.automatic = cfg.nix.autoOptimise;
+
+    # Automatic garbage collection (macOS launchd schedule)
     gc = {
-      automatic = true;
-      interval = { Weekday = 0; Hour = 2; Minute = 0; };  # Every Sunday at 2 AM
-      options = "--delete-older-than 30d";  # Delete generations older than 30 days
+      automatic = cfg.nix.gc.automatic;
+      interval  = { Weekday = 0; Hour = 2; Minute = 0; };  # Every Sunday at 02:00
+      options   = cfg.nix.gc.options;
     };
   };
-  
-  # NOTE: system.autoUpgrade doesn't exist in nix-darwin
-  # To auto-update, you need to manually create a launchd service
-  # For now, run: darwin-rebuild switch --flake ~/.config/nix-config#macmini
-  
-  # Allow unfree packages
+
+  # NOTE: system.autoUpgrade does not exist in nix-darwin.
+  # Run manually: darwin-rebuild switch --flake ~/.config/nix-config#macmini
 }

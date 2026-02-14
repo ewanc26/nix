@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  cfg = import ../../settings/config.nix;
+in
 {
   imports = [
     ./minimal-hardware.nix
@@ -8,27 +11,16 @@
     ../../profiles/server-hardened.nix
   ];
 
-  # Networking
-  networking = {
-    hostName = "server";
-    
-    # Firewall configuration
-    firewall = {
-      enable = true;
-      allowedTCPPorts = [ 22 ]; # SSH
-      # Add more ports as needed: 80 443 for web, etc.
-    };
-  };
+  networking.hostName = "server";
 
-  # Boot configuration - clean /tmp on boot
+  # Boot – clean /tmp on every boot
   boot.tmp.cleanOnBoot = true;
 
-  # Security settings
+  # sudo requires password
   security.sudo = {
-    enable = true;
+    enable             = true;
     wheelNeedsPassword = true;
   };
 
-  # System version
-  system.stateVersion = "25.11";
+  system.stateVersion = cfg.system.stateVersion;
 }

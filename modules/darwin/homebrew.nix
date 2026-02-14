@@ -1,98 +1,17 @@
 { config, pkgs, ... }:
 
+let
+  cfg = import ../../settings/config.nix;
+in
 {
-  # Homebrew configuration
+  # Homebrew configuration – all values driven from settings/config/darwin.nix
   homebrew = {
-    enable = true;
-    
-    # Automatically update Homebrew and upgrade packages
+    inherit (cfg.darwin.homebrew) enable taps brews casks masApps;
+
     onActivation = {
       autoUpdate = true;
-      upgrade = true;
-      # Cleanup old versions (uninstall is safer than zap)
-      cleanup = "uninstall";
+      upgrade    = true;
+      cleanup    = "uninstall";
     };
-    
-    # Taps (repositories)
-    # Note: homebrew/cask and homebrew/core are now built-in and don't need to be tapped
-    taps = [
-      # Add custom taps here if needed
-    ];
-    
-    # Formulae (CLI tools better managed by Homebrew)
-    brews = [
-      # Media libraries that are complex in Nix
-      "libmediainfo"
-      "media-info"
-      "libzen"
-      
-      # Video/Audio codecs and libraries
-      "aribb24"
-      "dav1d"
-      "rav1e"
-      "svt-av1"
-      "x264"
-      "x265"
-      "xvid"
-      "webp"
-      "aom"
-      "jpeg-xl"
-      "highway"
-      
-      # Audio
-      "flac"
-      "lame"
-      "opus"
-      "vorbis-tools"
-      "libsndfile"
-      "libsamplerate"
-      "rubberband"
-      "speex"
-      "theora"
-      "mpg123"
-      
-      # Image processing
-      "little-cms2"
-      "leptonica"
-      
-      # Network protocols
-      "rtmpdump"
-      "srt"
-      "librist"
-      "libmms"
-      
-      # Compression
-      "lzo"
-      "snappy"
-      "xxhash"
-      "yyjson"
-      
-      # Database drivers
-      "freetds"
-      "unixodbc"
-      
-      # Misc tools that work better via brew
-      "summarize"
-      "goat"
-    ];
-    
-    # Casks (GUI applications)
-    casks = [
-      # Development
-      "orbstack"          # Docker alternative for macOS
-      
-      # Media
-      "vlc"
-      "imgbrd-grabber"
-      
-      # Utilities  
-      "jordanbaird-ice"   # Menu bar management
-      "altserver"         # iOS app sideloading
-    ];
-    
-    # Mac App Store apps (if you want to manage them)
-    # masApps = {
-    #   "App Name" = 12345678;  # App Store ID
-    # };
   };
 }

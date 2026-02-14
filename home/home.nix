@@ -2,8 +2,10 @@
 { config, ... }:
 
 let
+  cfg = import ../settings/config.nix;
+  userConfig = cfg.user;
   # prefer explicit override, otherwise pick sensible default per platform
-  homeDir = extraSpecialArgs.homeDirectory or (if isDarwin then "/Users/ewan" else "/home/ewan");
+  homeDir = extraSpecialArgs.homeDirectory or (if isDarwin then "/Users/${userConfig.username}" else "/home/${userConfig.username}");
 in
 {
   imports = [
@@ -17,31 +19,19 @@ in
   ];
 
   home = {
-    username = "ewan";
+    username = userConfig.username;
     homeDirectory = homeDir;
-    stateVersion = "25.11";
+    stateVersion = cfg.system.stateVersion;
 
-    packages = with pkgs; [
+    packages = with pkgs; 
       # Fonts
-      nerd-fonts.fira-code
-      nerd-fonts.jetbrains-mono
-      nerd-fonts.meslo-lg
-      nerd-fonts.roboto-mono
-      nerd-fonts.sauce-code-pro
-      nerd-fonts.ubuntu-mono
-
-      # Common cross-platform user tools
-      fastfetch
-      htop
-      tree
-      ripgrep
-      fd
-      unzip
-      zip
-    ] ++ lib.optionals (!isDarwin) [
-      vlc
-      dconf2nix
-    ];
+      (map (font: nerd-fonts.${font}) cfg.packages.fonts)
+      ++
+      # Common packages
+      (map (pkg: pkgs.${pkg}) cfg.packages.common)
+      ++
+      # Linux-only packages
+      (lib.optionals (!isDarwin) (map (pkg: pkgs.${pkg}) cfg.packages.linux));
 
     file.".ssh/authorized_keys" = {
       text =
@@ -56,34 +46,13 @@ in
     file.".ssh/allowed_signers".text = let
       allKeys = import ../modules/ssh-keys.nix;
       # Generate allowed_signers entries for all keys
-      entries = lib.mapAttrsToList (name: key: "git@ewancroft.uk ${key}") allKeys;
+      entries = lib.mapAttrsToList (name: key: "${cfg.user.email} ${key}") allKeys;
       # Remove duplicates and filter out placeholder keys
       validEntries = lib.filter (entry: !(lib.hasInfix "REPLACE_WITH" entry)) (lib.unique entries);
     in
       builtins.concatStringsSep "\n" validEntries + "\n";
 
-    file.".gitignore_global".text = ''
-      # OS generated files
-      .DS_Store
-      .DS_Store?
-      ._*
-      .Spotlight-V100
-      .Trashes
-      ehthumbs.db
-      Thumbs.db
-
-      # Editor files
-      .vscode/
-      .idea/
-      *.swp
-      *.swo
-      *~
-
-      # Temporary files
-      *.tmp
-      *.bak
-      *.log
-    '';
+    file.".gitignore_global".text = builtins.concatStringsSep "\n" cfg.git.globalIgnore;
   };
 
   programs.home-manager.enable = true;
@@ -93,11 +62,11 @@ in
   gtk = lib.mkIf (!isDarwin) {
     enable = true;
     theme = {
-      name = "Adwaita-dark";
+      name = cfg.desktop.theme;
       package = pkgs.gnome-themes-extra;
     };
     iconTheme = {
-      name = "Adwaita";
+      name = cfg.desktop.iconTheme;
       package = pkgs.adwaita-icon-theme;
     };
   };
@@ -105,6 +74,6 @@ in
   qt = lib.mkIf (!isDarwin) {
     enable = true;
     platformTheme.name = "adwaita";
-    style.name = "adwaita-dark";
+    style.name = cfg.desktop.theme;
   };
 }

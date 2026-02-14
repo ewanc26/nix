@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  cfg = import ../../settings/config.nix;
+in
 {
   imports = [
     ./hardware-configuration.nix
@@ -11,19 +14,17 @@
     ../../modules/gaming.nix
   ];
 
-  # Networking
   networking.hostName = "laptop";
 
-  # Sound
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
+  # Audio – backend driven from settings/config/audio.nix
+  security.rtkit.enable = cfg.audio.enable;
+  services.pipewire = lib.mkIf (cfg.audio.enable && cfg.audio.backend == "pipewire") {
+    enable            = true;
+    alsa.enable       = true;
     alsa.support32Bit = true;
-    pulse.enable = true;
-    jack.enable = true;
+    pulse.enable      = true;
+    jack.enable       = true;
   };
 
-  # System version
-  system.stateVersion = "25.11";
+  system.stateVersion = cfg.system.stateVersion;
 }

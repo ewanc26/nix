@@ -1,24 +1,23 @@
 { config, pkgs, ... }:
 
+let
+  cfg = import ../../settings/config.nix;
+in
 {
-  # Import Darwin defaults (settings)
-  # This will load all system.defaults settings from settings/darwin/default.nix
+  # Import Darwin system-defaults (auto-exported values from settings/darwin/domains/)
   imports = [
     ../../settings/darwin
   ];
 
-  # Keyboard settings
+  # Keyboard – driven from settings/config/darwin.nix
   system.keyboard = {
-    enableKeyMapping = true;
-    remapCapsLockToControl = false;  # Keep Caps Lock as Caps Lock
+    enableKeyMapping       = cfg.darwin.keyboard.enableKeyMapping;
+    remapCapsLockToControl = cfg.darwin.keyboard.remapCapsLockToControl;
   };
 
-  # Startup chime
-  system.startup.chime = false;
+  # Startup chime – driven from settings/config/darwin.nix
+  system.startup.chime = cfg.darwin.startup.chime;
 
-  # NOTE: system.activationScripts.postUserActivation has been removed
-  # All activation now runs as root, use postActivation if needed
-
-  # Security settings (new format)
-  security.pam.services.sudo_local.touchIdAuth = true;  # Enable Touch ID for sudo
+  # Touch ID for sudo – driven from settings/config/darwin.nix
+  security.pam.services.sudo_local.touchIdAuth = cfg.darwin.security.touchIdForSudo;
 }
