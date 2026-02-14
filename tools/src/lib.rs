@@ -8,21 +8,25 @@ pub fn fail(msg: &str) -> ! {
 }
 
 pub fn git_root() -> PathBuf {
-    if let Ok(root) = env::var("PRJ_ROOT") {
-        return PathBuf::from(root);
-    }
-    let output = Command::new("git")
-        .args(["rev-parse", "--show-toplevel"])
-        .output()
-        .ok();
-    
-    if let Some(output) = output {
-        let path_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if output.status.success() && !path_str.contains("/nix/store") {
-            return PathBuf::from(path_str);
+    let root = if let Ok(root) = env::var("PRJ_ROOT") {
+        PathBuf::from(root)
+    } else {
+        let output = Command::new("git")
+            .args(["rev-parse", "--show-toplevel"])
+            .output()
+            .ok();
+        
+        let mut found_path = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+        
+        if let Some(output) = output {
+            let path_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if output.status.success() && !path_str.contains("/nix/store") {
+                found_path = PathBuf::from(path_str);
+            }
         }
-    }
-    env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+        found_path
+    };
+    root
 }
 
 pub fn get_timestamp() -> String {
