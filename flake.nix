@@ -19,9 +19,14 @@
       url = "github:yaxitech/ragenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nix-vscode-extensions = {
+      url = "github:nix-community/nix-vscode-extensions";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, ... }:
+  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, nix-vscode-extensions, ... }:
   let
     # generic lib from the main nixpkgs input
     lib = nixpkgs.lib;
@@ -43,6 +48,7 @@
       pkgsForSystem = import nixpkgs {
   inherit system;
   config = { allowUnfree = config.packages.allowUnfree; };
+  overlays = [ nix-vscode-extensions.overlays.default ];
 };
     in nixpkgs.lib.nixosSystem {
       inherit system;
@@ -64,6 +70,7 @@
       pkgsForDarwin = import nixpkgs-darwin {
   inherit system;
   config = { allowUnfree = config.packages.allowUnfree; };
+  overlays = [ nix-vscode-extensions.overlays.default ];
 };
     in nix-darwin.lib.darwinSystem {
       inherit system;

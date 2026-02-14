@@ -98,79 +98,22 @@
     };
   };
 
-  # ─── Nixpkgs packages ────────────────────────────────────────────────────────
-  # All packages installed via nixpkgs on macOS.
-  # Must be top-level nixpkgs attribute names.
+  # ─── Nixpkgs packages (macOS-only) ──────────────────────────────────────────
+  # Cross-platform development packages live in settings/config/packages.nix
+  # → development. Only add things here that are macOS-specific or provide
+  # GNU replacements for the BSD tools macOS ships by default.
   packages = [
-    # Core utilities
-    "coreutils"
-    "curl"
-    "wget"
-    "parallel"
-    "rsync"
-    "stow"
-    "netcat"
-    "nmap"
+    # GNU replacements for BSD tools macOS ships
+    "coreutils"  # GNU ls/cp/mv/etc (macOS has BSD variants)
+    "parallel"   # GNU parallel
+    "stow"       # GNU stow (symlink farm manager)
+    "netcat"     # GNU netcat (macOS has BSD nc)
 
-    # Development tools
-    "git"
-    "git-filter-repo"
-    "gh"
+    # macOS-specific tools
+    "sshfs"      # Requires macFUSE; different setup than Linux
 
-    # Programming languages & runtimes
-    "go"
-    "nodejs_22"
-    "python313"
-    "python311"
-    "ruby"
-    "deno"
-    "ollama"
-
-    # Python tooling
-    "pipx"
-    "pyenv"
-    "uv"
-
-    # Media tools
-    "ffmpeg"
-    "exiftool"
-    "atomicparsley"
-    "get_iplayer"
-
-    # Network tools
-    "tailscale"
-    "websocat"
-    "sshfs"
-
-    # Text processing
-    "jq"
-
-    # Build tools
-    "cmake"
-    "autoconf"
-    "libtool"
-    "pkgconf"
-    "m4"
-
-    # Compression
-    "zstd"
-    "xz"
-    "lz4"
-    "brotli"
-
-    # Database tools
-    "sqlite"
-
-    # Image processing
-    "tesseract"
-
-    # Java
-    "openjdk21"
-
-    # PHP
-    "php"
-
-    # Libraries
+    # Dev libraries needed on PATH for building on macOS
+    # (on NixOS these are pulled in automatically as build deps)
     "openssl"
     "readline"
     "ncurses"
