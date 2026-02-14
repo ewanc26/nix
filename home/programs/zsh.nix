@@ -1,14 +1,7 @@
+{ hostName, isDarwin }:
 { config, pkgs, lib, ... }:
 
 let
-  # Detect OS
-  isDarwin = pkgs.stdenv.isDarwin;
-
-  # Pull hostname from system config
-  hostName =
-    if isDarwin
-    then config.networking.hostName or "darwin"
-    else config.networking.hostName or "nixos";
 
   # Username (can also be made dynamic later if you want)
   userName = config.home.username;

@@ -8,7 +8,7 @@ in
 {
   imports = [
     ./programs/git.nix
-    ./programs/zsh.nix
+    (import ./programs/zsh.nix { inherit hostName isDarwin; })
     ./programs/starship.nix
     ./programs/fastfetch.nix
     ./programs/vscode.nix
