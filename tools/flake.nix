@@ -1,5 +1,5 @@
 {
-  description = "Nix config management tools in Rust";
+  description = "Nix config management tools";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs }:
@@ -24,7 +24,6 @@
           darwin-export = { type = "app"; program = "${pkg}/bin/darwin-export"; };
           gnome-export = { type = "app"; program = "${pkg}/bin/gnome-export"; };
           secrets-setup = { type = "app"; program = "${pkg}/bin/secrets-setup"; };
-          default = { type = "app"; program = "${pkg}/bin/secrets-setup"; };
         }
       );
     };

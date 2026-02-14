@@ -1,58 +1,36 @@
-use std::fs::{self, File};
-use std::io::{self, Write};
-use std::path::{Path};
-use std::process::{Command, Stdio};
-use tools_common;
+use tools_common::{self, *};
 
-const DESKTOP_DOMAINS: &[&str] = &[
+const DOMAINS: &[&str] = &[
     "com.apple.dock", "com.apple.finder", "com.apple.screencapture",
     "com.apple.menuextra.clock", "com.apple.systemuiserver",
     "com.apple.AppleMultitouchTrackpad", "NSGlobalDomain",
 ];
 
-fn capture_domain_direct(domain: &str, out_file: &Path) -> bool {
-    let status = Command::new("nix")
-        .args([
-            "run", "github:joshryandavis/defaults2nix", "--", 
-            domain, 
-            "-filter", "dates,state,uuids",
-            "-out", out_file.to_str().unwrap()
-        ])
-        .status()
-        .map(|s| s.success())
-        .unwrap_or(false);
-    
-    status && out_file.exists() && fs::metadata(out_file).map(|m| m.len() > 0).unwrap_or(false)
-}
-
 fn main() -> io::Result<()> {
-    println!("🍎 Exporting Desktop Settings...");
-    let repo_root = tools_common::git_root();
-    let settings_dir = repo_root.join("settings/darwin");
-    let domains_dir = settings_dir.join("domains");
-
+    println!("🍎 Exporting Darwin Settings...");
+    let repo_root = git_root();
+    let domains_dir = repo_root.join("settings/darwin/domains");
     fs::create_dir_all(&domains_dir)?;
 
     let mut combined = String::from("{ ... }:\n{\n  system.defaults.CustomUserPreferences = {\n");
-    let mut found_count = 0;
+    let mut count = 0;
 
-    for domain in DESKTOP_DOMAINS {
-        let target_file = domains_dir.join(format!("{}.nix", domain));
-        if capture_domain_direct(domain, &target_file) {
+    for domain in DOMAINS {
+        let out_file = domains_dir.join(format!("{}.nix", domain));
+        let args = ["run", "github:joshryandavis/defaults2nix", "--", domain, "-filter", "dates,state,uuids"];
+        
+        if capture_nix_to_file(&args, &out_file) {
             combined.push_str(&format!("    \"{}\" = import ./domains/{}.nix;\n", domain, domain));
-            found_count += 1;
-            println!("    ✅ Success: {}", domain);
+            count += 1;
+            println!("    ✅ Exported: {}", domain);
         }
     }
-
     combined.push_str("  };\n}\n");
-    File::create(settings_dir.join("default.nix"))?.write_all(combined.as_bytes())?;
 
-    Command::new("git").current_dir(&repo_root).args(["add", "settings/darwin"]).status()?;
-    let timestamp = tools_common::get_timestamp();
-    let commit = Command::new("git").current_dir(&repo_root).args(["commit", "-m", &format!("darwin: update defaults ({})", timestamp)]).status()?;
-
-    if commit.success() { println!("🚀 Darwin settings committed."); }
-    else { println!("ℹ️  No changes in Darwin settings."); }
+    if count > 0 {
+        let def_path = repo_root.join("settings/darwin/default.nix");
+        File::create(&def_path)?.write_all(combined.as_bytes())?;
+        git_sync("settings/darwin", "darwin");
+    }
     Ok(())
 }
