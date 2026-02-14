@@ -30,3 +30,15 @@ path = "src/bin/gen-diff.rs"
 [[bin]]
 name = "health-check"
 path = "src/bin/health-check.rs"
+
+[[bin]]
+name = "categorize-apps"
+path = "src/bin/categorize-apps.rs"
+
+[[bin]]
+name = "generate-app-config"
+path = "src/bin/generate-app-config.rs"
+
+[[bin]]
+name = "sync-apps"
+path = "src/bin/sync-apps.rs"

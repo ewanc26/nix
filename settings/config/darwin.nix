@@ -3,18 +3,18 @@
 
   # ─── Keyboard ────────────────────────────────────────────────────────────────
   keyboard = {
-    enableKeyMapping        = true;
-    remapCapsLockToControl  = false;  # Keep Caps Lock as Caps Lock
+    enableKeyMapping = true;
+    remapCapsLockToControl = false; # Keep Caps Lock as Caps Lock
   };
 
   # ─── Startup ─────────────────────────────────────────────────────────────────
   startup = {
-    chime = false;  # Silence the boot chime
+    chime = true; # Let it bong
   };
 
   # ─── Security ────────────────────────────────────────────────────────────────
   security = {
-    touchIdForSudo = true;  # Allow Touch ID to authenticate sudo
+    touchIdForSudo = true; # Allow Touch ID to authenticate sudo
   };
 
   # ─── Homebrew ────────────────────────────────────────────────────────────────
@@ -81,20 +81,30 @@
       # Miscellaneous
       "summarize"
       "goat"
+      "mas"
     ];
 
     # GUI applications via Homebrew Cask
-    casks = [
-      "orbstack"          # Docker alternative for macOS
-      "vlc"
-      "imgbrd-grabber"
-      "jordanbaird-ice"   # Menu bar management
-      "altserver"         # iOS app sideloading
+        casks = [
+      "logitune"
+      "microsoft-excel"
+      "microsoft-powerpoint"
+      "microsoft-teams"
+      "microsoft-word"
+      "netnewswire"
+      "prismlauncher"
     ];
 
     # Mac App Store apps (by ID)
-    masApps = {
-      # "App Name" = 123456789;
+        masApps = {
+      "Amphetamine" = 937984704;
+      "EA app" = 1246969117;
+      "Epic Games Launcher" = 1246969117;
+      "Letta Desktop" = 6742498342;
+      "Mini Motorways" = 1047760200;
+      "OP Auto Clicker" = 6754914118;
+      "Zone Bar" = 6755328989;
+      "logioptionsplus" = 6444194123;
     };
   };
 
@@ -104,13 +114,10 @@
   # GNU replacements for the BSD tools macOS ships by default.
   packages = [
     # GNU replacements for BSD tools macOS ships
-    "coreutils"  # GNU ls/cp/mv/etc (macOS has BSD variants)
-    "parallel"   # GNU parallel
-    "stow"       # GNU stow (symlink farm manager)
-    "netcat"     # GNU netcat (macOS has BSD nc)
-
-    # macOS-specific tools
-    "sshfs"      # Requires macFUSE; different setup than Linux
+    "coreutils" # GNU ls/cp/mv/etc (macOS has BSD variants)
+    "parallel" # GNU parallel
+    "stow" # GNU stow (symlink farm manager)
+    "netcat" # GNU netcat (macOS has BSD nc)
 
     # Dev libraries needed on PATH for building on macOS
     # (on NixOS these are pulled in automatically as build deps)
@@ -127,21 +134,21 @@
   system = {
     defaults = {
       dock = {
-        autohide    = true;
+        autohide = true;
         orientation = "bottom";
-        tilesize    = 48;
+        tilesize = 48;
       };
 
       finder = {
         AppleShowAllExtensions = true;
-        ShowPathbar            = true;
-        ShowStatusBar          = true;
+        ShowPathbar = true;
+        ShowStatusBar = true;
       };
 
       NSGlobalDomain = {
         AppleShowAllExtensions = true;
-        InitialKeyRepeat       = 15;
-        KeyRepeat              = 2;
+        InitialKeyRepeat = 15;
+        KeyRepeat = 2;
       };
     };
   };
