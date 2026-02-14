@@ -20,10 +20,14 @@
               inherit name;
               inherit src;
               
+              # Tell Nix not to try to unpack the .rs file like a tarball
+              dontUnpack = true;
+              
               buildInputs = [ pkgs.rustc ];
               
+              # Use $src (shell variable) because we aren't in an unpacked directory
               buildPhase = ''
-                rustc --edition 2021 -O ${src} -o ${name}
+                rustc --edition 2021 -O $src -o ${name}
               '';
               
               installPhase = ''
