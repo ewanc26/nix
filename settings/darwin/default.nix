@@ -1,10 +1,12 @@
 { ... }:
-
 {
-  # macOS system defaults
-  # Run ./settings/darwin-export.sh to populate this with your current settings
-  
   system.defaults.CustomUserPreferences = {
-    # Settings will be exported here by darwin-export.sh
+    "com.apple.dock" = import ./domains/com.apple.dock.nix;
+    "com.apple.finder" = import ./domains/com.apple.finder.nix;
+    "com.apple.screencapture" = import ./domains/com.apple.screencapture.nix;
+    "com.apple.menuextra.clock" = import ./domains/com.apple.menuextra.clock.nix;
+    "com.apple.systemuiserver" = import ./domains/com.apple.systemuiserver.nix;
+    "com.apple.AppleMultitouchTrackpad" = import ./domains/com.apple.AppleMultitouchTrackpad.nix;
+    "NSGlobalDomain" = import ./domains/NSGlobalDomain.nix;
   };
 }
