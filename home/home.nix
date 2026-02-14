@@ -53,6 +53,15 @@ in
       onChange = "chmod 600 ${homeDir}/.ssh/authorized_keys";
     };
 
+    file.".ssh/allowed_signers".text = let
+      allKeys = import ../modules/ssh-keys.nix;
+      # Generate allowed_signers entries for all keys
+      entries = lib.mapAttrsToList (name: key: "git@ewancroft.uk ${key}") allKeys;
+      # Remove duplicates and filter out placeholder keys
+      validEntries = lib.filter (entry: !(lib.hasInfix "REPLACE_WITH" entry)) (lib.unique entries);
+    in
+      builtins.concatStringsSep "\n" validEntries + "\n";
+
     file.".gitignore_global".text = ''
       # OS generated files
       .DS_Store
