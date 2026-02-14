@@ -21,9 +21,12 @@
       apps = forAllSystems (system: 
         let pkg = self.packages.${system}.default; in
         {
-          darwin-export = { type = "app"; program = "${pkg}/bin/darwin-export"; };
-          gnome-export = { type = "app"; program = "${pkg}/bin/gnome-export"; };
-          secrets-setup = { type = "app"; program = "${pkg}/bin/secrets-setup"; };
+          darwin-export  = { type = "app"; program = "${pkg}/bin/darwin-export"; };
+          gnome-export   = { type = "app"; program = "${pkg}/bin/gnome-export"; };
+          secrets-setup  = { type = "app"; program = "${pkg}/bin/secrets-setup"; };
+          flake-bump     = { type = "app"; program = "${pkg}/bin/flake-bump"; };
+          gen-diff       = { type = "app"; program = "${pkg}/bin/gen-diff"; };
+          health-check   = { type = "app"; program = "${pkg}/bin/health-check"; };
         }
       );
     };

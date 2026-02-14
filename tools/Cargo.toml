@@ -18,3 +18,15 @@ path = "src/bin/gnome-export.rs"
 [[bin]]
 name = "secrets-setup"
 path = "src/bin/secrets-setup.rs"
+
+[[bin]]
+name = "flake-bump"
+path = "src/bin/flake-bump.rs"
+
+[[bin]]
+name = "gen-diff"
+path = "src/bin/gen-diff.rs"
+
+[[bin]]
+name = "health-check"
+path = "src/bin/health-check.rs"
