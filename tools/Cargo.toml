@@ -1,0 +1,20 @@
+[package]
+name = "nix-config-tools"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "tools_common"
+path = "src/lib.rs"
+
+[[bin]]
+name = "darwin-export"
+path = "src/bin/darwin-export.rs"
+
+[[bin]]
+name = "gnome-export"
+path = "src/bin/gnome-export.rs"
+
+[[bin]]
+name = "secrets-setup"
+path = "src/bin/secrets-setup.rs"
