@@ -23,14 +23,18 @@
   linuxAliases = {
     # nrs/nrb/nrt defined dynamically based on hostname
     cleanup = "sudo nix-collect-garbage -d && nix-collect-garbage -d";
-    backup-gde = "bash '/etc/nixos/settings/gnome-export.sh'";
+    backup-gde = "nix run ~/.config/nix-config/tools#gnome-export";
+    backup-gde-bash = "bash '/etc/nixos/settings/gnome-export.sh'";  # Legacy bash version
+    secrets-setup = "nix run ~/.config/nix-config/tools#secrets-setup";
   };
   
   # macOS-specific aliases
   darwinAliases = {
     # nrs/nrt defined dynamically based on hostname
     cleanup = "sudo nix-collect-garbage -d";
-    backup-dde = "bash '$HOME/.config/nix-config/settings/darwin-export.sh'";
+    backup-dde = "nix run ~/.config/nix-config/tools#darwin-export";
+    backup-dde-bash = "bash '$HOME/.config/nix-config/settings/darwin-export.sh'";  # Legacy bash version
+    secrets-setup = "nix run ~/.config/nix-config/tools#secrets-setup";
   };
   
   # History configuration

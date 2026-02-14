@@ -1,0 +1,16 @@
+# Rust build artifacts
+*.exe
+*.pdb
+darwin-export
+gnome-export
+secrets-setup
+
+# Nix build outputs
+result
+result-*
+
+# Editor files
+*.swp
+*.swo
+*~
+.DS_Store
