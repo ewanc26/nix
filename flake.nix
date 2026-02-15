@@ -27,10 +27,16 @@
 
     catppuccin.url = "github:catppuccin/nix";
 
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     mac-app-util.url = "github:hraban/mac-app-util";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, nix-vscode-extensions, catppuccin, mac-app-util, ... }:
+  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, nix-vscode-extensions, catppuccin, mac-app-util, plasma-manager, ... }:
   let
     # generic lib from the main nixpkgs input
     lib = nixpkgs.lib;
@@ -68,7 +74,10 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.sharedModules = [ catppuccin.homeModules.catppuccin ];
+          home-manager.sharedModules = [
+            catppuccin.homeModules.catppuccin
+            plasma-manager.homeModules.plasma-manager
+          ];
           home-manager.extraSpecialArgs = { inherit cfgLib; };
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit hostName; };
         }

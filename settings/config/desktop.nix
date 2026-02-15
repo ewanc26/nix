@@ -4,63 +4,26 @@
   enable = true;
 
   # Desktop environment
-  environment = "gnome";  # "gnome", "kde", "xfce", etc.
+  environment = "plasma6";  # "gnome", "plasma6", "xfce", etc.
 
   # Display manager
-  displayManager = "gdm";  # "gdm", "sddm", "lightdm", etc.
+  displayManager = "sddm";  # "gdm", "sddm", "lightdm", etc.
 
   # GTK/Qt theming
   theme     = "Catppuccin-Mocha-Standard-Green-Dark";
   iconTheme = "Papirus-Dark";
 
-  # Monospace font (used in GNOME Console, GNOME Terminal, IDE configs, etc.)
-  monoFont         = "FiraCode Nerd Font Mono 11";
-  monoFontConsole  = "FiraCode Nerd Font 10";  # GNOME Console uses a slightly different name/size
+  # Monospace font (used in Konsole, terminal emulators, IDE configs, etc.)
+  monoFont        = "FiraCode Nerd Font Mono 11";
+  monoFontConsole = "FiraCode Nerd Font Mono 11";  # Konsole uses the same font name as the system
 
-  # GNOME-specific settings
-  gnome = {
-    # Packages to exclude from the default GNOME install.
-    # Must match top-level nixpkgs attribute names.
+  # KDE Plasma-specific settings
+  plasma = {
+    # Packages to exclude from the default KDE Plasma install.
+    # Must match attribute names under pkgs.kdePackages.
     excludePackages = [
-      "gnome-photos"
-      "gnome-tour"
-      "gnome-music"
-      "gnome-characters"
-      "cheese"
-      "gedit"
-      "epiphany"
-      "geary"
-      "totem"
-      "tali"
-      "iagno"
-      "hitori"
-      "atomix"
-    ];
-
-    # GNOME extension packages to install from pkgs.gnomeExtensions.<name>
-    extensionPackages = [
-      "astra-monitor"    # astra-monitor@astraext.github.io
-      "media-controls"   # mediacontrols@cliffniff.github.com
-      "dash-to-dock"     # dash-to-dock@micxgx.gmail.com
-      "extension-list"   # extension-list@tu.berry
-      "add-to-desktop"   # add-to-desktop@tommimon.github.com
-      "force-quit"       # fq@megh
-      "blur-my-shell"    # blur-my-shell@aunetx
-      "just-perfection"  # just-perfection-desktop@just-perfection
-      "logo-menu"        # logomenu@aryan_k (Nix logo in top left)
-    ];
-
-    # Extension UUIDs to enable (must match the installed extensions)
-    enabledExtensions = [
-      "monitor@astraext.github.io"
-      "mediacontrols@cliffniff.github.com"
-      "dash-to-dock@micxgx.gmail.com"
-      "extension-list@tu.berry"
-      "add-to-desktop@tommimon.github.com"
-      "fq@megh"
-      "blur-my-shell@aunetx"
-      "just-perfection-desktop@just-perfection"
-      "logomenu@aryan_k"
+      "oxygen"         # Legacy Oxygen theme – use Breeze/Catppuccin instead
+      "elisa"          # KDE music player – use Spotify instead
     ];
   };
 }

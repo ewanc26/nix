@@ -122,7 +122,8 @@
   # ── Linux-only packages ───────────────────────────────────────────────────────
   linux = [
     "vlc"
-    "dconf2nix"
+    # dconf2nix was only useful for exporting GNOME dconf settings;
+    # KDE settings are managed directly by plasma-manager.
   ];
 
   # ── Desktop/GUI packages (NixOS laptop) ──────────────────────────────────────
@@ -139,7 +140,6 @@
     
     # Productivity
     "obsidian"                 # Note-taking (Markdown)
-    "gnome-calendar"
     "libreoffice-fresh"
     
     # Creative
@@ -150,8 +150,7 @@
     "parsec-bin"               # Remote gaming/desktop
     "prismlauncher"            # Minecraft launcher
     
-    # System tools
-    "gnome-extension-manager"  # Manage GNOME extensions
+    # System tools (KDE System Settings is built-in – no extra package needed)
   ];
 
   # ── Gaming packages ───────────────────────────────────────────────────────────

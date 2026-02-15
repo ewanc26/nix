@@ -20,7 +20,7 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 
 ### Linux (NixOS)
 
-- **laptop** - Dell Inspiron 3501 with GNOME desktop environment
+- **laptop** - Dell Inspiron 3501 with KDE Plasma 6 desktop environment
 - **server** - Minimal headless server configuration
 
 ### macOS (nix-darwin)
@@ -40,13 +40,13 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 │   └── USAGE.md              # Developer guide for using cfgLib
 │
 ├── hosts/                    # Host-specific configurations
-│   ├── laptop/               # Dell Inspiron 3501 (NixOS + GNOME)
+│   ├── laptop/               # Dell Inspiron 3501 (NixOS + KDE Plasma 6)
 │   ├── server/               # Headless server (NixOS)
 │   └── macmini/              # Mac Mini (nix-darwin)
 │
 ├── modules/                  # Reusable system modules
 │   ├── common.nix            # Shared settings across all NixOS hosts
-│   ├── desktop.nix           # GNOME desktop environment
+│   ├── desktop.nix           # KDE Plasma 6 desktop environment
 │   ├── gaming.nix            # Gaming packages and Steam
 │   ├── packages.nix          # Desktop system packages
 │   ├── services.nix          # System services
@@ -66,7 +66,7 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 │   └── programs/             # Unified program configs (work on NixOS + macOS)
 │       ├── fastfetch.nix     # System info display
 │       ├── git.nix           # Git configuration
-│       ├── gnome.nix         # GNOME desktop settings (Linux only)
+│       ├── kde.nix           # KDE Plasma desktop settings (Linux only)
 │       ├── ssh.nix           # SSH client + agent config
 │       ├── starship.nix      # Shell prompt
 │       ├── vscode.nix        # VSCode extensions and settings
@@ -75,9 +75,8 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 ├── settings/                 # ⭐ Centralized configuration — edit here
 │   ├── config.nix            # Entry point (imports config/)
 │   ├── config/               # All configurable values (one file per domain)
-│   ├── gnome/                # GNOME dconf settings (auto-exported)
+│   ├── plasma/               # KDE Plasma settings (declarative)
 │   ├── darwin/               # macOS defaults (auto-exported)
-│   ├── gnome-export.sh       # Export current GNOME settings
 │   └── darwin-export.sh      # Export current macOS settings
 │
 ├── secrets/                  # Encrypted secrets (ragenix / age)
@@ -94,7 +93,6 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
     ├── REFERENCE.md          # Quick-reference card
     ├── settings-config.md    # Settings file map and cheatsheet
     ├── settings.md           # Settings overview
-    ├── settings-guide.md     # GNOME/macOS export workflow
     ├── settings-structure.md # Why config is modular
     ├── hosts.md              # Adding/configuring hosts
     ├── hosts-macmini.md      # macOS setup guide
@@ -141,7 +139,7 @@ See [`lib/USAGE.md`](lib/USAGE.md) for details on using `cfgLib` helpers.
 # Examples
 vim settings/config/user.nix       # Username, email, shell
 vim settings/config/packages.nix   # Add/remove packages
-vim settings/config/desktop.nix    # Theme, fonts, GNOME extensions
+vim settings/config/desktop.nix    # Theme, fonts, KDE settings
 vim settings/config/darwin.nix     # macOS packages, Homebrew, keyboard
 ```
 
@@ -183,15 +181,13 @@ sudo darwin-rebuild switch --flake .#macmini
 
 ## Settings Management
 
-### GNOME (Linux)
+### KDE Plasma (Linux)
 
-Export your current GNOME settings after making changes via the GUI:
+KDE Plasma settings are managed declaratively via `plasma-manager` in:
+- `home/programs/kde.nix` - User-level Plasma configuration
+- `settings/plasma/default.nix` - Desktop layout and behavior preferences
 
-```bash
-./settings/gnome-export.sh
-```
-
-Settings are automatically applied via dconf on every Home Manager activation.
+Changes are applied automatically on every Home Manager activation. To customize Plasma settings, edit these files directly rather than using the GUI.
 
 ### macOS
 
@@ -302,7 +298,7 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 ### Platform-Specific When Needed
 - macOS uses Keychain for SSH keys
 - Linux uses SSH agent service
-- GNOME settings only apply on Linux
+- KDE Plasma settings only apply on Linux
 - Homebrew only on macOS
 
 ## Documentation
@@ -320,5 +316,4 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 
 ### Settings Management
 - [`docs/settings.md`](docs/settings.md) — settings overview
-- [`docs/settings-guide.md`](docs/settings-guide.md) — GNOME/macOS settings export
 - [`docs/settings-structure.md`](docs/settings-structure.md) — why the config is modular

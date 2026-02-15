@@ -15,13 +15,11 @@ settings/
 │   ├── desktop.nix
 │   ├── darwin.nix
 │   └── ...
-├── gnome/              # GNOME dconf settings (auto-generated)
-│   ├── default.nix
-│   └── dconf-settings.nix
+├── plasma/             # KDE Plasma settings (declarative)
+│   └── default.nix
 ├── darwin/             # macOS system defaults (auto-generated)
 │   ├── default.nix
 │   └── domains/
-├── gnome-export.sh     # Export current GNOME state → dconf-settings.nix
 └── darwin-export.sh    # Export current macOS state → domains/
 ```
 
@@ -46,15 +44,14 @@ in {
 
 ## Exporting GUI Settings
 
-### GNOME (Linux)
+### KDE Plasma (Linux)
 
-After changing settings through GNOME Settings:
+KDE Plasma settings are managed declaratively via `plasma-manager`. Instead of exporting settings from the GUI, you should:
 
-```bash
-./settings/gnome-export.sh
-```
+1. Edit `settings/plasma/default.nix` for desktop layout and behavior
+2. Edit `home/programs/kde.nix` for user-level Plasma configuration
 
-Exports to `settings/gnome/dconf-settings.nix`. Applied automatically on next Home Manager rebuild.
+Changes are applied automatically on next Home Manager rebuild. This ensures your configuration is reproducible and version-controlled.
 
 ### macOS
 
@@ -69,5 +66,4 @@ Exports to `settings/darwin/domains/`. Applied automatically on next `darwin-reb
 ## Further Reading
 
 - [settings-config.md](settings-config.md) — full per-file reference and quick-edit map
-- [settings-guide.md](settings-guide.md) — GNOME and macOS settings export workflow
 - [settings-structure.md](settings-structure.md) — why the config is split into modules

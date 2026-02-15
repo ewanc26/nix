@@ -15,7 +15,7 @@ settings/
     ├── packages.nix    # Package lists per context
     ├── git.nix         # Branch, editor, signing, aliases
     ├── shell.nix       # Aliases, history
-    ├── desktop.nix     # Theme, fonts, GNOME extensions
+    ├── desktop.nix     # Theme, fonts, KDE Plasma settings
     ├── ssh.nix         # Key file, agent
     ├── audio.nix       # Backend (pipewire / pulseaudio)
     ├── gaming.nix      # Enable flag, Steam

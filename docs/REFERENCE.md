@@ -21,7 +21,7 @@
 │       ├── zsh.nix
 │       ├── starship.nix
 │       ├── vscode.nix
-│       └── gnome.nix
+│       └── kde.nix
 └── settings/
     └── config/                # ⭐ Edit here
         ├── user.nix
@@ -53,7 +53,7 @@
 | Add package (macOS) | `settings/config/darwin.nix` → `packages` |
 | Add Homebrew cask | `settings/config/darwin.nix` → `homebrew.casks` |
 | Theme / fonts | `settings/config/desktop.nix` |
-| GNOME extensions | `settings/config/desktop.nix` → `gnome.*` |
+| KDE Plasma settings | `settings/plasma/default.nix` and `home/programs/kde.nix` |
 | Shell aliases | `settings/config/shell.nix` |
 | Git settings | `settings/config/git.nix` |
 | VS Code | `settings/config/development.nix` |

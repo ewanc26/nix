@@ -12,7 +12,7 @@ Each host has its own subdirectory:
 ## Current Hosts
 
 ### Desktop / Laptop
-- **laptop** — Dell Inspiron 3501 (NixOS + GNOME)
+- **laptop** — Dell Inspiron 3501 (NixOS + KDE Plasma 6)
 
 ### Server
 - **server** — Minimal headless server — see [hosts-server.md](hosts-server.md)

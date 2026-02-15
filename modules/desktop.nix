@@ -1,10 +1,30 @@
-{ config, pkgs, lib, cfgLib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  cfgLib,
+  ...
+}:
 
 let
   cfg = cfgLib.cfg;
+
+  # Safely resolve KDE package names under pkgs.kdePackages,
+  # skipping any that do not exist rather than crashing the build.
+  resolveKde =
+    names:
+    builtins.filter (x: x != null) (
+      map (
+        name:
+        if pkgs.kdePackages ? ${name} then
+          pkgs.kdePackages.${name}
+        else
+          builtins.trace "WARNING: kdePackages.${name} not found, skipping" null
+      ) names
+    );
 in
 {
-  # X11 windowing system
+  # X11/Wayland base – still required even in Wayland sessions
   services.xserver = {
     enable = true;
 
@@ -14,21 +34,32 @@ in
   };
 
   # Display manager – driven from settings/config/desktop.nix
-  services.displayManager.gdm.enable    = cfg.desktop.displayManager == "gdm";
-  services.desktopManager.gnome.enable  = cfg.desktop.environment    == "gnome";
+  services.displayManager.sddm = lib.mkIf (cfg.desktop.displayManager == "sddm") {
+    enable = true;
+    wayland.enable = true; # Prefer Wayland session for Plasma 6
+  };
 
-  # Enable GTK4 in system environment
-  programs.dconf.enable = true;
+  # Desktop environment – KDE Plasma 6
+  services.desktopManager.plasma6.enable = cfg.desktop.environment == "plasma6";
 
+  # Kvantum is the recommended theming engine for Qt/Plasma
   environment.systemPackages = with pkgs; [
-    gnome-tweaks
-    libgtop  # required for astra-monitor to display in panel
+    kdePackages.qtstyleplugin-kvantum # Kvantum Qt6 style engine (used by home-manager qt module)
+    kdePackages.kcalc # Calculator (lightweight, commonly needed)
+    libgtop # Required for resource monitors / KSysGuard sensors
   ];
 
-  # Required for astra-monitor GObject introspection
-  environment.variables.GI_TYPELIB_PATH = "/run/current-system/sw/lib/girepository-1.0";
+  # Mouse – mac: "com.apple.mouse.scaling" = 0.5 (slow/precise)
+  # libinput accelSpeed: -1 (slowest) … 0 (default) … +1 (fastest)
+  services.libinput.mouse.accelSpeed = "-0.5";
 
-  # Exclude default GNOME apps – list driven from settings/config/desktop.nix
-  environment.gnome.excludePackages =
-    map (name: pkgs.${name}) cfg.desktop.gnome.excludePackages;
+  # Touchpad – mac: trackpad.Clicking = false, swipescrolldirection = false
+  services.libinput.touchpad = {
+    naturalScrolling = false; # mac: "com.apple.swipescrolldirection" = false
+    tapping = false; # mac: trackpad.Clicking = false
+    scrollMethod = "twofinger";
+  };
+
+  # Exclude unwanted default KDE packages – list driven from settings/config/desktop.nix
+  environment.plasma6.excludePackages = resolveKde cfg.desktop.plasma.excludePackages;
 }

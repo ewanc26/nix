@@ -12,7 +12,7 @@ Every configurable value for the entire NixOS / nix-darwin setup lives here, spl
 | `packages.nix` | Package lists — common, fonts, linux, desktop, gaming, server |
 | `git.nix` | Branch, editor, LFS, commit signing, aliases, global gitignore |
 | `shell.nix` | Aliases, git shortcuts, platform aliases, history |
-| `desktop.nix` | Theme, icon theme, mono fonts, display manager, GNOME extensions |
+| `desktop.nix` | Theme, icon theme, mono fonts, display manager, KDE Plasma settings |
 | `ssh.nix` | Key file path, SSH agent |
 | `audio.nix` | Backend (pipewire / pulseaudio) |
 | `gaming.nix` | Enable flag, Steam, Gamemode |
@@ -50,8 +50,8 @@ in {
 | Git alias | `git.nix` → `aliases` |
 | Shell alias | `shell.nix` → `aliases` |
 | Theme / icon theme | `desktop.nix` → `theme` / `iconTheme` |
-| Monospace font | `desktop.nix` → `monoFont` |
-| GNOME extensions | `desktop.nix` → `gnome.extensionPackages` / `gnome.enabledExtensions` |
+| Monospace font | `desktop.nix` → `monoFont` / `monoFontConsole` |
+| KDE Plasma packages | `desktop.nix` → `plasma.excludePackages` |
 | VS Code extensions | `development.nix` → `vscode.extensions` |
 | VS Code font | `development.nix` → `vscode.fontFamily` |
 | Enable gaming | `gaming.nix` → `enable = true` |
