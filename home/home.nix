@@ -65,8 +65,8 @@ in
       };
     };
     iconTheme = {
+      # package is managed by the catppuccin module (catppuccin-papirus-folders)
       name = cfg.desktop.iconTheme;
-      package = pkgs.papirus-icon-theme;
     };
   };
 

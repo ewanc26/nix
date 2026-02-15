@@ -16,15 +16,7 @@ in
   # ─── GNOME extension packages ────────────────────────────────────────────────
   # Package list driven from settings/config/desktop.nix → gnome.extensionPackages
   home.packages =
-    map (name: pkgs.gnomeExtensions.${name}) cfg.desktop.gnome.extensionPackages
-    ++ [ pkgs.papirus-folders ];
-
-  # ─── Green Papirus folder icons ──────────────────────────────────────────────
-  # papirus-folders recolours the folder icons in the installed icon theme.
-  # Runs after every rebuild to ensure the colour is always applied.
-  home.activation.papirusFolders = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    ${pkgs.papirus-folders}/bin/papirus-folders -C green --theme Papirus-Dark
-  '';
+    map (name: pkgs.gnomeExtensions.${name}) cfg.desktop.gnome.extensionPackages;
 
   # ─── Config-derived dconf overrides ──────────────────────────────────────────
   # Only keys that should track settings/config values live here.
