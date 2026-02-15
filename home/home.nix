@@ -72,8 +72,8 @@ in
 
   qt = lib.mkIf (!isDarwin) {
     enable = true;
-    platformTheme.name = "adwaita";
-    style.name = "adwaita-dark";
+    platformTheme.name = "kvantum";
+    style.name = "kvantum";
   };
 
   # ─── Catppuccin global theming ───────────────────────────────────────────────
