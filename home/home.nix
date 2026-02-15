@@ -83,4 +83,15 @@ in
     flavor = "mocha";
     accent = "green";
   };
+
+  # ─── Wallpaper ───────────────────────────────────────────────────────────────
+  # macOS: desktoppr sets the wallpaper declaratively via an activation script.
+  # GNOME: handled via dconf in home/programs/gnome.nix.
+  # Both reference the same wallpapers/wallpaper.jpg from the repo root.
+  programs.desktoppr = lib.mkIf isDarwin {
+    enable = true;
+    settings = {
+      picture = "${../wallpapers/wallpaper.jpg}";
+    };
+  };
 }
