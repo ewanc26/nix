@@ -78,10 +78,14 @@ in
 
   # ─── Catppuccin global theming ───────────────────────────────────────────────
   # Enables Catppuccin Mocha Green across all supported programs automatically.
+  # Per-program overrides can disable catppuccin where we have a custom theme.
   catppuccin = lib.mkIf (!isDarwin) {
     enable = true;
     flavor = "mocha";
     accent = "green";
+
+    # Starship uses a custom forest_dark green palette — keep it as-is.
+    starship.enable = false;
   };
 
   # ─── Wallpaper ───────────────────────────────────────────────────────────────
