@@ -22,6 +22,7 @@
   # - development.nix : Development tools and languages
   # - maintenance.nix : Backup and auto-update settings
   # - paths.nix       : Important path locations
+  # - pds.nix         : Bluesky Personal Data Server settings
   
   user = import ./user.nix;
   system = import ./system.nix;
@@ -39,4 +40,5 @@
   development = import ./development.nix;
   maintenance = import ./maintenance.nix;
   paths = import ./paths.nix;
+  pds = import ./pds.nix;
 }
