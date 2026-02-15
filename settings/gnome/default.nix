@@ -108,8 +108,8 @@ with lib.hm.gvariant;
     # the desktop wallpaper set in home/programs/gnome.nix.
     "org/gnome/desktop/screensaver" = {
       color-shading-type = "solid";
-      primary-color = "#1a3a1a";
-      secondary-color = "#0d1f0d";
+      primary-color = "#1e1e2e";   # Catppuccin Mocha Base
+      secondary-color = "#11111b"; # Catppuccin Mocha Crust
     };
 
     # ── Nautilus (Files) ──────────────────────────────────────────────────────
@@ -135,13 +135,22 @@ with lib.hm.gvariant;
     };
 
     # b1dcc9dd-… is the fixed UUID for the default GNOME Terminal profile.
+    # Catppuccin Mocha colour values:
+    #   Base    #1e1e2e  → rgb(30,30,46)
+    #   Text    #cdd6f4  → rgb(205,214,244)
+    #   Green   #a6e3a1  → rgb(166,227,161)
     "org/gnome/terminal/legacy/profiles:/:b1dcc9dd-5262-4d8d-a863-c897e6d979b9" = {
-      background-color = "rgb(23,20,33)";
-      foreground-color = "rgb(208,207,204)";
-      font = "RobotoMono Nerd Font 11";
+      background-color = "rgb(30,30,46)";
+      foreground-color = "rgb(205,214,244)";
+      font = "FiraCode Nerd Font Mono 11";
       use-system-font = false;
       use-theme-colors = false;
-      visible-name = "Default";
+      visible-name = "Catppuccin Mocha";
+      bold-color = "rgb(205,214,244)";
+      bold-color-same-as-fg = true;
+      cursor-background-color = "rgb(166,227,161)";
+      cursor-foreground-color = "rgb(30,30,46)";
+      cursor-colors-set = true;
     };
 
     # ── Extension: astra-monitor ──────────────────────────────────────────────
@@ -212,6 +221,39 @@ with lib.hm.gvariant;
       transparency-mode = "DYNAMIC";
       background-opacity = 0.6;
       custom-background-color = false;
+    };
+
+    # ── Extension: blur-my-shell ──────────────────────────────────────────────
+    "org/gnome/shell/extensions/blur-my-shell" = {
+      brightness = 0.75;
+      noise-amount = 0;
+      sigma = 30;
+    };
+
+    "org/gnome/shell/extensions/blur-my-shell/panel" = {
+      blur = true;
+      brightness = 0.6;
+      sigma = 20;
+      static-blur = true;
+    };
+
+    "org/gnome/shell/extensions/blur-my-shell/dash-to-dock" = {
+      blur = true;
+      brightness = 0.6;
+      sigma = 20;
+      static-blur = true;
+    };
+
+    # ── Extension: just-perfection ────────────────────────────────────────────
+    "org/gnome/shell/extensions/just-perfection" = {
+      # Hide clutter, keep it minimal
+      activities-button = false;   # hide Activities button (use Super key instead)
+      app-menu = false;            # hide app name in top bar
+      news = false;                # disable welcome tour
+      startup-status = 0;         # skip startup animation
+      workspace-switcher-should-show = false;
+      window-demands-attention-focus = true;
+      panel-in-overview = true;
     };
 
     # ── Extension: media-controls ─────────────────────────────────────────────

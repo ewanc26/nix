@@ -22,7 +22,11 @@ in
 
   environment.systemPackages = with pkgs; [
     gnome-tweaks
+    libgtop  # required for astra-monitor to display in panel
   ];
+
+  # Required for astra-monitor GObject introspection
+  environment.variables.GI_TYPELIB_PATH = "/run/current-system/sw/lib/girepository-1.0";
 
   # Exclude default GNOME apps – list driven from settings/config/desktop.nix
   environment.gnome.excludePackages =

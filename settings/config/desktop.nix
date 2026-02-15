@@ -10,7 +10,7 @@
   displayManager = "gdm";  # "gdm", "sddm", "lightdm", etc.
 
   # GTK/Qt theming
-  theme     = "adw-gtk3-dark";
+  theme     = "Catppuccin-Mocha-Standard-Green-Dark";
   iconTheme = "Papirus-Dark";
 
   # Monospace font (used in GNOME Console, GNOME Terminal, IDE configs, etc.)
@@ -39,12 +39,14 @@
 
     # GNOME extension packages to install from pkgs.gnomeExtensions.<name>
     extensionPackages = [
-      "astra-monitor"   # astra-monitor@astraext.github.io
-      "media-controls"  # mediacontrols@cliffniff.github.com
-      "dash-to-dock"    # dash-to-dock@micxgx.gmail.com
-      "extension-list"  # extension-list@tu.berry
-      "add-to-desktop"  # add-to-desktop@tommimon.github.com
-      "force-quit"      # fq@megh
+      "astra-monitor"    # astra-monitor@astraext.github.io
+      "media-controls"   # mediacontrols@cliffniff.github.com
+      "dash-to-dock"     # dash-to-dock@micxgx.gmail.com
+      "extension-list"   # extension-list@tu.berry
+      "add-to-desktop"   # add-to-desktop@tommimon.github.com
+      "force-quit"       # fq@megh
+      "blur-my-shell"    # blur-my-shell@aunetx
+      "just-perfection"  # just-perfection-desktop@just-perfection
     ];
 
     # Extension UUIDs to enable (must match the installed extensions)
@@ -57,6 +59,8 @@
       "drive-menu@gnome-shell-extensions.gcampax.github.com"
       "add-to-desktop@tommimon.github.com"
       "fq@megh"
+      "blur-my-shell@aunetx"
+      "just-perfection-desktop@just-perfection"
     ];
   };
 }

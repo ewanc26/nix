@@ -24,9 +24,11 @@
       url = "github:nix-community/nix-vscode-extensions";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    catppuccin.url = "github:catppuccin/nix";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, nix-vscode-extensions, ... }:
+  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, nix-vscode-extensions, catppuccin, ... }:
   let
     # generic lib from the main nixpkgs input
     lib = nixpkgs.lib;
@@ -60,6 +62,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          home-manager.sharedModules = [ catppuccin.homeManagerModules.catppuccin ];
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit hostName; };
         }
       ];

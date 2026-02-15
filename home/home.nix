@@ -59,17 +59,28 @@ in
     enable = true;
     theme = {
       name = cfg.desktop.theme;
-      package = pkgs.gnome-themes-extra;
+      package = pkgs.catppuccin-gtk.override {
+        accents = [ "green" ];
+        variant  = "mocha";
+      };
     };
     iconTheme = {
       name = cfg.desktop.iconTheme;
-      package = pkgs.adwaita-icon-theme;
+      package = pkgs.papirus-icon-theme;
     };
   };
 
   qt = lib.mkIf (!isDarwin) {
     enable = true;
     platformTheme.name = "adwaita";
-    style.name = cfg.desktop.theme;
+    style.name = "adwaita-dark";
+  };
+
+  # ─── Catppuccin global theming ───────────────────────────────────────────────
+  # Enables Catppuccin Mocha Green across all supported programs automatically.
+  catppuccin = lib.mkIf (!isDarwin) {
+    enable = true;
+    flavor = "mocha";
+    accent = "green";
   };
 }
