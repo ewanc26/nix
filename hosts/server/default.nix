@@ -1,13 +1,14 @@
-{ config, pkgs, lib, ... }:
+{ cfgLib, ... }:
 
 let
-  cfg = import ../../settings/config.nix;
+  cfg = cfgLib.cfg;
 in
 {
   imports = [
     ./minimal-hardware.nix
     ../../modules/common.nix
     ../../modules/users.nix
+    ../../modules/pds.nix
     ../../profiles/server-hardened.nix
   ];
 
@@ -18,7 +19,7 @@ in
 
   # sudo requires password
   security.sudo = {
-    enable             = true;
+    enable = true;
     wheelNeedsPassword = true;
   };
 
