@@ -1,7 +1,7 @@
-{ config, pkgs, lib, osConfig, ... }:
+{ config, pkgs, lib, osConfig, cfgLib, ... }:
 
 let
-  cfg = import ../../settings/config.nix;
+  cfg = cfgLib.cfg;
 in
 {
   programs.git = {

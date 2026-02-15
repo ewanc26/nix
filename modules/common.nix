@@ -1,7 +1,7 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, cfgLib, ... }:
 
 let
-  cfg = import ../settings/config.nix;
+  cfg = cfgLib.cfg;
 in
 {
   # Common NixOS settings shared across all hosts

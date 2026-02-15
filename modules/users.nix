@@ -1,10 +1,8 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, cfgLib, ... }:
 
 let
-  cfg = import ../settings/config.nix;
-  allKeys = import ./ssh-keys.nix;
-  authorizedKeys = lib.attrValues (lib.filterAttrs (name: _: name != config.networking.hostName) allKeys);
-  
+  cfg = cfgLib.cfg;  # Use config from cfgLib instead of importing
+  authorizedKeys = cfgLib.mkAuthorizedKeys config.networking.hostName;
   shellPkg = if cfg.user.shell == "zsh" then pkgs.zsh else pkgs.bash;
 in
 {

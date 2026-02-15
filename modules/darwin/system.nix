@@ -1,7 +1,7 @@
-{ config, pkgs, ... }:
+{ config, pkgs, cfgLib, ... }:
 
 let
-  cfg = import ../../settings/config.nix;
+  cfg = cfgLib.cfg;
 in
 {
   # Import Darwin system-defaults (auto-exported values from settings/darwin/domains/)

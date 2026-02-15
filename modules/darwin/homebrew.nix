@@ -1,7 +1,7 @@
-{ config, pkgs, ... }:
+{ config, pkgs, cfgLib, ... }:
 
 let
-  cfg = import ../../settings/config.nix;
+  cfg = cfgLib.cfg;
 in
 {
   # Homebrew configuration – all values driven from settings/config/darwin.nix

@@ -9,10 +9,12 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 ## Key Features
 
 ✨ **Centralized Configuration** - All settings in `settings/config/` (single source of truth)
-🔄 **DRY Principles** - No duplication, every value defined once
+🔄 **DRY Principles** - Zero duplication, config imported once via `lib/`
 🎯 **Easy Customization** - Change any setting in one file, applies everywhere
 📦 **Multi-System** - Unified config for NixOS and macOS
+🏠 **Unified Home Manager** - Same shell, git, SSH config across all systems
 🔐 **Secrets Management** - Encrypted secrets with ragenix
+🛠️ **Reusable Helpers** - Custom library with common functions
 
 ## Managed Systems
 
@@ -33,6 +35,10 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 ├── flake.lock                # Locked dependency versions
 ├── configuration.nix         # Legacy entry point (superseded by hosts/)
 │
+├── lib/                      # ⭐ Custom library (DRY helpers)
+│   ├── default.nix           # Reusable functions and config singleton
+│   └── USAGE.md              # Developer guide for using cfgLib
+│
 ├── hosts/                    # Host-specific configurations
 │   ├── laptop/               # Dell Inspiron 3501 (NixOS + GNOME)
 │   ├── server/               # Headless server (NixOS)
@@ -52,18 +58,19 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 │       ├── packages.nix
 │       └── system.nix
 │
-├── home/                     # Home Manager configurations
+├── home/                     # Home Manager configurations (unified across systems)
 │   ├── home.nix              # Main home-manager entry point
 │   ├── configs/              # Application config files
 │   │   ├── fastfetch.jsonc
 │   │   └── starship.toml
-│   └── programs/
-│       ├── fastfetch.nix
-│       ├── git.nix
-│       ├── gnome.nix
-│       ├── starship.nix
-│       ├── vscode.nix
-│       └── zsh.nix
+│   └── programs/             # Unified program configs (work on NixOS + macOS)
+│       ├── fastfetch.nix     # System info display
+│       ├── git.nix           # Git configuration
+│       ├── gnome.nix         # GNOME desktop settings (Linux only)
+│       ├── ssh.nix           # SSH client + agent config
+│       ├── starship.nix      # Shell prompt
+│       ├── vscode.nix        # VSCode extensions and settings
+│       └── zsh.nix           # Shell configuration with aliases
 │
 ├── settings/                 # ⭐ Centralized configuration — edit here
 │   ├── config.nix            # Entry point (imports config/)
@@ -79,6 +86,10 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 │   └── age/*.age             # Encrypted secret files
 │
 ├── wallpapers/               # Desktop wallpapers
+├── tools/                    # Maintenance and health check tools
+│   ├── health-check          # Pre-build validation script
+│   ├── flake-bump            # Update flake inputs helper
+│   └── gen-diff              # Compare generations
 └── docs/                     # All documentation
     ├── REFERENCE.md          # Quick-reference card
     ├── settings-config.md    # Settings file map and cheatsheet
@@ -91,6 +102,36 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
     ├── secrets.md            # Secrets management
     └── wallpapers.md         # Wallpaper usage
 ```
+
+## DRY Architecture
+
+This config uses a custom library (`lib/default.nix`) to eliminate repetition:
+
+- **Single config import**: Config is imported once in `lib/`, not 20+ times across modules
+- **Reusable helpers**: Common functions like `resolvePackages` and `mkAuthorizedKeys`
+- **Zero boilerplate**: Every module automatically gets `cfgLib` via `specialArgs`
+
+**Before (every module):**
+```nix
+{ config, pkgs, lib, ... }:
+let
+  cfg = import ../settings/config.nix;
+  # Duplicate package resolution logic...
+in
+{ ... }
+```
+
+**After (using cfgLib):**
+```nix
+{ config, pkgs, lib, cfgLib, ... }:
+let
+  cfg = cfgLib.cfg;  # Config already imported!
+  resolve = cfgLib.resolvePackages pkgs;  # Reusable helper
+in
+{ ... }
+```
+
+See [`lib/USAGE.md`](lib/USAGE.md) for details on using `cfgLib` helpers.
 
 ## Customization
 
@@ -162,10 +203,40 @@ Export your current macOS defaults:
 
 ## Maintenance
 
+### Health Check (Recommended Before Building)
+
+Run the health check script to validate your config before rebuilding:
+
+```bash
+# Compile the tools (one-time)
+nix run .#tools -- --help
+
+# Run health check
+tools/target/release/health-check
+
+# Or use the shell alias
+health-check
+```
+
+The health check validates:
+- Nix daemon is responding
+- flake.lock is valid
+- Config evaluates cleanly
+- Age keys are present
+- SSH keys are configured
+- Disk space is sufficient
+- Git tree status
+
 ### Update Flake Inputs
 
 ```bash
+# Update all inputs
 nix flake update
+
+# Or use the helper
+flake-bump
+
+# Then rebuild
 sudo nixos-rebuild switch --flake .#laptop   # or darwin-rebuild
 ```
 
@@ -178,6 +249,16 @@ sudo nix-collect-garbage -d
 # macOS
 sudo nix-collect-garbage -d
 sudo darwin-rebuild switch --flake .#macmini
+
+# Or use the shell alias
+cleanup
+```
+
+### Compare Generations
+
+```bash
+# See what changed between generations
+gen-diff
 ```
 
 ## Secrets Management
@@ -210,14 +291,34 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 | [nix-darwin](https://github.com/LnL7/nix-darwin) | nix-darwin-25.11 |
 | [ragenix](https://github.com/yaxitech/ragenix) | latest |
 
+## Unified Configuration Benefits
+
+### Same Shell Everywhere
+- **zsh** with identical aliases, history, and key bindings on all systems
+- **SSH** client configuration unified (connection multiplexing, agent integration)
+- **Git** settings consistent across NixOS and macOS
+- **Starship** prompt looks the same everywhere
+
+### Platform-Specific When Needed
+- macOS uses Keychain for SSH keys
+- Linux uses SSH agent service
+- GNOME settings only apply on Linux
+- Homebrew only on macOS
+
 ## Documentation
 
+### Core Documentation
+- [`lib/USAGE.md`](lib/USAGE.md) — using the cfgLib helpers *(for developers)*
 - [`docs/settings-config.md`](docs/settings-config.md) — full settings reference *(start here)*
-- [`docs/hosts.md`](docs/hosts.md) — adding/configuring hosts
-- [`docs/secrets.md`](docs/secrets.md) — secrets management
-- [`docs/settings-guide.md`](docs/settings-guide.md) — GNOME/macOS settings export
 - [`docs/REFERENCE.md`](docs/REFERENCE.md) — quick-reference card
-- [`docs/settings.md`](docs/settings.md) — settings overview
-- [`docs/settings-structure.md`](docs/settings-structure.md) — why the config is modular
+
+### Setup Guides
+- [`docs/hosts.md`](docs/hosts.md) — adding/configuring hosts
 - [`docs/hosts-macmini.md`](docs/hosts-macmini.md) — macOS setup guide
 - [`docs/hosts-server.md`](docs/hosts-server.md) — server setup guide
+- [`docs/secrets.md`](docs/secrets.md) — secrets management
+
+### Settings Management
+- [`docs/settings.md`](docs/settings.md) — settings overview
+- [`docs/settings-guide.md`](docs/settings-guide.md) — GNOME/macOS settings export
+- [`docs/settings-structure.md`](docs/settings-structure.md) — why the config is modular

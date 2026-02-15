@@ -3,20 +3,59 @@
   
   # Common aliases
   aliases = {
+    # Directory listing
     ll = "ls -lah";
     la = "ls -A";
     l = "ls -CF";
+    
+    # Navigation
     ".." = "cd ..";
     "..." = "cd ../..";
+    "...." = "cd ../../..";
+    
+    # Safety nets
+    rm = "rm -i";
+    cp = "cp -i";
+    mv = "mv -i";
+    
+    # Shortcuts
+    h = "history";
+    c = "clear";
+    e = "$EDITOR";
+    
+    # Disk usage
+    du1 = "du -h -d 1";
+    df = "df -h";
   };
   
   # Git aliases
   gitAliases = {
+    # Status and info
     gs = "git status";
+    gss = "git status -s";  # Short status
+    gl = "git log --oneline --graph --decorate";
+    
+    # Adding and committing
     ga = "git add";
+    gaa = "git add -A";  # Add all
     gc = "git commit";
+    gcm = "git commit -m";  # Commit with message
+    gca = "git commit --amend";
+    
+    # Pushing and pulling
     gp = "git push";
-    gl = "git pull";
+    gpf = "git push --force-with-lease";  # Safer force push
+    gpl = "git pull";
+    gpr = "git pull --rebase";  # Pull with rebase
+    
+    # Branching
+    gb = "git branch";
+    gco = "git checkout";
+    gcb = "git checkout -b";  # Create and checkout branch
+    
+    # Diffs
+    gd = "git diff";
+    gds = "git diff --staged";
   };
   
   # Linux-specific aliases

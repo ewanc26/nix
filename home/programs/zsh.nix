@@ -3,11 +3,12 @@
   config,
   pkgs,
   lib,
+  cfgLib,
   ...
 }:
 
 let
-  cfg = import ../../settings/config.nix;
+  cfg = cfgLib.cfg;
   userName = config.home.username;
 
 in
@@ -58,23 +59,44 @@ in
     );
 
     initContent = ''
+      # Display system info on new shell
       fastfetch
+      
+      # Initialize Starship prompt
       eval "$(starship init zsh)"
 
+      # Prompt settings
       setopt PROMPT_SUBST
 
+      # History settings
       HISTSIZE=${toString cfg.shell.history.size}
       SAVEHIST=${toString cfg.shell.history.saveSize}
       HISTFILE=${cfg.shell.history.file}
       ${lib.optionalString cfg.shell.history.ignoreDups "setopt HIST_IGNORE_ALL_DUPS"}
       ${lib.optionalString cfg.shell.history.ignoreDups "setopt HIST_FIND_NO_DUPS"}
       ${lib.optionalString cfg.shell.history.ignoreDups "setopt HIST_SAVE_NO_DUPS"}
+      setopt SHARE_HISTORY           # Share history between sessions
+      setopt HIST_EXPIRE_DUPS_FIRST  # Expire duplicates first
+      setopt HIST_REDUCE_BLANKS      # Remove superfluous blanks
 
-      bindkey '^[[A' history-beginning-search-backward
-      bindkey '^[[B' history-beginning-search-forward
+      # Key bindings
+      bindkey '^[[A' history-beginning-search-backward  # Up arrow
+      bindkey '^[[B' history-beginning-search-forward   # Down arrow
+      bindkey '^[[H' beginning-of-line                  # Home key
+      bindkey '^[[F' end-of-line                        # End key
+      bindkey '^[[3~' delete-char                       # Delete key
 
+      # Completion settings
       zstyle ':completion:*' menu select
-      zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+      zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'  # Case insensitive
+      zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"  # Colored completion
+      zstyle ':completion:*' group-name '''                       # Group completions
+      
+      # Better directory navigation
+      setopt AUTO_CD              # cd by typing directory name
+      setopt AUTO_PUSHD           # Push directories onto stack
+      setopt PUSHD_IGNORE_DUPS    # Don't push duplicates
+      setopt PUSHD_MINUS          # Swap meaning of +/-
     '';
   };
 }

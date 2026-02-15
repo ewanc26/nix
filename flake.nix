@@ -39,6 +39,9 @@
     config = import ./settings/config.nix;
     userConfig = config.user;
     
+    # Custom library with helpers to reduce repetition
+    cfgLib = import ./lib { inherit lib; };
+    
     # helper that returns the value to use as the home manager user module
     homeUser = { pkgsFor, isDarwin, hostName }: import ./home/home.nix {
       pkgs = pkgsFor;
@@ -57,6 +60,7 @@
     in nixpkgs.lib.nixosSystem {
       inherit system;
       pkgs = pkgsForSystem;
+      specialArgs = { inherit cfgLib; };
       modules = [
         hostFile
         ragenix.nixosModules.default
@@ -65,6 +69,7 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.sharedModules = [ catppuccin.homeModules.catppuccin ];
+          home-manager.extraSpecialArgs = { inherit cfgLib; };
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit hostName; };
         }
       ];
@@ -80,6 +85,7 @@
     in nix-darwin.lib.darwinSystem {
       inherit system;
       pkgs = pkgsForDarwin;
+      specialArgs = { inherit cfgLib; };
       modules = [
         hostFile
         ragenix.darwinModules.default
@@ -92,6 +98,7 @@
             catppuccin.homeModules.catppuccin
             mac-app-util.homeManagerModules.default
           ];
+          home-manager.extraSpecialArgs = { inherit cfgLib; };
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit hostName; };
           home-manager.backupFileExtension = "backup";
         }

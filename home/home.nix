@@ -1,8 +1,8 @@
 { pkgs, lib, isDarwin, hostName, extraSpecialArgs ? {}, ... }:
-{ config, ... }:
+{ config, cfgLib, ... }:
 
 let
-  cfg = import ../settings/config.nix;
+  cfg = cfgLib.cfg;
   userConfig = cfg.user;
   # prefer explicit override, otherwise pick sensible default per platform
   homeDir = extraSpecialArgs.homeDirectory or (if isDarwin then "/Users/${userConfig.username}" else "/home/${userConfig.username}");
@@ -11,6 +11,7 @@ in
   imports = [
     ./programs/git.nix
     (import ./programs/zsh.nix { inherit hostName isDarwin; })
+    (import ./programs/ssh.nix { inherit isDarwin; })
     ./programs/starship.nix
     ./programs/fastfetch.nix
     ./programs/vscode.nix
