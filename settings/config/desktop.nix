@@ -10,8 +10,8 @@
   displayManager = "gdm";  # "gdm", "sddm", "lightdm", etc.
 
   # GTK/Qt theming
-  theme     = "Adwaita-dark";
-  iconTheme = "Adwaita";
+  theme     = "adw-gtk3-dark";
+  iconTheme = "Papirus-Dark";
 
   # Monospace font (used in GNOME Console, GNOME Terminal, IDE configs, etc.)
   monoFont         = "FiraCode Nerd Font Mono 11";
@@ -39,9 +39,12 @@
 
     # GNOME extension packages to install from pkgs.gnomeExtensions.<name>
     extensionPackages = [
-      "astra-monitor"
-      "media-controls"
-      "dash-to-dock"
+      "astra-monitor"   # astra-monitor@astraext.github.io
+      "media-controls"  # mediacontrols@cliffniff.github.com
+      "dash-to-dock"    # dash-to-dock@micxgx.gmail.com
+      "extension-list"  # extension-list@tu.berry
+      "add-to-desktop"  # add-to-desktop@tommimon.github.com
+      "force-quit"      # fq@megh
     ];
 
     # Extension UUIDs to enable (must match the installed extensions)

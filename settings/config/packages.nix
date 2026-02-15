@@ -112,6 +112,8 @@
 
   # ── Desktop/GUI packages (NixOS laptop) ──────────────────────────────────────
   desktop = [
+    "adw-gtk3"            # GTK3 theme matching libadwaita (green accent support)
+    "papirus-icon-theme"  # Clean minimal icon theme (Papirus-Dark)
     "discord"
     "signal-desktop"
     "spotify"

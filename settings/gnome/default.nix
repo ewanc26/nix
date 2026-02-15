@@ -108,8 +108,8 @@ with lib.hm.gvariant;
     # the desktop wallpaper set in home/programs/gnome.nix.
     "org/gnome/desktop/screensaver" = {
       color-shading-type = "solid";
-      primary-color = "#3a4ba0";
-      secondary-color = "#2f302f";
+      primary-color = "#1a3a1a";
+      secondary-color = "#0d1f0d";
     };
 
     # ── Nautilus (Files) ──────────────────────────────────────────────────────
@@ -149,31 +149,37 @@ with lib.hm.gvariant;
     # machine-specific hardware identifiers.
     "org/gnome/shell/extensions/astra-monitor" = {
       experimental-features = "[]";
-      monitors-order = "[\"processor\",\"gpu\",\"memory\",\"storage\",\"network\",\"sensors\"]";
+      monitors-order = "[\"processor\",\"memory\",\"network\",\"sensors\"]";
 
+      # CPU: compact — graph + percentage only
       processor-header-show = true;
       processor-header-percentage = true;
       processor-header-graph = true;
-      processor-indicators-order = "[\"icon\",\"bar\",\"graph\",\"percentage\",\"frequency\"]";
+      processor-header-bars = false;
+      processor-indicators-order = "[\"icon\",\"graph\",\"percentage\"]";
 
+      # RAM: compact — graph + percentage only
       memory-header-show = true;
       memory-header-percentage = true;
       memory-header-graph = true;
-      memory-indicators-order = "[\"icon\",\"bar\",\"graph\",\"percentage\",\"value\",\"free\"]";
+      memory-header-bars = false;
+      memory-indicators-order = "[\"icon\",\"graph\",\"percentage\"]";
 
+      # Network: IO speed only, no graph (keeps bar uncluttered)
       network-header-show = true;
       network-header-io = true;
       network-header-graph = false;
+      network-header-bars = false;
       network-header-io-unit = "kB/s";
-      network-indicators-order = "[\"icon\",\"IO bar\",\"IO graph\",\"IO speed\"]";
+      network-indicators-order = "[\"icon\",\"IO speed\"]";
 
+      # GPU: hidden (enable manually if needed)
       gpu-header-show = false;
-      gpu-header-activity-percentage = true;
-      gpu-indicators-order = "[\"icon\",\"activity bar\",\"activity graph\",\"activity percentage\",\"memory bar\",\"memory graph\",\"memory percentage\",\"memory value\"]";
 
+      # Storage: hidden
       storage-header-show = false;
-      storage-indicators-order = "[\"icon\",\"bar\",\"percentage\",\"value\",\"free\",\"IO bar\",\"IO graph\",\"IO speed\"]";
 
+      # Sensors: temperature value only
       sensors-header-show = true;
       sensors-header-tooltip = false;
       sensors-indicators-order = "[\"icon\",\"value\"]";
@@ -184,24 +190,28 @@ with lib.hm.gvariant;
 
     # ── Extension: dash-to-dock ───────────────────────────────────────────────
     "org/gnome/shell/extensions/dash-to-dock" = {
-      animation-time = 0.2;
-      autohide = false;
+      animation-time = 0.15;
+      autohide = true;
+      autohide-in-fullscreen = true;
+      intellihide = true;
+      intellihide-mode = "FOCUS_APPLICATION_WINDOWS";
       click-action = "minimize-or-previews";
-      dash-max-icon-size = 48;
-      dock-fixed = true;
+      dash-max-icon-size = 40;
+      dock-fixed = false;
       dock-position = "BOTTOM";
       extend-height = false;
-      hide-delay = 0.2;
-      icon-size-fixed = false;
-      intellihide = false;
+      hide-delay = 0.1;
+      icon-size-fixed = true;
       scroll-action = "cycle-windows";
-      show-delay = 0.25;
+      show-delay = 0.1;
       show-favorites = true;
-      show-mounts = true;
+      show-mounts = false;
       show-running = true;
       show-show-apps-button = true;
-      show-trash = true;
+      show-trash = false;
       transparency-mode = "DYNAMIC";
+      background-opacity = 0.6;
+      custom-background-color = false;
     };
 
     # ── Extension: media-controls ─────────────────────────────────────────────
