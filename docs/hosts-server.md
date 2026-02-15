@@ -1,5 +1,7 @@
 # Server Host
 
+> **⚠️ Note**: This is a planned configuration that has not yet been deployed to hardware. The configuration is maintained and ready for deployment when needed.
+
 Minimal NixOS server configuration with security hardening and automatic maintenance.
 
 ## Features
