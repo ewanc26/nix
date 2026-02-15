@@ -26,7 +26,7 @@
     "zip"
     
     # Editors & multiplexers
-    "vim"
+    "nano"
     "tmux"
     
     # Network tools
