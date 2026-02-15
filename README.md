@@ -18,14 +18,17 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 
 ## Managed Systems
 
-### Linux (NixOS)
+### macOS (nix-darwin) - PRIMARY
 
-- **laptop** - Dell Inspiron 3501 with KDE Plasma 6 desktop environment
-- **server** - Minimal headless server configuration
+- **macmini** - Apple Silicon Mac Mini (M2) - Main daily driver
 
-### macOS (nix-darwin)
+### Linux (NixOS) - SECONDARY
 
-- **macmini** - Apple Silicon Mac Mini (M2)
+- **laptop** - Dell Inspiron 3501 with KDE Plasma 6 - Secondary workstation for Linux-specific tasks
+
+### Planned (NixOS)
+
+- **server** - Minimal headless server configuration (not yet deployed)
 
 ## Repository Structure
 
@@ -137,10 +140,10 @@ See [`lib/USAGE.md`](lib/USAGE.md) for details on using `cfgLib` helpers.
 
 ```bash
 # Examples
-vim settings/config/user.nix       # Username, email, shell
-vim settings/config/packages.nix   # Add/remove packages
-vim settings/config/desktop.nix    # Theme, fonts, KDE settings
-vim settings/config/darwin.nix     # macOS packages, Homebrew, keyboard
+nano settings/config/user.nix       # Username, email, shell
+nano settings/config/packages.nix   # Add/remove packages
+nano settings/config/desktop.nix    # Theme, fonts, KDE settings
+nano settings/config/darwin.nix     # macOS packages, Homebrew, keyboard
 ```
 
 See [`settings/config/README.md`](settings/config/README.md) for the full map.
@@ -308,12 +311,18 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 - [`docs/settings-config.md`](docs/settings-config.md) — full settings reference *(start here)*
 - [`docs/REFERENCE.md`](docs/REFERENCE.md) — quick-reference card
 
-### Setup Guides
-- [`docs/hosts.md`](docs/hosts.md) — adding/configuring hosts
-- [`docs/hosts-macmini.md`](docs/hosts-macmini.md) — macOS setup guide
-- [`docs/hosts-server.md`](docs/hosts-server.md) — server setup guide
-- [`docs/secrets.md`](docs/secrets.md) — secrets management
+### Host Management
+- [`docs/hosts.md`](docs/hosts.md) — hosts documentation index *(start here)*
+- [`docs/hosts-overview.md`](docs/hosts-overview.md) — complete comparison of all three hosts
+- [`docs/hosts-modification.md`](docs/hosts-modification.md) — how to modify and add hosts
+- [`docs/unified-terminal.md`](docs/unified-terminal.md) — identical terminal across all hosts
+- [`docs/hosts-laptop.md`](docs/hosts-laptop.md) — Dell Inspiron 3501 (NixOS + KDE Plasma 6)
+- [`docs/hosts-server.md`](docs/hosts-server.md) — headless server setup
+- [`docs/hosts-macmini.md`](docs/hosts-macmini.md) — macOS with nix-darwin
+- [`docs/pds-quickstart.md`](docs/pds-quickstart.md) — Bluesky PDS quick setup *(automated script)*
+- [`docs/pds-setup.md`](docs/pds-setup.md) — Bluesky PDS detailed guide *(manual setup)*
 
 ### Settings Management
 - [`docs/settings.md`](docs/settings.md) — settings overview
 - [`docs/settings-structure.md`](docs/settings-structure.md) — why the config is modular
+- [`docs/secrets.md`](docs/secrets.md) — secrets management
