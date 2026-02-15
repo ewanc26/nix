@@ -64,6 +64,9 @@ in
       
       # Initialize Starship prompt
       eval "$(starship init zsh)"
+      
+      # Initialize fzf (fuzzy finder)
+      eval "$(fzf --zsh)"
 
       # Prompt settings
       setopt PROMPT_SUBST

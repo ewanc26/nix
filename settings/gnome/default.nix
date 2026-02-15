@@ -40,14 +40,15 @@ with lib.hm.gvariant;
     # from cfg.desktop in home/programs/gnome.nix — do not repeat them here.
     "org/gnome/desktop/interface" = {
       accent-color = "green";
-      clock-show-weekday = true;
+      clock-show-weekday = false;     # macOS doesn't show weekday in menu bar
+      clock-show-seconds = false;      # Keep time minimal like macOS
       enable-hot-corners = false;
       show-battery-percentage = true;
     };
 
     # ── Window manager ────────────────────────────────────────────────────────
     "org/gnome/desktop/wm/preferences" = {
-      button-layout = "appmenu:minimize,maximize,close";
+      button-layout = "close,minimize,maximize:";  # Mac-style: buttons on left
       num-workspaces = 4;
     };
 
@@ -59,16 +60,19 @@ with lib.hm.gvariant;
 
     # ── Shell — taskbar favourites ────────────────────────────────────────────
     # enabled-extensions and disable-user-extensions are set by gnome.nix.
+    # Order matches macOS dock (only apps available on both systems)
     "org/gnome/shell" = {
       favorite-apps = [
-        "org.gnome.Nautilus.desktop"
-        "steam.desktop"
-        "org.prismlauncher.PrismLauncher.desktop"
-        "firefox.desktop"
-        "spotify.desktop"
-        "signal.desktop"
-        "discord.desktop"
-        "code.desktop"
+        "org.gnome.Nautilus.desktop"     # Files (Finder equivalent)
+        "signal-desktop.desktop"          # Signal
+        "org.gnome.Calendar.desktop"     # Calendar
+        "obsidian.desktop"               # Obsidian
+        "spotify.desktop"                # Spotify
+        "steam.desktop"                  # Steam
+        "discord.desktop"                # Discord
+        "firefox.desktop"                # Firefox
+        "code.desktop"                   # VS Code
+        "org.gnome.Console.desktop"      # Console (Terminal equivalent)
       ];
     };
 
@@ -199,27 +203,27 @@ with lib.hm.gvariant;
 
     # ── Extension: dash-to-dock ───────────────────────────────────────────────
     "org/gnome/shell/extensions/dash-to-dock" = {
-      animation-time = 0.15;
+      animation-time = 0.2;                 # Smooth animations like macOS
       autohide = true;
       autohide-in-fullscreen = true;
       intellihide = true;
       intellihide-mode = "FOCUS_APPLICATION_WINDOWS";
       click-action = "minimize-or-previews";
-      dash-max-icon-size = 40;
+      dash-max-icon-size = 48;              # Larger icons like macOS
       dock-fixed = false;
       dock-position = "BOTTOM";
       extend-height = false;
-      hide-delay = 0.1;
-      icon-size-fixed = true;
+      hide-delay = 0.2;                     # Slight delay like macOS
+      icon-size-fixed = false;              # Allow dynamic sizing
       scroll-action = "cycle-windows";
-      show-delay = 0.1;
+      show-delay = 0.2;                     # Slight delay like macOS
       show-favorites = true;
       show-mounts = false;
       show-running = true;
       show-show-apps-button = true;
       show-trash = false;
       transparency-mode = "DYNAMIC";
-      background-opacity = 0.6;
+      background-opacity = 0.7;             # More transparent like macOS
       custom-background-color = false;
     };
 
@@ -232,8 +236,8 @@ with lib.hm.gvariant;
 
     "org/gnome/shell/extensions/blur-my-shell/panel" = {
       blur = true;
-      brightness = 0.6;
-      sigma = 20;
+      brightness = 0.7;        # Slightly brighter (more transparent like macOS)
+      sigma = 15;              # Less blur for sharper look like macOS
       static-blur = true;
     };
 
@@ -246,14 +250,23 @@ with lib.hm.gvariant;
 
     # ── Extension: just-perfection ────────────────────────────────────────────
     "org/gnome/shell/extensions/just-perfection" = {
-      # Hide clutter, keep it minimal
+      # Hide clutter, keep it minimal (Mac-like)
       activities-button = false;   # hide Activities button (use Super key instead)
       app-menu = false;            # hide app name in top bar
       news = false;                # disable welcome tour
-      startup-status = 0;         # skip startup animation
+      startup-status = 0;          # skip startup animation
       workspace-switcher-should-show = false;
       window-demands-attention-focus = true;
       panel-in-overview = true;
+      
+      # Panel appearance (Mac-like)
+      panel-size = 32;             # Smaller panel (default 40, macOS is ~28-32)
+      panel-corner-size = 8;       # Rounded corners like macOS
+      panel-notification-icon = false;  # Hide notification icon for cleaner look
+      
+      # Clock position
+      clock-menu-position = 2;     # Right side like macOS (0=left, 1=center, 2=right)
+      clock-menu-position-offset = 0;
     };
 
     # ── Extension: media-controls ─────────────────────────────────────────────

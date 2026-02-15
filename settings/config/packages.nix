@@ -5,17 +5,35 @@
 
   # ── Common CLI utilities (every system: laptop, macmini, server) ─────────────
   common = [
+    # System info & monitoring
     "fastfetch"
-    "htop"
+    "btop"         # Modern htop alternative
+    
+    # Modern CLI tools
+    "eza"          # Modern ls
+    "bat"          # Modern cat with syntax highlighting
+    "ripgrep"      # Fast grep (rg)
+    "fd"           # Fast find
+    "fzf"          # Fuzzy finder
     "tree"
-    "ripgrep"
-    "fd"
+    
+    # Version control
+    "git"
+    "lazygit"      # Git TUI
+    
+    # Archives
     "unzip"
     "zip"
+    
+    # Editors & multiplexers
     "vim"
+    "tmux"
+    
+    # Network tools
     "wget"
     "curl"
-    "tmux"
+    
+    # File sync
     "rsync"
   ];
 
@@ -25,23 +43,21 @@
   # settings/config/darwin.nix → packages.
   development = [
     # Nix tooling
-    "nil" # Nix language server (jnoortheen.nix-ide)
+    "nil"              # Nix language server (jnoortheen.nix-ide)
     "nixfmt-rfc-style" # Nix formatter
 
-    # Version control
-    "git"
+    # Version control (git is in common)
     "git-filter-repo"
-    "gh"
+    "gh"               # GitHub CLI
 
     # Languages & runtimes
     "go"
     "nodejs_22"
-    "python313"
-    "python311"
-    "bun" # Fast TS/JS runtime & bundler (TypeScript repos)
-    "pnpm" # SvelteKit standard package manager
-    "rustup" # Rust toolchain manager
-    "dotnet-sdk" # C# / VB.NET
+    "python313"        # Primary Python version
+    "bun"              # Fast TS/JS runtime & bundler
+    "pnpm"             # Fast package manager (SvelteKit)
+    "rustup"           # Rust toolchain manager
+    "dotnet-sdk"       # .NET SDK
 
     # Go tooling
     "gopls" # Go language server (golang.go extension)
@@ -87,11 +103,10 @@
     # Image processing / OCR
     "tesseract"
 
-    # Runtimes kept for project compatibility
-    "openjdk21"
-    "php"
-    "ollama"
-    "pyenv"
+    # Additional runtimes
+    "openjdk21"       # Java LTS
+    "php"             # PHP runtime
+    "ollama"          # Local LLM runtime
   ];
 
   # ── Nerd Fonts to install ─────────────────────────────────────────────────────
@@ -112,16 +127,31 @@
 
   # ── Desktop/GUI packages (NixOS laptop) ──────────────────────────────────────
   desktop = [
-    "papirus-icon-theme"  # Clean minimal icon theme (Papirus-Dark)
+    # Theming
+    "papirus-icon-theme"       # Clean minimal icon theme
+    
+    # Communication
     "discord"
     "signal-desktop"
+    
+    # Media
     "spotify"
-    "gimp"
-    "inkscape"
-    "parsec-bin"
+    
+    # Productivity
+    "obsidian"                 # Note-taking (Markdown)
+    "gnome-calendar"
     "libreoffice-fresh"
-    "prismlauncher"
-    "gnome-extension-manager"
+    
+    # Creative
+    "gimp"                     # Image editing
+    "inkscape"                 # Vector graphics
+    
+    # Gaming/Remote
+    "parsec-bin"               # Remote gaming/desktop
+    "prismlauncher"            # Minecraft launcher
+    
+    # System tools
+    "gnome-extension-manager"  # Manage GNOME extensions
   ];
 
   # ── Gaming packages ───────────────────────────────────────────────────────────

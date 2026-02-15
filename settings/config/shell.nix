@@ -3,10 +3,12 @@
   
   # Common aliases
   aliases = {
-    # Directory listing
-    ll = "ls -lah";
-    la = "ls -A";
-    l = "ls -CF";
+    # Modern CLI replacements
+    ls = "eza --icons";
+    ll = "eza -l --icons --git";
+    la = "eza -la --icons --git";
+    lt = "eza --tree --level=2 --icons";
+    cat = "bat";
     
     # Navigation
     ".." = "cd ..";
@@ -26,6 +28,9 @@
     # Disk usage
     du1 = "du -h -d 1";
     df = "df -h";
+    
+    # Git shortcuts (use lazygit for TUI)
+    lg = "lazygit";
   };
   
   # Git aliases
