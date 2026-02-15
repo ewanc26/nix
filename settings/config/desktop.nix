@@ -51,7 +51,7 @@
 
     # Extension UUIDs to enable (must match the installed extensions)
     enabledExtensions = [
-      "astra-monitor@astraext.github.io"
+      "monitor@astraext.github.io"
       "mediacontrols@cliffniff.github.com"
       "dash-to-dock@micxgx.gmail.com"
       "extension-list@tu.berry"
