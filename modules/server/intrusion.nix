@@ -12,7 +12,8 @@ in
       enabled  = true;
       port     = toString cfg.server.sshd.port;
       filter   = "sshd";
-      logpath  = "/var/log/auth.log";
+      # NixOS uses the systemd journal — there is no /var/log/auth.log.
+      backend  = "systemd";
       maxretry = cfg.server.fail2ban.maxRetry;
       findtime = cfg.server.fail2ban.findTime;
       bantime  = cfg.server.fail2ban.banTime;

@@ -129,27 +129,4 @@
     "libffi"
   ];
 
-  # ─── System preferences ──────────────────────────────────────────────────────
-  # These document intent; the canonical values live in settings/darwin/domains/.
-  system = {
-    defaults = {
-      dock = {
-        autohide = true;
-        orientation = "bottom";
-        tilesize = 48;
-      };
-
-      finder = {
-        AppleShowAllExtensions = true;
-        ShowPathbar = true;
-        ShowStatusBar = true;
-      };
-
-      NSGlobalDomain = {
-        AppleShowAllExtensions = true;
-        InitialKeyRepeat = 15;
-        KeyRepeat = 2;
-      };
-    };
-  };
 }

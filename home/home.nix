@@ -23,14 +23,11 @@ in
     homeDirectory = homeDir;
     stateVersion = cfg.system.stateVersion;
 
-    packages = with pkgs; 
-      # Fonts
+    packages = with pkgs;
+      # Nerd Fonts (home-manager is the canonical place for fonts)
       (map (font: nerd-fonts.${font}) cfg.packages.fonts)
       ++
-      # Common packages
-      (map (pkg: pkgs.${pkg}) cfg.packages.common)
-      ++
-      # Linux-only packages
+      # Linux-only packages (not installed as system packages anywhere)
       (lib.optionals (!isDarwin) (map (pkg: pkgs.${pkg}) cfg.packages.linux));
 
     file.".ssh/authorized_keys" = {

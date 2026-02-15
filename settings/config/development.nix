@@ -1,14 +1,6 @@
 {
   # Development configuration
 
-  # Programming languages/tools to install
-  languages = [
-    "nodejs"
-    "python3"
-    "go"
-    "rust"
-  ];
-
   # VS Code configuration
   vscode = {
     enable = true;

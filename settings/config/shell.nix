@@ -23,22 +23,22 @@
   linuxAliases = {
     # nrs/nrb/nrt defined dynamically based on hostname
     cleanup      = "sudo nix-collect-garbage -d && nix-collect-garbage -d";
-    backup-gde   = "nix run ~/.config/nix-config/tools#gnome-export";
-    secrets-setup = "nix run ~/.config/nix-config/tools#secrets-setup";
     flake-bump   = "nix run ~/.config/nix-config/tools#flake-bump";
     gen-diff     = "nix run ~/.config/nix-config/tools#gen-diff";
     health-check = "nix run ~/.config/nix-config/tools#health-check";
+    # Removed: backup-gde (gnome-export retired — dconf now fully declarative)
+    # Removed: secrets-setup (was a stub; health-check covers the age key check)
   };
   
   # macOS-specific aliases
   darwinAliases = {
     # nrs/nrt defined dynamically based on hostname
     cleanup      = "sudo nix-collect-garbage -d";
-    backup-dde   = "nix run ~/.config/nix-config/tools#darwin-export";
-    secrets-setup = "nix run ~/.config/nix-config/tools#secrets-setup";
     flake-bump   = "nix run ~/.config/nix-config/tools#flake-bump";
     gen-diff     = "nix run ~/.config/nix-config/tools#gen-diff";
     health-check = "nix run ~/.config/nix-config/tools#health-check";
+    # Removed: backup-dde (darwin-export retired — macOS settings now fully declarative)
+    # Removed: secrets-setup (was a stub; health-check covers the age key check)
   };
   
   # History configuration

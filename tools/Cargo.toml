@@ -7,17 +7,7 @@ edition = "2021"
 name = "tools_common"
 path = "src/lib.rs"
 
-[[bin]]
-name = "darwin-export"
-path = "src/bin/darwin-export.rs"
-
-[[bin]]
-name = "gnome-export"
-path = "src/bin/gnome-export.rs"
-
-[[bin]]
-name = "secrets-setup"
-path = "src/bin/secrets-setup.rs"
+# ── Tools kept ────────────────────────────────────────────────────────────────
 
 [[bin]]
 name = "flake-bump"
@@ -31,14 +21,11 @@ path = "src/bin/gen-diff.rs"
 name = "health-check"
 path = "src/bin/health-check.rs"
 
-[[bin]]
-name = "categorize-apps"
-path = "src/bin/categorize-apps.rs"
-
-[[bin]]
-name = "generate-app-config"
-path = "src/bin/generate-app-config.rs"
-
-[[bin]]
-name = "sync-apps"
-path = "src/bin/sync-apps.rs"
+# ── Removed tools (source kept for reference, not compiled) ──────────────────
+# darwin-export   — unnecessary: macOS settings are now fully declarative
+# gnome-export    — unnecessary: GNOME/dconf settings are now fully declarative
+# secrets-setup   — unnecessary: was a stub that only checked a file's existence
+# categorize-apps — brittle: nix search / brew info --cask lookups produce
+#                   false positives; config is hand-maintained
+# generate-app-config — same as above
+# sync-apps           — same; also mutated config files without review

@@ -1,198 +1,85 @@
-# Nix Config Tools (Rust)
+# Nix Config Tools
 
-Rust-based utilities for managing your nix-darwin configuration.
-
-## Building
+Three Rust utilities for managing the nix config. Run via the flake — no
+`cargo build` required:
 
 ```bash
-cd tools
-cargo build --release
+nix run ~/.config/nix-config/tools#<tool>
 ```
 
-The compiled binaries will be in `target/release/`.
-
-## Available Tools
-
-### App Management
-
-#### sync-apps ⭐ (RECOMMENDED)
-**Automatically updates your nix config files** with currently installed apps.
+Or via the shell aliases set up by `home/programs/zsh.nix`:
 
 ```bash
-cargo run --release --bin sync-apps
+health-check    # pre-rebuild preflight
+flake-bump      # inspect / update flake inputs
+gen-diff        # diff package changes between generations
 ```
 
-**What it does:**
-1. Scans `/Applications` and categorizes each app
-2. Updates `settings/config/darwin.nix` with casks and MAS apps
-3. Shows nixpkgs apps to add manually
-4. Creates a git commit with the changes
+---
 
-**Safety features:**
-- Checks for uncommitted changes (use `--force` to override)
-- Creates a git commit so you can easily revert
-- Shows a summary of what was updated
+## `health-check`
 
-**This is the easiest way to keep your config in sync!**
-
-#### categorize-apps
-Scans `/Applications` and shows where each app should be managed.
+Pre-rebuild preflight. Run before `nrs` to catch problems early.
 
 ```bash
-cargo run --release --bin categorize-apps
-```
-
-**Priority order:** nixpkgs → Homebrew casks → Mac App Store → manual
-
-**Output:**
-- ✅ Apps available in nixpkgs
-- 🍺 Apps available as Homebrew casks
-- 🍎 Apps only in Mac App Store
-- ❌ Apps not available (manual install)
-
-#### generate-app-config
-Generates ready-to-paste nix configuration from your `/Applications`.
-
-```bash
-cargo run --release --bin generate-app-config > ~/Desktop/my-apps.nix
-```
-
-Creates formatted config sections for:
-- nixpkgs packages
-- Homebrew casks
-- Mac App Store apps
-
-### System Management
-
-#### health-check
-Pre-rebuild preflight check for your nix config.
-
-```bash
-cargo run --release --bin health-check
+health-check
 ```
 
 Checks:
-- Nix daemon status
-- flake.lock validity
-- Flake evaluation
-- Git tree state
-- Age key presence
-- SSH keys
-- Homebrew installation (macOS)
-- Disk space
+- Nix daemon is responding
+- `flake.lock` is present and valid JSON
+- Flake evaluates without errors
+- Git working tree is clean
+- Age key exists at `~/.config/age/keys.txt`
+- SSH keys present in `modules/ssh-keys.nix`
+- Disk space on `/nix/store`
+- Homebrew installed (macOS only)
 
-#### darwin-export
-Export current macOS system settings to nix config format.
+Exits 0 when all hard checks pass (warnings are non-fatal).
 
-```bash
-cargo run --release --bin darwin-export
-```
+---
 
-#### gnome-export
-Export GNOME/dconf settings to nix config format.
+## `flake-bump`
+
+Shows how stale each flake input is and bumps them selectively.
 
 ```bash
-cargo run --release --bin gnome-export
+flake-bump                     # show staleness table
+flake-bump --update nixpkgs    # bump one input and commit flake.lock
+flake-bump --update-all        # bump everything and commit flake.lock
 ```
 
-### Maintenance
+---
 
-#### flake-bump
-Update flake.lock and commit the changes.
+## `gen-diff`
+
+Shows what packages changed between NixOS/nix-darwin generations.
 
 ```bash
-cargo run --release --bin flake-bump
+gen-diff                       # diff last two generations
+gen-diff --list                # list all generations with dates
+gen-diff --from 42 --to 43     # diff specific generation numbers
 ```
 
-#### gen-diff
-Generate a diff showing what would change with a rebuild.
+Wraps `nix store diff-closures` with a friendlier interface and generation listing.
 
-```bash
-cargo run --release --bin gen-diff
-```
+---
 
-#### secrets-setup
-Initialize age encryption for secrets management.
+## Retired tools
 
-```bash
-cargo run --release --bin secrets-setup
-```
+The following tools were removed. Their source files remain in `src/bin/` for
+reference but are no longer compiled.
 
-## Quick Start: Managing All Applications
+| Tool | Reason removed |
+|---|---|
+| `darwin-export` | macOS settings are now fully declarative in `settings/darwin/default.nix` — nothing to export |
+| `gnome-export` | GNOME/dconf settings are now fully declarative in `settings/gnome/dconf-settings.nix` — nothing to export |
+| `secrets-setup` | Was a stub that only checked if `~/.config/age/keys.txt` existed; `health-check` covers this |
+| `categorize-apps` | `nix search` / `brew info --cask` lookups produce false positives; `darwin.nix` is hand-maintained |
+| `generate-app-config` | Same reasons as `categorize-apps` |
+| `sync-apps` | Same reasons, plus it auto-mutated config files without review |
 
-### The Easy Way (Automatic)
-
-```bash
-cd ~/.config/nix-config/tools
-
-# Build once
-cargo build --release
-
-# Sync your apps automatically
-cargo run --release --bin sync-apps
-
-# Apply the changes
-darwin-rebuild switch --flake ~/.config/nix-config#macmini
-```
-
-That's it! `sync-apps` does everything for you:
-- ✅ Scans your apps
-- ✅ Updates your config files
-- ✅ Creates a git commit
-- ✅ Shows you what changed
-
-### The Manual Way
-
-If you prefer more control:
-
-```bash
-# 1. See what you have
-cargo run --release --bin categorize-apps
-
-# 2. Generate config snippets
-cargo run --release --bin generate-app-config > ~/Desktop/apps.nix
-
-# 3. Manually copy to your config files
-# 4. Apply
-darwin-rebuild switch --flake ~/.config/nix-config#macmini
-```
-
-## Workflow Examples
-
-### Regular Maintenance
-
-```bash
-# After installing new apps, sync your config
-cd ~/.config/nix-config/tools
-cargo run --release --bin sync-apps
-darwin-rebuild switch --flake ~/.config/nix-config#macmini
-```
-
-### Before Rebuilding
-
-```bash
-# Check if everything is healthy
-cargo run --release --bin health-check
-
-# If all checks pass, rebuild
-darwin-rebuild switch --flake ~/.config/nix-config#macmini
-```
-
-### Setting Up a New Machine
-
-```bash
-# Clone your config
-git clone your-repo ~/.config/nix-config
-
-# Install Nix and nix-darwin (follow official docs)
-
-# Build the tools
-cd ~/.config/nix-config/tools
-cargo build --release
-
-# Your apps are already in the config!
-darwin-rebuild switch --flake ~/.config/nix-config#macmini
-```
+---
 
 ## Development
 
@@ -205,75 +92,18 @@ darwin-rebuild switch --flake ~/.config/nix-config#macmini
    name = "your-tool"
    path = "src/bin/your-tool.rs"
    ```
-3. Use the common utilities from `tools_common` crate
+3. Expose in `flake.nix` under `apps`
+4. Add a shell alias in `settings/config/shell.nix` if used regularly
 
-### Common utilities (lib.rs)
+### Common utilities (`lib.rs`)
 
 ```rust
 use tools_common::*;
 
-// Get the git root of the config
-let root = git_root();
+let root      = git_root();       // path to ~/.config/nix-config
+let timestamp = get_timestamp();  // "2026-02-14 20:00:00"
+let host      = get_hostname();   // "macmini"
 
-// Get current timestamp
-let timestamp = get_timestamp();
-
-// Get hostname
-let host = get_hostname();
-
-// Run nix command and capture to file
-capture_nix_to_file(&["eval", "..."], &out_path);
-
-// Git commit and push
-git_sync("path/to/file", "Auto-update");
-```
-
-## Installing System-Wide
-
-You can install these tools to make them available everywhere:
-
-```bash
-cd tools
-cargo install --path .
-```
-
-Then use them directly:
-
-```bash
-sync-apps
-categorize-apps
-health-check
-```
-
-## Tips
-
-- **Use `sync-apps`** regularly to keep your config in sync
-- **Run `health-check` before every rebuild** to catch issues early
-- **Prefer nixpkgs over Homebrew** when available for better reproducibility
-- **Keep game launchers manual** - they're not well-suited for declarative management
-- **The `--force` flag** on `sync-apps` skips the uncommitted changes check
-
-## Troubleshooting
-
-### sync-apps says I have uncommitted changes
-
-This is a safety feature. Either commit your changes first, or use:
-```bash
-cargo run --release --bin sync-apps -- --force
-```
-
-### MAS apps not detected
-
-Make sure `mas` is installed:
-```bash
-brew install mas
-```
-
-And sign into the App Store.
-
-### Build errors
-
-Make sure you have Rust installed:
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+// Commit a file and push
+git_sync("flake.lock", "flake");
 ```

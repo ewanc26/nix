@@ -18,15 +18,20 @@
           };
         }
       );
-      apps = forAllSystems (system: 
+      apps = forAllSystems (system:
         let pkg = self.packages.${system}.default; in
         {
-          darwin-export  = { type = "app"; program = "${pkg}/bin/darwin-export"; };
-          gnome-export   = { type = "app"; program = "${pkg}/bin/gnome-export"; };
-          secrets-setup  = { type = "app"; program = "${pkg}/bin/secrets-setup"; };
-          flake-bump     = { type = "app"; program = "${pkg}/bin/flake-bump"; };
-          gen-diff       = { type = "app"; program = "${pkg}/bin/gen-diff"; };
-          health-check   = { type = "app"; program = "${pkg}/bin/health-check"; };
+          # Show staleness of each flake input and bump selectively.
+          # Usage: nix run .#flake-bump [-- --update <input> | --update-all]
+          flake-bump  = { type = "app"; program = "${pkg}/bin/flake-bump"; };
+
+          # Diff packages between nix generations.
+          # Usage: nix run .#gen-diff [-- --list | --from N --to M]
+          gen-diff    = { type = "app"; program = "${pkg}/bin/gen-diff"; };
+
+          # Pre-rebuild preflight: daemon, lock, eval, git, age key, disk space.
+          # Usage: nix run .#health-check
+          health-check = { type = "app"; program = "${pkg}/bin/health-check"; };
         }
       );
     };

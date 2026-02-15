@@ -10,10 +10,7 @@ in
 
     videoDrivers = [ "modesetting" ];
 
-    xkb = {
-      layout  = "gb";
-      variant = "";
-    };
+    xkb.layout = "gb";
   };
 
   # Display manager – driven from settings/config/desktop.nix

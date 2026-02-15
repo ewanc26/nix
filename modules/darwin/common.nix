@@ -10,12 +10,25 @@ in
   programs.zsh.enable = true;
 
   nix = {
+    # Explicit nix management via nix-darwin.
+    # NOTE: Set `nix.enable = false` if you use Determinate Nix, which manages
+    # the nix daemon itself and conflicts with nix-darwin's native management.
+    enable  = true;
+    package = pkgs.nix;
+
     settings = {
       experimental-features = cfg.nix.experimentalFeatures;
-    };
 
-    # Auto-optimise nix store
-    optimise.automatic = cfg.nix.autoOptimise;
+      # IMPORTANT: Disable store optimisation on macOS.
+      # `auto-optimise-store = true` triggers a kernel bug on macOS that causes
+      # build failures:  https://github.com/NixOS/nix/issues/7273
+      # Use `nix store optimise` manually when needed instead.
+      auto-optimise-store = false;
+
+      # Allow the primary user to use trusted nix operations (e.g. adding
+      # substituters) without requiring root.
+      trusted-users = [ "root" cfg.user.username ];
+    };
 
     # Automatic garbage collection (macOS launchd schedule)
     gc = {

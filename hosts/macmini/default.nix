@@ -19,6 +19,12 @@ in
     computerName = "MacMini";
   };
 
+  # SMB/NetBIOS hostname (used by network discovery and file sharing)
+  system.defaults.smb.NetBIOSName = "macmini";
+
+  # Timezone
+  time.timeZone = "Europe/London";
+
   users.users.${cfg.user.username} = {
     home  = "/Users/${cfg.user.username}";
     shell = pkgs.${cfg.user.shell};
