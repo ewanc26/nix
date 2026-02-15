@@ -85,8 +85,9 @@
     ];
 
     # GUI applications via Homebrew Cask
-        casks = [
+    casks = [
       "logitune"
+      "logitech-options"
       "microsoft-excel"
       "microsoft-powerpoint"
       "microsoft-teams"
@@ -96,15 +97,11 @@
     ];
 
     # Mac App Store apps (by ID)
-        masApps = {
+    masApps = {
       "Amphetamine" = 937984704;
       "EA app" = 1246969117;
-      "Epic Games Launcher" = 1246969117;
-      "Letta Desktop" = 6742498342;
-      "Mini Motorways" = 1047760200;
       "OP Auto Clicker" = 6754914118;
       "Zone Bar" = 6755328989;
-      "logioptionsplus" = 6444194123;
     };
   };
 

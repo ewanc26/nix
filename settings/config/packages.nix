@@ -25,8 +25,8 @@
   # settings/config/darwin.nix → packages.
   development = [
     # Nix tooling
-    "nil"               # Nix language server (jnoortheen.nix-ide)
-    "nixfmt-rfc-style"  # Nix formatter
+    "nil" # Nix language server (jnoortheen.nix-ide)
+    "nixfmt-rfc-style" # Nix formatter
 
     # Version control
     "git"
@@ -38,21 +38,21 @@
     "nodejs_22"
     "python313"
     "python311"
-    "bun"               # Fast TS/JS runtime & bundler (TypeScript repos)
-    "pnpm"              # SvelteKit standard package manager
-    "rustup"            # Rust toolchain manager
-    "dotnet-sdk"        # C# / VB.NET
+    "bun" # Fast TS/JS runtime & bundler (TypeScript repos)
+    "pnpm" # SvelteKit standard package manager
+    "rustup" # Rust toolchain manager
+    "dotnet-sdk" # C# / VB.NET
 
     # Go tooling
-    "gopls"             # Go language server (golang.go extension)
-    "golangci-lint"     # Go linter
-    "delve"             # Go debugger
+    "gopls" # Go language server (golang.go extension)
+    "golangci-lint" # Go linter
+    "delve" # Go debugger
 
     # Python tooling
     "pipx"
     "uv"
-    "ruff"              # Fast Python linter + formatter
-    "pyright"           # Python type checker / language server
+    "ruff" # Fast Python linter + formatter
+    "pyright" # Python type checker / language server
 
     # Build tools
     "cmake"
@@ -117,6 +117,7 @@
     "spotify"
     "gimp"
     "inkscape"
+    "parsec-bin"
     "libreoffice-fresh"
     "prismlauncher"
     "gnome-extension-manager"
