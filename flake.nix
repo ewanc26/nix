@@ -62,7 +62,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.sharedModules = [ catppuccin.homeManagerModules.catppuccin ];
+          home-manager.sharedModules = [ catppuccin.homeModules.catppuccin ];
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit hostName; };
         }
       ];
@@ -85,6 +85,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          home-manager.sharedModules = [ catppuccin.homeModules.catppuccin ];
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit hostName; };
           home-manager.backupFileExtension = "backup";
         }

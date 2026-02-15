@@ -65,34 +65,60 @@ fn check_flake_lock(repo_root: &Path) -> Check {
     }
 }
 
-fn check_flake_eval(repo_root: &Path) -> Check {
-    // Try darwin first, fall back to nixos
-    for (attr, label) in [
-        (".#darwinConfigurations", "darwinConfigurations"),
-        (".#nixosConfigurations",  "nixosConfigurations"),
-    ] {
-        let out = Command::new("nix")
-            .current_dir(repo_root)
-            .args(["eval", attr, "--apply", "builtins.attrNames", "--no-build"])
-            .stdout(Stdio::piped()).stderr(Stdio::piped())
-            .output();
+fn check_config_build(repo_root: &Path, hostname: &str, is_darwin: bool) -> Check {
+    // Construct the platform-specific toplevel attribute
+    let (attr_set, platform_label) = if is_darwin {
+        ("darwinConfigurations", "darwin-rebuild")
+    } else {
+        ("nixosConfigurations", "nixos-rebuild")
+    };
+    let attr = format!(".#{attr_set}.{hostname}.config.system.build.toplevel");
 
-        match out {
-            Ok(o) if o.status.success() => {
-                let names = String::from_utf8_lossy(&o.stdout).trim().to_string();
-                return Check::pass("Flake evaluates", format!("{label}: {names}"));
-            }
-            Ok(o) => {
-                let err = String::from_utf8_lossy(&o.stderr);
-                // If it simply doesn't have this attr, try the other one
-                if err.contains("does not provide attribute") { continue; }
-                let short = err.lines().next().unwrap_or("?").trim();
-                return Check::fail("Flake evaluates", short.to_string());
-            }
-            Err(e) => return Check::fail("Flake evaluates", format!("nix not found: {e}")),
+    // --dry-run evaluates the full derivation graph and reports what would be
+    // built/fetched without actually building anything — ideal for a preflight.
+    let out = Command::new("nix")
+        .current_dir(repo_root)
+        .args(["build", &attr, "--dry-run"])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output();
+
+    match out {
+        Ok(o) if o.status.success() => {
+            // nix build --dry-run prints to stderr: "these derivations will be built:"
+            let stderr = String::from_utf8_lossy(&o.stderr);
+            let summary = if stderr.contains("will be built") || stderr.contains("will be fetched") {
+                // Count lines that start with a store path to give a meaningful count
+                let n = stderr.lines()
+                    .filter(|l| l.trim_start().starts_with("/nix/store"))
+                    .count();
+                format!("evaluates cleanly ({n} derivation(s) would build)")
+            } else {
+                "evaluates cleanly (nothing to build)".into()
+            };
+            Check::pass(platform_label, summary)
         }
+        Ok(o) => {
+            let err = String::from_utf8_lossy(&o.stderr);
+            // Surface the first meaningful error line
+            let short = err
+                .lines()
+                .find(|l| l.trim_start().starts_with("error:"))
+                .unwrap_or_else(|| err.lines().next().unwrap_or("unknown error"))
+                .trim()
+                .to_string();
+            // Give a helpful hint if the hostname isn't in the config
+            if err.contains("does not provide attribute") {
+                Check::fail(
+                    platform_label,
+                    format!("host '{hostname}' not found in {attr_set} — add it to flake.nix"),
+                )
+            } else {
+                Check::fail(platform_label, short)
+            }
+        }
+        Err(e) => Check::fail(platform_label, format!("nix not found: {e}")),
     }
-    Check::fail("Flake evaluates", "no darwinConfigurations or nixosConfigurations found")
 }
 
 fn check_git_state(repo_root: &Path) -> Check {
@@ -178,15 +204,17 @@ fn check_disk_space() -> Check {
 fn main() -> io::Result<()> {
     let repo_root = git_root();
     let is_darwin = cfg!(target_os = "macos");
+    let hostname = get_hostname();
 
     println!("🏥  Nix config health check\n");
     println!("    Repo : {}", repo_root.display());
-    println!("    Host : {}\n", get_hostname());
+    println!("    Host : {}", hostname);
+    println!("    OS   : {}\n", if is_darwin { "macOS (darwin)" } else { "NixOS (linux)" });
 
     let mut checks = vec![
         check_nix_daemon(),
         check_flake_lock(&repo_root),
-        check_flake_eval(&repo_root),
+        check_config_build(&repo_root, &hostname, is_darwin),
         check_git_state(&repo_root),
         check_age_key(),
         check_ssh_keys(&repo_root),
