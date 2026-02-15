@@ -44,8 +44,8 @@
       "christian-kohler.path-intellisense"    # Filename autocompletion
 
       # ── Theme / icons ───────────────────────────────────────────────────
-      "catppuccin.catppuccin-vsc"
-      "catppuccin.catppuccin-vsc-icons"
+      # catppuccin-vsc and catppuccin-vsc-icons are installed by the
+      # catppuccin home-manager module automatically — do not declare here.
     ];
 
     # Extensions from the VS Code Marketplace via the nix-vscode-extensions
