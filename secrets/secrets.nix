@@ -13,14 +13,11 @@ in
 {
   # Add your actual secrets here
   # UI preferences are NOT secrets and should not be encrypted
-  
+
   # Network Credentials (REAL secrets)
   "age/wifi-home.age".publicKeys = all;
-  
+
   # SSH Key Passphrases
   "age/ssh-passphrase.age".publicKeys = all;
- 
-  # Examples of what SHOULD be encrypted:
-  # "api-keys.age".publicKeys = all;
-  # "passwords.age".publicKeys = all;
+  "pds.env.age".publicKeys = all;
 }
