@@ -47,6 +47,7 @@
       "force-quit"       # fq@megh
       "blur-my-shell"    # blur-my-shell@aunetx
       "just-perfection"  # just-perfection-desktop@just-perfection
+      "logo-menu"        # logomenu@aryan_k (Nix logo in top left)
     ];
 
     # Extension UUIDs to enable (must match the installed extensions)
@@ -59,6 +60,7 @@
       "fq@megh"
       "blur-my-shell@aunetx"
       "just-perfection-desktop@just-perfection"
+      "logomenu@aryan_k"
     ];
   };
 }

@@ -265,8 +265,26 @@ with lib.hm.gvariant;
       panel-notification-icon = false;  # Hide notification icon for cleaner look
       
       # Clock position
-      clock-menu-position = 2;     # Right side like macOS (0=left, 1=center, 2=right)
+      clock-menu-position = 2;     # Right side (0=left, 1=center, 2=right)
       clock-menu-position-offset = 0;
+    };
+
+    # ── Extension: logo-menu ──────────────────────────────────────────────────
+    # Shows Nix snowflake logo in top left corner
+    # TO CONFIGURE ICON DECLARATIVELY:
+    #   1. Rebuild and configure icon manually via Extensions app
+    #   2. Run: dconf dump /org/gnome/shell/extensions/logomenu/ > logo-menu-settings.txt
+    #   3. Copy the icon settings (menu-button-icon-image, symbolic-icon, etc) here
+    #   4. Comment out this note and the icon will be applied automatically
+    "org/gnome/shell/extensions/logomenu" = {
+      menu-button-icon-click-type = 3;  # 3 = Activities Overview
+      menu-button-terminal = "gnome-console";
+      hide-softwarecentre = true;       # Hide software center from menu
+      show-activities-button = false;   # We're replacing Activities button
+      
+      # Icon configuration - uncomment after running dconf dump:
+      # menu-button-icon-image = 23;  # NixOS icon ID (get from dconf dump)
+      # symbolic-icon = false;        # Set to true for monochrome icon
     };
 
     # ── Extension: media-controls ─────────────────────────────────────────────
