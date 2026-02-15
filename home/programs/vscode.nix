@@ -24,7 +24,7 @@ in
         ++ map toMarketplaceExt cfg.development.vscode.marketplaceExtensions;
 
       userSettings = {
-        "workbench.colorTheme"            = cfg.development.vscode.colorTheme;
+        "workbench.colorTheme"            = lib.mkDefault cfg.development.vscode.colorTheme;
         "workbench.iconTheme"             = cfg.development.vscode.iconTheme;
         "editor.fontFamily"               = cfg.development.vscode.fontFamily;
         "editor.fontSize"                 = cfg.development.vscode.fontSize;

@@ -6,8 +6,8 @@
     enable = true;
 
     # Theme
-    colorTheme = "Dracula";
-    iconTheme = "material-icon-theme";
+    colorTheme = "Catppuccin Mocha";
+    iconTheme = "catppuccin-vsc-icons";
 
     # Editor appearance
     fontFamily = "'FiraCode', 'monospace'";
@@ -44,8 +44,8 @@
       "christian-kohler.path-intellisense"    # Filename autocompletion
 
       # ── Theme / icons ───────────────────────────────────────────────────
-      "dracula-theme.theme-dracula"
-      "pkief.material-icon-theme"
+      "catppuccin.catppuccin-vsc"
+      "catppuccin.catppuccin-vsc-icons"
     ];
 
     # Extensions from the VS Code Marketplace via the nix-vscode-extensions
