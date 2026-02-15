@@ -25,7 +25,7 @@ in
 
       userSettings = {
         "workbench.colorTheme"            = lib.mkDefault cfg.development.vscode.colorTheme;
-        "workbench.iconTheme"             = cfg.development.vscode.iconTheme;
+        "workbench.iconTheme"             = lib.mkDefault cfg.development.vscode.iconTheme;
         "editor.fontFamily"               = cfg.development.vscode.fontFamily;
         "editor.fontSize"                 = cfg.development.vscode.fontSize;
         "editor.lineHeight"               = cfg.development.vscode.lineHeight;
