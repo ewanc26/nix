@@ -26,9 +26,11 @@
     };
 
     catppuccin.url = "github:catppuccin/nix";
+
+    mac-app-util.url = "github:hraban/mac-app-util";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, nix-vscode-extensions, catppuccin, ... }:
+  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, nix-vscode-extensions, catppuccin, mac-app-util, ... }:
   let
     # generic lib from the main nixpkgs input
     lib = nixpkgs.lib;
@@ -81,11 +83,15 @@
       modules = [
         hostFile
         ragenix.darwinModules.default
+        mac-app-util.darwinModules.default
         home-manager.darwinModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.sharedModules = [ catppuccin.homeModules.catppuccin ];
+          home-manager.sharedModules = [
+            catppuccin.homeModules.catppuccin
+            mac-app-util.homeManagerModules.default
+          ];
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit hostName; };
           home-manager.backupFileExtension = "backup";
         }
