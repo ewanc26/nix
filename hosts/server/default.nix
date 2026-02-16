@@ -9,7 +9,9 @@ in
     ../../modules/common.nix
     ../../modules/users.nix
     ../../modules/caddy.nix
+    ../../modules/cloudflare-tunnel.nix
     ../../modules/pds.nix
+    ../../modules/matrix.nix
     ../../profiles/server-hardened.nix
   ];
 

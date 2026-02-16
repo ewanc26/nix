@@ -23,6 +23,8 @@
   # - maintenance.nix : Backup and auto-update settings
   # - paths.nix       : Important path locations
   # - pds.nix         : Bluesky Personal Data Server settings
+  # - matrix.nix      : Matrix Synapse homeserver settings
+  # - cloudflare.nix  : Cloudflare Tunnel configuration
   
   user = import ./user.nix;
   system = import ./system.nix;
@@ -41,4 +43,6 @@
   maintenance = import ./maintenance.nix;
   paths = import ./paths.nix;
   pds = import ./pds.nix;
+  matrix = import ./matrix.nix;
+  cloudflare = import ./cloudflare.nix;
 }

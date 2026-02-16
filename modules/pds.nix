@@ -20,12 +20,8 @@
 #    PDS_EMAIL_FROM_ADDRESS                 (optional — for email verification)
 #
 #  Cloudflare tunnel setup (one-time, outside Nix):
-#    1. cloudflared tunnel login
-#    2. cloudflared tunnel create pds
-#    3. Encrypt the resulting ~/.cloudflared/<UUID>.json with ragenix:
-#         nix run github:yaxitech/ragenix -- -e secrets/age/cf-tunnel-pds.json.age
-#    4. Set cfg.cloudflare.tunnelId to that UUID in settings/config/pds.nix.
-#    5. Add a CNAME in Cloudflare DNS: <hostname> → <UUID>.cfargotunnel.com
+#    Handled by modules/cloudflare-tunnel.nix.
+#    See that module for setup instructions.
 ##############################################################################
 { config, lib, pkgs, self, settings, ... }:
 
@@ -66,14 +62,6 @@ lib.mkIf cfg.enable {
     file  = self + /secrets/age/pds.env.age;
     owner = "pds";
     group = "pds";
-    mode  = "0400";
-  };
-
-  # JSON credentials file created by `cloudflared tunnel create pds`.
-  # Encrypted with: nix run github:yaxitech/ragenix -- -e secrets/age/cf-tunnel-pds.json.age
-  age.secrets."cf-tunnel-pds.json" = {
-    file  = self + /secrets/age/cf-tunnel-pds.json.age;
-    owner = "cloudflared";
     mode  = "0400";
   };
 
@@ -118,22 +106,7 @@ lib.mkIf cfg.enable {
     '';
   };
 
-  # ── Cloudflare tunnel ─────────────────────────────────────────────────────────
-  # cloudflared dials outbound to Cloudflare's edge — zero inbound ports needed.
-  # Replace the UUID string with the one from `cloudflared tunnel create pds`.
-  services.cloudflared = {
-    enable = true;
-    tunnels.${cfg.cloudflare.tunnelId} = {
-      credentialsFile = config.age.secrets."cf-tunnel-pds.json".path;
-      default = "http_status:404";
-      ingress = {
-        ${pdsHost}       = "http://127.0.0.1:${caddyPort}";
-        "*.${pdsHost}"  = "http://127.0.0.1:${caddyPort}";
-      };
-    };
-  };
-
   # ── Firewall ──────────────────────────────────────────────────────────────────
-  # The Cloudflare tunnel is fully outbound — no ports need to be open.
+  # Cloudflare tunnel is configured by modules/cloudflare-tunnel.nix.
   # SSH is handled by modules/server/firewall.nix and modules/server/ssh.nix.
 }

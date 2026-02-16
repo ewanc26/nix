@@ -19,6 +19,7 @@ let
   # only (so rekeying works from the macmini/laptop today).
   # After adding the server key, change this to: [ users.ewan systems.server ]
   pdsKeys = [ users.ewan ];
+  matrixKeys = [ users.ewan ];
 in
 {
   # Network credentials
@@ -28,11 +29,11 @@ in
   "age/ssh-passphrase.age".publicKeys = all;
 
   # PDS runtime secrets (KEY=value env file)
-  "age/pds.env.age".publicKeys          = pdsKeys;
-
-  # Cloudflare tunnel JSON credentials file (from `cloudflared tunnel create pds`)
-  "age/cf-tunnel-pds.json.age".publicKeys = pdsKeys;
+  "age/pds.env.age".publicKeys = pdsKeys;
   "age/duckdns.tar.gz.age".publicKeys = all;
   "age/docker-config.json.age".publicKeys = all;
   "age/claude.json.age".publicKeys = all;
+  "age/matrix.env.age".publicKeys = matrixKeys;
+  "age/cloudflare.token.age".publicKeys = matrixKeys;
+  "age/cf-tunnel.json.age".publicKeys = matrixKeys;
 }

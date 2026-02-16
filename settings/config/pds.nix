@@ -36,13 +36,6 @@
   # Caddy internal listen port — Cloudflare tunnel routes here.
   caddyPort = 2020;
 
-  # Cloudflare tunnel settings.
-  # tunnelId: UUID from `cloudflared tunnel create pds` (shown in the dashboard).
-  #           Replace this placeholder after running that command.
-  cloudflare = {
-    tunnelId = "5d78eb68-af85-4c13-b28d-907bb570c259";
-  };
-
   # systemd restart policy
   restartSec = 5;
   startLimitIntervalSec = 300;
