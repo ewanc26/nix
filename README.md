@@ -20,88 +20,84 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 
 ### macOS (nix-darwin) - PRIMARY
 
-- **macmini** - Apple Silicon Mac Mini (M2) - Main daily driver
+- **macmini** - Apple Silicon Mac Mini (M2, 16 GB) — Main daily driver
 
 ### Linux (NixOS) - SECONDARY
 
-- **laptop** - Dell Inspiron 3501 with KDE Plasma 6 - Secondary workstation for Linux-specific tasks
-
-### Planned (NixOS)
-
-- **server** - Minimal headless server configuration (not yet deployed)
+- **laptop** - Dell Inspiron 3501 with KDE Plasma 6 — Secondary workstation
+- **server** - Minimal headless server — Bluesky PDS + hardened security (configuration complete, pending hardware deployment)
 
 ## Repository Structure
 
 ```
 .
-├── flake.nix                 # Main flake configuration
+├── flake.nix                 # Main flake — defines all hosts
 ├── flake.lock                # Locked dependency versions
-├── configuration.nix         # Legacy entry point (superseded by hosts/)
 │
 ├── lib/                      # ⭐ Custom library (DRY helpers)
-│   ├── default.nix           # Reusable functions and config singleton
-│   └── USAGE.md              # Developer guide for using cfgLib
+│   ├── default.nix           # cfgLib: reusable functions and config singleton
+│   └── USAGE.md              # Developer guide
 │
 ├── hosts/                    # Host-specific configurations
 │   ├── laptop/               # Dell Inspiron 3501 (NixOS + KDE Plasma 6)
 │   ├── server/               # Headless server (NixOS)
-│   └── macmini/              # Mac Mini (nix-darwin)
+│   └── macmini/              # Mac Mini M2 (nix-darwin)
 │
 ├── modules/                  # Reusable system modules
-│   ├── common.nix            # Shared settings across all NixOS hosts
-│   ├── desktop.nix           # KDE Plasma 6 desktop environment
-│   ├── gaming.nix            # Gaming packages and Steam
+│   ├── common.nix            # Base NixOS settings
+│   ├── desktop.nix           # KDE Plasma 6 + SDDM
+│   ├── gaming.nix            # Steam + Gamemode
 │   ├── packages.nix          # Desktop system packages
-│   ├── services.nix          # System services
-│   ├── secrets.nix           # Secret management with ragenix
+│   ├── services.nix          # Printing, Bluetooth, etc.
 │   ├── users.nix             # User account configuration
+│   ├── caddy.nix             # Caddy web server
+│   ├── pds.nix               # Bluesky ATProto PDS
+│   ├── ssh-keys.nix          # Public key registry for all hosts
+│   ├── server/               # Headless server sub-modules
+│   │   ├── default.nix       # Imports all server sub-modules
+│   │   ├── firewall.nix
+│   │   ├── intrusion.nix     # fail2ban
+│   │   ├── ssh.nix           # sshd hardening
+│   │   ├── hardware-health.nix
+│   │   ├── maintenance.nix
+│   │   ├── packages.nix
+│   │   ├── services.nix
+│   │   └── disable-noise.nix
 │   └── darwin/               # macOS-specific modules
 │       ├── common.nix
 │       ├── homebrew.nix
 │       ├── packages.nix
 │       └── system.nix
 │
-├── home/                     # Home Manager configurations (unified across systems)
-│   ├── home.nix              # Main home-manager entry point
-│   ├── configs/              # Application config files
-│   │   ├── fastfetch.jsonc
-│   │   └── starship.toml
-│   └── programs/             # Unified program configs (work on NixOS + macOS)
-│       ├── fastfetch.nix     # System info display
-│       ├── git.nix           # Git configuration
-│       ├── kde.nix           # KDE Plasma desktop settings (Linux only)
-│       ├── ssh.nix           # SSH client + agent config
-│       ├── starship.nix      # Shell prompt
-│       ├── vscode.nix        # VSCode extensions and settings
-│       └── zsh.nix           # Shell configuration with aliases
+├── profiles/                 # Reusable configuration profiles
+│   ├── server-base.nix       # Base server config
+│   └── server-hardened.nix   # Security hardening
+│
+├── home/                     # Home Manager (unified across all hosts)
+│   ├── home.nix              # Main entry point
+│   ├── configs/              # Raw config files (fastfetch, starship)
+│   ├── programs/             # Per-program config (git, zsh, ssh, vscode, kde, ...)
+│   └── scripts/              # Shell scripts on PATH
+│       ├── verify-tailscale-ssh
+│       ├── update-all
+│       ├── update-everything
+│       └── relts
 │
 ├── settings/                 # ⭐ Centralized configuration — edit here
 │   ├── config.nix            # Entry point (imports config/)
 │   ├── config/               # All configurable values (one file per domain)
-│   ├── plasma/               # KDE Plasma settings (declarative)
-│   ├── darwin/               # macOS defaults (auto-exported)
-│   └── darwin-export.sh      # Export current macOS settings
+│   ├── plasma/               # KDE Plasma declarative settings
+│   └── darwin/               # macOS system defaults
 │
 ├── secrets/                  # Encrypted secrets (ragenix / age)
-│   ├── secrets.nix           # Public key mappings
+│   ├── secrets.nix           # Public key mappings (users + systems)
 │   ├── setup.sh              # Key management helper
 │   └── age/*.age             # Encrypted secret files
 │
-├── wallpapers/               # Desktop wallpapers
-├── tools/                    # Maintenance and health check tools
-│   ├── health-check          # Pre-build validation script
-│   ├── flake-bump            # Update flake inputs helper
-│   └── gen-diff              # Compare generations
-└── docs/                     # All documentation
-    ├── REFERENCE.md          # Quick-reference card
-    ├── settings-config.md    # Settings file map and cheatsheet
-    ├── settings.md           # Settings overview
-    ├── settings-structure.md # Why config is modular
-    ├── hosts.md              # Adding/configuring hosts
-    ├── hosts-macmini.md      # macOS setup guide
-    ├── hosts-server.md       # Server setup guide
-    ├── secrets.md            # Secrets management
-    └── wallpapers.md         # Wallpaper usage
+├── tools/                    # Rust maintenance tools
+│   └── src/bin/              # health-check, flake-bump, gen-diff
+├── wallpapers/
+└── docs/
 ```
 
 ## DRY Architecture
@@ -299,10 +295,11 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 - **Starship** prompt looks the same everywhere
 
 ### Platform-Specific When Needed
-- macOS uses Keychain for SSH keys
-- Linux uses SSH agent service
-- KDE Plasma settings only apply on Linux
-- Homebrew only on macOS
+- **macOS**: SSH keys loaded at login via LaunchAgent (`ssh-add --apple-load-keychain`)
+- **Linux desktop**: SSH keys loaded at login via systemd + ksshaskpass/KWallet
+- **Server**: No agent needed — SSH connections go *into* it, not out
+- **KDE Plasma** settings only apply on Linux desktop
+- **Homebrew** only on macOS
 
 ## Documentation
 
@@ -315,12 +312,10 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 - [`docs/hosts.md`](docs/hosts.md) — hosts documentation index *(start here)*
 - [`docs/hosts-overview.md`](docs/hosts-overview.md) — complete comparison of all three hosts
 - [`docs/hosts-modification.md`](docs/hosts-modification.md) — how to modify and add hosts
-- [`docs/unified-terminal.md`](docs/unified-terminal.md) — identical terminal across all hosts
 - [`docs/hosts-laptop.md`](docs/hosts-laptop.md) — Dell Inspiron 3501 (NixOS + KDE Plasma 6)
-- [`docs/hosts-server.md`](docs/hosts-server.md) — headless server setup
+- [`docs/hosts-server.md`](docs/hosts-server.md) — headless server + Bluesky PDS setup
 - [`docs/hosts-macmini.md`](docs/hosts-macmini.md) — macOS with nix-darwin
-- [`docs/pds-quickstart.md`](docs/pds-quickstart.md) — Bluesky PDS quick setup *(automated script)*
-- [`docs/pds-setup.md`](docs/pds-setup.md) — Bluesky PDS detailed guide *(manual setup)*
+- [`docs/TAILSCALE-SSH.md`](docs/TAILSCALE-SSH.md) — inter-host SSH over Tailscale
 
 ### Settings Management
 - [`docs/settings.md`](docs/settings.md) — settings overview

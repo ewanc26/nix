@@ -95,6 +95,7 @@
       "netnewswire"
       "prismlauncher"
       "tailscale-app"  # VPN for inter-host communication
+      "element"         # Matrix client
     ];
 
     # Mac App Store apps (by ID)

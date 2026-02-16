@@ -139,6 +139,7 @@
     # Communication
     "discord"
     "signal-desktop"
+    "element-desktop" # Matrix client
     
     # Media
     "spotify"

@@ -32,5 +32,16 @@ in
     jack.enable       = true;
   };
 
+  # Allow passwordless sudo for nixos-rebuild so remote one-liners work over SSH
+  # (no TTY is available in that context). Other sudo commands still require a password.
+  # The server keeps wheelNeedsPassword = true; this exception is laptop-only.
+  security.sudo.extraRules = [{
+    users = [ cfg.user.username ];
+    commands = [{
+      command = "/run/current-system/sw/bin/nixos-rebuild";
+      options = [ "NOPASSWD" ];
+    }];
+  }];
+
   system.stateVersion = cfg.system.stateVersion;
 }

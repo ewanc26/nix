@@ -6,9 +6,9 @@ This document provides a comprehensive overview of all hosts in this configurati
 
 | Host | Type | OS | Purpose | Desktop | Status |
 |---|---|---|---|---|---|
-| **macmini** | Desktop | macOS | Primary workstation | macOS GUI | ✅ Active (Main) |
+| **macmini** | Desktop | macOS Tahoe | Primary workstation | macOS GUI | ✅ Active (Main) |
 | **laptop** | Desktop/Laptop | NixOS | Secondary workstation | KDE Plasma 6 | ✅ Active |
-| **server** | Server | NixOS | Headless server | None | 📋 Planned |
+| **server** | Server | NixOS | Headless server + PDS | None | 🔧 Config complete, pending deploy |
 
 ## Detailed Comparison
 
@@ -16,8 +16,8 @@ This document provides a comprehensive overview of all hosts in this configurati
 
 **Hardware**: Apple Silicon Mac Mini (M2)
 - Apple M2 chip (8-core CPU, 10-core GPU)
-- Unified memory
-- macOS Sequoia
+- 16 GB unified memory
+- macOS Tahoe 26.3
 
 **Purpose**: Primary daily driver for all computing tasks
 
@@ -71,32 +71,29 @@ This document provides a comprehensive overview of all hosts in this configurati
 
 **Documentation**: [hosts-laptop.md](hosts-laptop.md)
 
-### server (PLANNED)
+### server
 
 **Hardware**: To be determined
 
-**Purpose**: Future headless server for services and remote access
+**Purpose**: Minimal headless server — Bluesky ATProto PDS + hardened security
 
-**Planned Use Cases**:
-- SSH remote access
-- Self-hosted services (potential: web server, database, etc.)
-- Home lab experimentation
-- Always-on availability
-- Learning server administration
+**Use Cases**:
+- Bluesky PDS (via Caddy + Cloudflare tunnel, no open HTTP/HTTPS ports)
+- SSH remote access over Tailscale
+- Always-on home lab
 
-**Planned Features**:
-- 🔵 Hardened security profile
-- 🔵 SSH server with key-based auth only
-- 🔵 Fail2ban for intrusion prevention
-- 🔵 Firewall (SSH-only by default)
-- 🔵 Auto-upgrades (daily)
-- 🔵 SMART disk monitoring
-- 🔵 Minimal package set
-- ❌ No GUI
-- ❌ No gaming
-- ❌ No multimedia
+**Features**:
+- ✅ Hardened security profile (`profiles/server-hardened.nix`)
+- ✅ SSH key-based auth only
+- ✅ Fail2ban intrusion prevention
+- ✅ Firewall (SSH-only inbound)
+- ✅ Auto-upgrades (daily)
+- ✅ SMART disk monitoring
+- ✅ Minimal package set
+- ✅ Bluesky PDS + Caddy + cloudflared
+- ❌ No GUI, no gaming, no multimedia
 
-**Status**: Configuration exists but not yet deployed to hardware
+**Status**: Configuration complete, hardware not yet provisioned. See [hosts-server.md](hosts-server.md) for the deploy runbook.
 
 **Documentation**: [hosts-server.md](hosts-server.md)
 
@@ -148,13 +145,16 @@ Which modules does each host use?
 | `users.nix` | ✅ | ✅ | ❌ | User account creation |
 | `desktop.nix` | ✅ | ❌ | ❌ | KDE Plasma 6 setup |
 | `packages.nix` | ✅ | ❌ | ❌ | Desktop applications |
-| `services.nix` | ✅ | ❌ | ❌ | Desktop services (printing, bluetooth) |
+| `services.nix` | ✅ | ❌ | ❌ | Printing, Bluetooth |
 | `gaming.nix` | ✅ | ❌ | ❌ | Steam, Gamemode |
+| `caddy.nix` | ❌ | ✅ | ❌ | Caddy web server |
+| `pds.nix` | ❌ | ✅ | ❌ | Bluesky PDS |
+| `server/default.nix` | ❌ | ✅ | ❌ | Server sub-modules (firewall, fail2ban, sshd, ...) |
+| `profiles/server-hardened.nix` | ❌ | ✅ | ❌ | Security hardening |
 | `darwin/common.nix` | ❌ | ❌ | ✅ | macOS Nix settings |
 | `darwin/packages.nix` | ❌ | ❌ | ✅ | macOS CLI tools |
 | `darwin/homebrew.nix` | ❌ | ❌ | ✅ | Homebrew management |
 | `darwin/system.nix` | ❌ | ❌ | ✅ | macOS system defaults |
-| `profiles/server-hardened.nix` | ❌ | ✅ | ❌ | Security hardening |
 
 ## Settings Scope
 
@@ -185,11 +185,19 @@ All hosts have SSH keys registered in `modules/ssh-keys.nix`:
 
 ```
 laptop  → can SSH to: server, macmini
-server  → can SSH to: laptop, macmini  
 macmini → can SSH to: laptop, server
+server  ← SSH connections go into it only
 ```
 
 Each host's `~/.ssh/authorized_keys` contains keys from all OTHER hosts.
+
+### SSH Agent / Key Loading
+
+| Host | Mechanism |
+|---|---|
+| **macmini** | LaunchAgent runs `ssh-add --apple-load-keychain` at login (replaces removed `UseKeychain yes`) |
+| **laptop** | systemd user service + ksshaskpass loads keys from KWallet at graphical session start |
+| **server** | None needed — only receives inbound SSH connections |
 
 ### Secrets Distribution
 
@@ -501,13 +509,7 @@ grep -r "../../modules/gaming.nix" hosts/
 
 ### Secrets Not Available on Host
 
-Ensure host imports secrets module:
-```nix
-# hosts/<hostname>/default.nix
-imports = [
-  ../../modules/secrets.nix  # Must be imported
-];
-```
+Secrets are managed via ragenix. Ensure the secret is enabled in `settings/config/secrets.nix` and that the host's age key is in `secrets/secrets.nix`. Check activation logs for decryption errors.
 
 ## Best Practices
 

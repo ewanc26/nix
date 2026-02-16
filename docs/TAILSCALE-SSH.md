@@ -23,7 +23,7 @@ Instead of hardcoding Tailscale IP addresses, the SSH configuration uses `ProxyC
 - `home/programs/ssh.nix` - Defines SSH hosts and ProxyCommand routing
 - `hosts/laptop/default.nix` - Laptop firewall trusts tailscale0
 - `modules/server/firewall.nix` - Server firewall trusts tailscale0
-- `settings/config/darwin.nix` - macOS Tailscale via Homebrew
+- `settings/config/darwin.nix` - macOS Tailscale via Homebrew (`tailscale-app` cask)
 
 ## Initial Setup
 
@@ -98,7 +98,7 @@ git clone server:~/projects/myrepo.git
 
 ### "tailscale: command not found"
 - **Linux**: Ensure you rebuilt with the updated configuration
-- **macOS**: Ensure Homebrew is in PATH: `eval "$(/opt/homebrew/bin/brew shellenv)"`
+- **macOS**: The ProxyCommand uses the absolute path `/Applications/Tailscale.app/Contents/MacOS/Tailscale` — ensure the `tailscale-app` Homebrew cask is installed and Tailscale.app is in `/Applications`
 
 ### "Connection refused" or "Connection timed out"
 1. Verify Tailscale is running: `tailscale status`

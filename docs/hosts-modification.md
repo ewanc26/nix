@@ -227,10 +227,10 @@ in
 
 ```nix
 # hosts/NEW-HOST/default.nix
-{ config, pkgs, lib, ... }:
+{ cfgLib, ... }:
 
 let
-  cfg = import ../../settings/config.nix;
+  cfg = cfgLib.cfg;
 in
 {
   imports = [

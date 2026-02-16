@@ -15,12 +15,10 @@ settings/
 │   ├── desktop.nix
 │   ├── darwin.nix
 │   └── ...
-├── plasma/             # KDE Plasma settings (declarative)
+├── plasma/             # KDE Plasma declarative settings
 │   └── default.nix
-├── darwin/             # macOS system defaults (auto-generated)
-│   ├── default.nix
-│   └── domains/
-└── darwin-export.sh    # Export current macOS state → domains/
+└── darwin/             # macOS system defaults (Dock, Finder, trackpad, etc.)
+    └── default.nix
 ```
 
 ## Usage
@@ -55,13 +53,7 @@ Changes are applied automatically on next Home Manager rebuild. This ensures you
 
 ### macOS
 
-After changing settings through System Settings:
-
-```bash
-./settings/darwin-export.sh
-```
-
-Exports to `settings/darwin/domains/`. Applied automatically on next `darwin-rebuild`.
+macOS system defaults are managed declaratively in `settings/darwin/default.nix`. Edit the Nix values directly rather than exporting from System Settings — this ensures the config is reproducible and version-controlled.
 
 ## Further Reading
 

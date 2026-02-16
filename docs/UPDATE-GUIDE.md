@@ -51,14 +51,12 @@ nrs  # Alias for: sudo darwin-rebuild switch --flake .#macmini
 
 ### Update a Remote System
 ```bash
-# Update laptop from any other machine
+# Rebuild local then remote in one shot (recommended)
+nrs && ssh laptop 'cd ~/.config/nix-config && sudo nixos-rebuild switch --flake .#laptop'
+
+# Update flake inputs on remote too
 ssh laptop 'cd ~/.config/nix-config && nix flake update && sudo nixos-rebuild switch --flake .#laptop'
-
-# Update server
 ssh server 'cd ~/.config/nix-config && nix flake update && sudo nixos-rebuild switch --flake .#server'
-
-# Update macmini
-ssh macmini 'cd ~/.config/nix-config && nix flake update && sudo darwin-rebuild switch --flake .#macmini'
 ```
 
 ## Update Specific Components

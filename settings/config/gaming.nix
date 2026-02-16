@@ -1,8 +1,8 @@
 {
   # Gaming configuration
-  enable = false;  # Set true on gaming systems
+  enable = true;
   steam = {
-    enable = false;
+    enable      = true;
     openFirewall = false;
   };
 }
