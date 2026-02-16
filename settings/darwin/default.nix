@@ -67,7 +67,7 @@
   # ── Login window ─────────────────────────────────────────────────────────────
   system.defaults.loginwindow = {
     GuestEnabled = false;
-    SHOWFULLNAME = true;
+    SHOWFULLNAME = false;
   };
 
   # ── Screen capture ───────────────────────────────────────────────────────────
