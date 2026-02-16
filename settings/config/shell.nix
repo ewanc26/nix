@@ -67,9 +67,11 @@
   # Any alias present on both Linux and macOS belongs here exactly once.
   # Platform-specific aliases (cleanup, nrs/nrb/nrt) stay in their sections.
   nixToolAliases = {
-    flake-bump   = "nix run ~/.config/nix-config/tools#flake-bump";
-    gen-diff     = "nix run ~/.config/nix-config/tools#gen-diff";
-    health-check = "nix run ~/.config/nix-config/tools#health-check";
+    flake-bump        = "nix run ~/.config/nix-config/tools#flake-bump";
+    gen-diff          = "nix run ~/.config/nix-config/tools#gen-diff";
+    health-check      = "nix run ~/.config/nix-config/tools#health-check";
+    update-all        = "~/.config/nix-config/home/scripts/update-all";
+    update-everything = "~/.config/nix-config/home/scripts/update-everything";
   };
 
   # Linux-specific aliases

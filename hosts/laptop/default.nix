@@ -16,6 +16,12 @@ in
 
   networking.hostName = "laptop";
 
+  # Firewall – trust Tailscale for inter-host SSH
+  networking.firewall = {
+    enable = true;
+    trustedInterfaces = [ "tailscale0" ];
+  };
+
   # Audio – backend driven from settings/config/audio.nix
   security.rtkit.enable = cfg.audio.enable;
   services.pipewire = lib.mkIf (cfg.audio.enable && cfg.audio.backend == "pipewire") {

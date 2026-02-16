@@ -3,25 +3,55 @@
 
 let
   cfg = cfgLib.cfg;
+  userName = cfg.user.username;
+  
+  # Tailscale binary path differs by platform
+  # macOS: Homebrew Cask provides CLI in PATH after brew shellenv
+  # Linux: Nix package provides the binary
+  tailscaleBin = if isDarwin 
+    then "tailscale"  # Rely on Homebrew PATH
+    else "${pkgs.tailscale}/bin/tailscale";
+  
+  # Define our internal Tailscale hosts
+  # These will connect dynamically through Tailscale using ProxyCommand
+  internalHosts = [ "laptop" "server" "macmini" ];
+  
+  # Create SSH host blocks for Tailscale hosts with dynamic routing
+  tailscaleHostBlocks = lib.listToAttrs (map (hostName: {
+    name = hostName;
+    value = {
+      user = userName;
+      proxyCommand = "${tailscaleBin} nc %h %p";
+      extraOptions = {
+        # Connection multiplexing over Tailscale
+        ControlMaster = "auto";
+        ControlPath = "~/.ssh/sockets/tailscale-%r@%h-%p";
+        ControlPersist = "600";
+      };
+    };
+  }) internalHosts);
 in
 {
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
     
-    # Global SSH configuration for all hosts
-    matchBlocks."*" = {
-      extraOptions = {
-        # Reuse connections for speed
-        ControlMaster = "auto";
-        ControlPath = "~/.ssh/sockets/%r@%h-%p";
-        ControlPersist = "600";
-        
-        # Automatically add keys to agent
-        AddKeysToAgent = "yes";
-      } // lib.optionalAttrs isDarwin {
-        # macOS: Use Keychain for SSH keys
-        UseKeychain = "yes";
+    # Tailscale host configurations with dynamic ProxyCommand routing
+    matchBlocks = tailscaleHostBlocks // {
+      # Global SSH configuration for all other hosts (git forges, etc.)
+      "*" = {
+        extraOptions = {
+          # Reuse connections for speed
+          ControlMaster = "auto";
+          ControlPath = "~/.ssh/sockets/%r@%h-%p";
+          ControlPersist = "600";
+          
+          # Automatically add keys to agent
+          AddKeysToAgent = "yes";
+        } // lib.optionalAttrs isDarwin {
+          # macOS: Use Keychain for SSH keys
+          UseKeychain = "yes";
+        };
       };
     };
   };

@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# Update everything: flake inputs, system configuration, and packages
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+print_header() {
+    echo -e "${BLUE}===${NC} $1 ${BLUE}===${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}✗${NC} $1"
+}
+
+# Detect platform
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    IS_DARWIN=true
+    PLATFORM="macOS"
+    HOSTNAME=$(scutil --get ComputerName 2>/dev/null || hostname)
+else
+    IS_DARWIN=false
+    PLATFORM="NixOS"
+    HOSTNAME=$(hostname)
+fi
+
+cd ~/.config/nix-config || {
+    print_error "Could not find ~/.config/nix-config"
+    exit 1
+}
+
+echo
+print_header "System Update ($PLATFORM - $HOSTNAME)"
+echo
+
+# Step 1: Update flake inputs
+print_header "Step 1: Updating Flake Inputs"
+echo "Current flake.lock status:"
+git log -1 --oneline flake.lock 2>/dev/null || echo "  (no previous commits)"
+echo
+
+if nix flake update; then
+    print_success "Flake inputs updated"
+    echo
+    echo "Changes:"
+    git diff flake.lock | grep -E "^\+|^\-" | grep -v "@@" || echo "  (no changes)"
+else
+    print_error "Failed to update flake inputs"
+    exit 1
+fi
+echo
+
+# Step 2: Rebuild current system
+print_header "Step 2: Rebuilding Current System"
+echo
+
+if $IS_DARWIN; then
+    # macOS: darwin-rebuild
+    FLAKE_REF=".#$HOSTNAME"
+    echo "Rebuilding: darwin-rebuild switch --flake $FLAKE_REF"
+    echo
+    
+    if sudo darwin-rebuild switch --flake "$FLAKE_REF"; then
+        print_success "macOS system rebuilt successfully"
+    else
+        print_error "darwin-rebuild failed"
+        exit 1
+    fi
+else
+    # NixOS: nixos-rebuild
+    FLAKE_REF=".#$HOSTNAME"
+    echo "Rebuilding: nixos-rebuild switch --flake $FLAKE_REF"
+    echo
+    
+    if sudo nixos-rebuild switch --flake "$FLAKE_REF"; then
+        print_success "NixOS system rebuilt successfully"
+    else
+        print_error "nixos-rebuild failed"
+        exit 1
+    fi
+fi
+echo
+
+# Step 3: macOS Homebrew updates
+if $IS_DARWIN; then
+    print_header "Step 3: Updating Homebrew Packages"
+    echo
+    
+    if command -v brew &>/dev/null; then
+        echo "Updating Homebrew..."
+        brew update
+        echo
+        
+        echo "Upgrading packages..."
+        brew upgrade
+        echo
+        
+        print_success "Homebrew packages updated"
+    else
+        print_warning "Homebrew not found, skipping"
+    fi
+    echo
+fi
+
+# Step 4: Garbage collection prompt
+print_header "Cleanup"
+echo
+read -p "Run garbage collection to free up space? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if $IS_DARWIN; then
+        sudo nix-collect-garbage -d
+        print_success "Garbage collection complete"
+    else
+        sudo nix-collect-garbage -d
+        nix-collect-garbage -d
+        print_success "Garbage collection complete"
+    fi
+else
+    print_warning "Skipped garbage collection"
+fi
+echo
+
+# Step 5: Summary and other systems
+print_header "Update Complete"
+echo
+print_success "$HOSTNAME ($PLATFORM) is now up to date"
+echo
+
+# Check if we need to update other systems
+if $IS_DARWIN; then
+    # Running on macOS - remind about Linux systems
+    echo "Don't forget to update your Linux systems:"
+    echo "  ${YELLOW}laptop${NC}:  ssh laptop 'cd ~/.config/nix-config && sudo nixos-rebuild switch --flake .#laptop'"
+    echo "  ${YELLOW}server${NC}:  ssh server 'cd ~/.config/nix-config && sudo nixos-rebuild switch --flake .#server'"
+else
+    # Running on Linux - remind about macOS and other Linux systems
+    echo "Don't forget to update your other systems:"
+    echo "  ${YELLOW}macmini${NC}: ssh macmini 'cd ~/.config/nix-config && sudo darwin-rebuild switch --flake .#macmini'"
+    
+    if [[ "$HOSTNAME" != "laptop" ]]; then
+        echo "  ${YELLOW}laptop${NC}:  ssh laptop 'cd ~/.config/nix-config && sudo nixos-rebuild switch --flake .#laptop'"
+    fi
+    
+    if [[ "$HOSTNAME" != "server" ]]; then
+        echo "  ${YELLOW}server${NC}:  ssh server 'cd ~/.config/nix-config && sudo nixos-rebuild switch --flake .#server'"
+    fi
+fi
+echo
+
+# Check Tailscale version on Linux
+if ! $IS_DARWIN && command -v tailscale &>/dev/null; then
+    TS_VERSION=$(tailscale version | head -n1 | awk '{print $1}')
+    print_success "Tailscale version: $TS_VERSION"
+fi
+
+echo
+print_success "All done! 🎉"

@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# Verify Tailscale SSH configuration
+
+set -euo pipefail
+
+echo "=== Tailscale SSH Verification ==="
+echo
+
+# Check if Tailscale is running
+echo "1. Checking Tailscale status..."
+if tailscale status &>/dev/null; then
+    echo "   ✓ Tailscale is running"
+    echo
+    tailscale status
+else
+    echo "   ✗ Tailscale is not running"
+    echo "   Run: sudo tailscale up"
+    exit 1
+fi
+
+echo
+echo "2. Analyzing Tailscale network..."
+expected_hosts=("laptop" "server" "macmini")
+missing_hosts=()
+offline_hosts=()
+
+for host in "${expected_hosts[@]}"; do
+    if tailscale status | grep -q "$host"; then
+        if tailscale status | grep "$host" | grep -q "offline"; then
+            offline_hosts+=("$host")
+        fi
+    else
+        missing_hosts+=("$host")
+    fi
+done
+
+if [ ${#missing_hosts[@]} -gt 0 ]; then
+    echo "   ⚠ Missing hosts (not in Tailscale network):"
+    for host in "${missing_hosts[@]}"; do
+        echo "     - $host"
+    done
+    echo
+    echo "   To fix: On each missing host, run:"
+    echo "     1. Rebuild config to enable Tailscale service"
+    echo "     2. sudo tailscale up"
+    echo "     3. Authenticate at the URL provided"
+fi
+
+if [ ${#offline_hosts[@]} -gt 0 ]; then
+    echo "   ⚠ Offline hosts:"
+    for host in "${offline_hosts[@]}"; do
+        echo "     - $host"
+    done
+    echo
+    echo "   These hosts need to be started and connected to Tailscale"
+fi
+
+if [ ${#missing_hosts[@]} -eq 0 ] && [ ${#offline_hosts[@]} -eq 0 ]; then
+    echo "   ✓ All expected hosts are online in Tailscale"
+fi
+
+echo
+echo "3. Checking SSH configuration..."
+if grep -q "tailscale nc" ~/.ssh/config 2>/dev/null; then
+    echo "   ✓ SSH is configured to use Tailscale ProxyCommand"
+else
+    echo "   ✗ SSH config not found or not using Tailscale"
+    echo "   Did you rebuild your configuration?"
+fi
+
+echo
+echo "4. Testing SSH connectivity to online hosts..."
+current_host=$(hostname)
+for host in "${expected_hosts[@]}"; do
+    if [ "$host" = "$current_host" ]; then
+        echo "   Skipping $host (current host)"
+        continue
+    fi
+    
+    if tailscale status | grep "$host" | grep -q "offline\|last seen"; then
+        echo "   Skipping $host (offline in Tailscale)"
+        continue
+    fi
+    
+    if ! tailscale status | grep -q "$host"; then
+        echo "   Skipping $host (not in Tailscale network)"
+        continue
+    fi
+    
+    echo -n "   Testing $host... "
+    if timeout 5 ssh -o ConnectTimeout=5 -o BatchMode=yes "$host" exit 2>/dev/null; then
+        echo "✓ Connected"
+    else
+        echo "✗ Failed (check SSH keys and sshd service)"
+    fi
+done
+
+echo
+echo "=== Verification Complete ==="
+echo
+echo "To manually test SSH:"
+echo "  ssh laptop"
+echo "  ssh server"
+echo "  ssh macmini"

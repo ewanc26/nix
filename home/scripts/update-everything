@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+# Update all systems remotely over Tailscale
+
+set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+print_header() {
+    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║${NC} $1"
+    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
+}
+
+print_host_header() {
+    echo -e "${BLUE}▶${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}✗${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠${NC} $1"
+}
+
+# Define all systems
+declare -A SYSTEMS
+SYSTEMS[laptop]="nixos"
+SYSTEMS[server]="nixos"
+SYSTEMS[macmini]="darwin"
+
+# Detect current hostname
+CURRENT_HOST=$(hostname | cut -d'.' -f1)
+
+echo
+print_header "Update All Systems Over Tailscale"
+echo
+
+# Check Tailscale connectivity
+echo "Checking Tailscale connectivity..."
+if ! command -v tailscale &>/dev/null; then
+    print_error "Tailscale not found. Install Tailscale first."
+    exit 1
+fi
+
+# Get online hosts
+ONLINE_HOSTS=()
+OFFLINE_HOSTS=()
+
+for host in "${!SYSTEMS[@]}"; do
+    if [[ "$host" == "$CURRENT_HOST" ]]; then
+        ONLINE_HOSTS+=("$host")
+        continue
+    fi
+    
+    if tailscale status | grep -q "^[0-9.]*[[:space:]]*$host"; then
+        if tailscale status | grep "$host" | grep -q "offline"; then
+            OFFLINE_HOSTS+=("$host")
+        else
+            ONLINE_HOSTS+=("$host")
+        fi
+    else
+        OFFLINE_HOSTS+=("$host")
+    fi
+done
+
+echo
+if [ ${#ONLINE_HOSTS[@]} -gt 0 ]; then
+    print_success "Online hosts: ${ONLINE_HOSTS[*]}"
+fi
+
+if [ ${#OFFLINE_HOSTS[@]} -gt 0 ]; then
+    print_warning "Offline hosts: ${OFFLINE_HOSTS[*]}"
+fi
+
+if [ ${#ONLINE_HOSTS[@]} -eq 0 ]; then
+    print_error "No systems online. Cannot proceed."
+    exit 1
+fi
+
+echo
+read -p "Update ${#ONLINE_HOSTS[@]} online systems? (y/N): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Cancelled."
+    exit 0
+fi
+
+echo
+
+# Function to update a system
+update_system() {
+    local host=$1
+    local system_type=${SYSTEMS[$host]}
+    
+    print_host_header "Updating $host ($system_type)"
+    echo
+    
+    if [[ "$host" == "$CURRENT_HOST" ]]; then
+        # Local system
+        echo "Updating local system..."
+        ~/.config/nix-config/home/scripts/update-all
+        return $?
+    fi
+    
+    # Remote system
+    local rebuild_cmd
+    if [[ "$system_type" == "darwin" ]]; then
+        rebuild_cmd="cd ~/.config/nix-config && nix flake update && sudo darwin-rebuild switch --flake .#$host"
+    else
+        rebuild_cmd="cd ~/.config/nix-config && nix flake update && sudo nixos-rebuild switch --flake .#$host"
+    fi
+    
+    echo "Connecting to $host..."
+    if ssh -o ConnectTimeout=10 "$host" "$rebuild_cmd"; then
+        print_success "$host updated successfully"
+        return 0
+    else
+        print_error "$host update failed"
+        return 1
+    fi
+}
+
+# Update each system
+FAILED_HOSTS=()
+for host in "${ONLINE_HOSTS[@]}"; do
+    echo
+    if ! update_system "$host"; then
+        FAILED_HOSTS+=("$host")
+    fi
+    echo
+    echo "────────────────────────────────────────────────────────────────"
+done
+
+# Summary
+echo
+print_header "Update Summary"
+echo
+
+SUCCESSFUL=$((${#ONLINE_HOSTS[@]} - ${#FAILED_HOSTS[@]}))
+echo "Updated: $SUCCESSFUL/${#ONLINE_HOSTS[@]} systems"
+
+if [ ${#FAILED_HOSTS[@]} -gt 0 ]; then
+    print_error "Failed: ${FAILED_HOSTS[*]}"
+    echo
+    echo "You may need to manually update these systems:"
+    for host in "${FAILED_HOSTS[@]}"; do
+        local system_type=${SYSTEMS[$host]}
+        if [[ "$system_type" == "darwin" ]]; then
+            echo "  ssh $host 'cd ~/.config/nix-config && sudo darwin-rebuild switch --flake .#$host'"
+        else
+            echo "  ssh $host 'cd ~/.config/nix-config && sudo nixos-rebuild switch --flake .#$host'"
+        fi
+    done
+else
+    print_success "All systems updated successfully! 🎉"
+fi
+
+if [ ${#OFFLINE_HOSTS[@]} -gt 0 ]; then
+    echo
+    print_warning "Offline systems not updated: ${OFFLINE_HOSTS[*]}"
+fi
+
+echo
