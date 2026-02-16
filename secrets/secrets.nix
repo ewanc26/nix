@@ -5,19 +5,31 @@ let
 
   systems = {
     macmini = "age10ysmz3603uupz0043mpznchtnh6jsnk5cu3eg05xalma4xjacppsgupgvj";
-    laptop = "age1s4exn5venvd2rkrvw9g6g9rua05quut62m6le8k79st0dryhcy3qq4n55k";
+    laptop  = "age1s4exn5venvd2rkrvw9g6g9rua05quut62m6le8k79st0dryhcy3qq4n55k";
+    # Add the server key once the host exists:
+    #   nix-shell -p ssh-to-age --run 'ssh-keyscan <server-ip> | ssh-to-age'
+    # Then uncomment and paste the result here, and run:
+    #   nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --rekey
+    # server = "age1...";
   };
 
   all = (builtins.attrValues users) ++ (builtins.attrValues systems);
+
+  # Until the server key is added above, PDS secrets are encrypted for ewan
+  # only (so rekeying works from the macmini/laptop today).
+  # After adding the server key, change this to: [ users.ewan systems.server ]
+  pdsKeys = [ users.ewan ];
 in
 {
-  # Add your actual secrets here
-  # UI preferences are NOT secrets and should not be encrypted
+  # Network credentials
+  "age/wifi-home.age".publicKeys    = all;
 
-  # Network Credentials (REAL secrets)
-  "age/wifi-home.age".publicKeys = all;
-
-  # SSH Key Passphrases
+  # SSH key passphrases
   "age/ssh-passphrase.age".publicKeys = all;
-  "pds.env.age".publicKeys = all;
+
+  # PDS runtime secrets (KEY=value env file)
+  "age/pds.env.age".publicKeys          = pdsKeys;
+
+  # Cloudflare tunnel JSON credentials file (from `cloudflared tunnel create pds`)
+  "age/cf-tunnel-pds.json.age".publicKeys = pdsKeys;
 }
