@@ -114,8 +114,8 @@ in
     profileExtra =
       # ── Cross-platform ──────────────────────────────────────────────────────
       ''
-        # Cargo
-        . "$HOME/.cargo/env"
+        # Cargo (rustup-managed install, if present)
+        [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
         # pipx / local user binaries
         export PATH="$PATH:$HOME/.local/bin"
@@ -123,13 +123,13 @@ in
       # ── macOS only ──────────────────────────────────────────────────────────
       + lib.optionalString isDarwin ''
         # Deno
-        . "$HOME/.deno/env"
+        [ -f "$HOME/.deno/env" ] && . "$HOME/.deno/env"
 
         # Homebrew
-        eval "$(/opt/homebrew/bin/brew shellenv)"
+        [ -x "/opt/homebrew/bin/brew" ] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
         # OrbStack
-        source ~/.orbstack/shell/init.zsh 2>/dev/null || :
+        [ -f "$HOME/.orbstack/shell/init.zsh" ] && source "$HOME/.orbstack/shell/init.zsh"
       '';
   };
 }

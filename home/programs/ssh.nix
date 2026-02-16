@@ -5,11 +5,12 @@ let
   cfg = cfgLib.cfg;
   userName = cfg.user.username;
   
-  # Tailscale binary path differs by platform
-  # macOS: Homebrew Cask provides CLI in PATH after brew shellenv
-  # Linux: Nix package provides the binary
-  tailscaleBin = if isDarwin 
-    then "tailscale"  # Rely on Homebrew PATH
+  # Tailscale binary path differs by platform.
+  # macOS: use the absolute path bundled inside Tailscale.app — ProxyCommand
+  #        runs with a minimal environment so Homebrew PATH isn't available.
+  # Linux: Nix package provides the binary.
+  tailscaleBin = if isDarwin
+    then "/Applications/Tailscale.app/Contents/MacOS/Tailscale"
     else "${pkgs.tailscale}/bin/tailscale";
   
   # Define our internal Tailscale hosts
