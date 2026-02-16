@@ -30,6 +30,17 @@ let
       };
     };
   }) internalHosts);
+  
+  # Global SSH options
+  globalExtraOptions = {
+    # Reuse connections for speed
+    ControlMaster = "auto";
+    ControlPath = "~/.ssh/sockets/%r@%h-%p";
+    ControlPersist = "600";
+    
+    # Automatically add keys to agent
+    AddKeysToAgent = "yes";
+  };
 in
 {
   programs.ssh = {
@@ -40,18 +51,12 @@ in
     matchBlocks = tailscaleHostBlocks // {
       # Global SSH configuration for all other hosts (git forges, etc.)
       "*" = {
-        extraOptions = {
-          # Reuse connections for speed
-          ControlMaster = "auto";
-          ControlPath = "~/.ssh/sockets/%r@%h-%p";
-          ControlPersist = "600";
-          
-          # Automatically add keys to agent
-          AddKeysToAgent = "yes";
-        } // lib.optionalAttrs isDarwin {
-          # macOS: Use Keychain for SSH keys
-          UseKeychain = "yes";
-        };
+        extraOptions = globalExtraOptions;
+      } // lib.optionalAttrs isDarwin {
+        # macOS: Use Keychain - must use raw config to preserve casing
+        extraConfig = ''
+          UseKeychain yes
+        '';
       };
     };
   };
