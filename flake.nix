@@ -49,15 +49,16 @@
     cfgLib = import ./lib { inherit lib; };
     
     # helper that returns the value to use as the home manager user module
-    homeUser = { pkgsFor, isDarwin, hostName }: import ./home/home.nix {
+    homeUser = { pkgsFor, isDarwin, isDesktop, hostName }: import ./home/home.nix {
       pkgs = pkgsFor;
       lib = lib;
       isDarwin = isDarwin;
+      isDesktop = isDesktop;
       hostName = hostName;
     };
 
     # DRY NixOS builder: compute pkgsForSystem and pass it explicitly into homeUser
-    mkNixOS = { system, hostFile, hostName }: let
+    mkNixOS = { system, hostFile, hostName, isDesktop ? true }: let
       pkgsForSystem = import nixpkgs {
   inherit system;
   config = { allowUnfree = config.packages.allowUnfree; };
@@ -80,14 +81,14 @@
             ragenix.homeManagerModules.default
           ];
           home-manager.extraSpecialArgs = { inherit cfgLib; };
-          home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit hostName; };
+          home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit isDesktop hostName; };
           home-manager.backupFileExtension = "backup";
         }
       ];
     };
 
     # DRY Darwin builder: compute pkgs for Darwin and pass into homeUser
-    mkDarwin = { system, hostFile, hostName }: let
+    mkDarwin = { system, hostFile, hostName, isDesktop ? false }: let
       pkgsForDarwin = import nixpkgs-darwin {
   inherit system;
   config = { allowUnfree = config.packages.allowUnfree; };
@@ -111,7 +112,7 @@
             ragenix.homeManagerModules.default
           ];
           home-manager.extraSpecialArgs = { inherit cfgLib; };
-          home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit hostName; };
+          home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit isDesktop hostName; };
           home-manager.backupFileExtension = "backup";
         }
       ];
@@ -120,7 +121,7 @@
       nixosConfigurations = rec {
         default = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; hostName = "laptop"; };
         laptop  = default;
-        server  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/server; hostName = "server"; };
+        server  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/server; hostName = "server"; isDesktop = false; };
       };
 
     darwinConfigurations = {

@@ -1,3 +1,13 @@
+let
+  # Pull the font primitives from the single source of truth so VS Code
+  # stays in sync with KDE/Konsole without hardcoding "FiraCode" twice.
+  desktop = import ./desktop.nix;
+
+  # VS Code uses the bare family name (no "Nerd Font Mono" suffix) for the
+  # editor pane, and the Nerd Font variant (without "Mono") for the terminal.
+  editorFont   = desktop.monoFontBase;                          # "FiraCode"
+  terminalFont = "${desktop.monoFontBase} Nerd Font";           # "FiraCode Nerd Font"
+in
 {
   # Development configuration
 
@@ -7,17 +17,17 @@
 
     # Theme
     colorTheme = "Catppuccin Mocha";
-    iconTheme = "catppuccin-vsc-icons";
+    iconTheme  = "catppuccin-vsc-icons";
 
-    # Editor appearance
-    fontFamily = "'FiraCode', 'monospace'";
-    terminalFontFamily = "'FiraCode Nerd Font'";
-    fontSize = 14;
-    terminalFontSize = 13;
-    lineHeight = 22;
-    fontLigatures = true;
+    # Editor appearance — font strings derived from desktop.nix primitives
+    fontFamily         = "'${editorFont}', 'monospace'";  # "'FiraCode', 'monospace'"
+    terminalFontFamily = "'${terminalFont}'";             # "'FiraCode Nerd Font'"
+    fontSize           = 14;
+    terminalFontSize   = 13;
+    lineHeight         = 22;
+    fontLigatures      = true;
 
-    # Extensions from nixpkgs (pkgs.vscode-extensions.<publisher>.<n>).
+    # Extensions from nixpkgs (pkgs.vscode-extensions.<publisher>.<name>).
     # Must match attribute paths in the nixpkgs vscode-extensions set.
     extensions = [
       # ── Nix ──────────────────────────────────────────────────────────────────
@@ -65,11 +75,11 @@
     ];
 
     # Extensions from the VS Code Marketplace via the nix-vscode-extensions
-    # overlay (pkgs.vscode-marketplace.<publisher>.<n>).
+    # overlay (pkgs.vscode-marketplace.<publisher>.<name>).
     # Use this for extensions not packaged in base nixpkgs 25.11.
     marketplaceExtensions = [
-      "golang.go"            # Go language support (requires gopls on PATH)
-      "svelte.svelte-vscode" # Svelte language server
+      "golang.go"                # Go language support (requires gopls on PATH)
+      "svelte.svelte-vscode"     # Svelte language server
       "ms-vscode.makefile-tools" # Makefile syntax, build targets, IntelliSense
     ];
   };

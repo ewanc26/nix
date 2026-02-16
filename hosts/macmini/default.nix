@@ -22,8 +22,8 @@ in
   # SMB/NetBIOS hostname (used by network discovery and file sharing)
   system.defaults.smb.NetBIOSName = "macmini";
 
-  # Timezone
-  time.timeZone = "Europe/London";
+  # Timezone — driven from settings/config/system.nix
+  time.timeZone = cfg.system.timeZone;
 
   users.users.${cfg.user.username} = {
     home  = "/Users/${cfg.user.username}";

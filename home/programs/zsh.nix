@@ -51,6 +51,9 @@ in
             "sudo nixos-rebuild switch --flake .#${hostName} && home-manager switch --flake .#${userName}";
       }
 
+      # Shared Nix tool aliases (flake-bump, gen-diff, health-check)
+      // cfg.shell.nixToolAliases
+
       # Linux-specific
       // (lib.optionalAttrs (!isDarwin) cfg.shell.linuxAliases)
 

@@ -1,4 +1,4 @@
-{ pkgs, lib, isDarwin, hostName, extraSpecialArgs ? {}, ... }:
+{ pkgs, lib, isDarwin, isDesktop, hostName, extraSpecialArgs ? {}, ... }:
 { config, cfgLib, ... }:
 
 let
@@ -30,7 +30,9 @@ in
     ./programs/fastfetch.nix
     ./programs/vscode.nix
   ] ++ lib.optionals (!isDarwin) [
-    ./programs/kde.nix
+    ./programs/terminal.nix   # Konsole profile — all non-Darwin hosts
+  ] ++ lib.optionals isDesktop [
+    ./programs/kde.nix        # KDE Plasma settings — desktop only
   ];
 
   home = {
