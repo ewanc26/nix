@@ -48,13 +48,13 @@ in
     enableDefaultConfig = false;
     
     # Tailscale host configurations with dynamic ProxyCommand routing
+    # macOS-only: preserve exact casing for Apple's SSH Keychain extension
+    extraConfig = lib.optionalString isDarwin ''UseKeychain yes'';
+    
     matchBlocks = tailscaleHostBlocks // {
       # Global SSH configuration for all other hosts (git forges, etc.)
       "*" = {
-        extraOptions = globalExtraOptions // lib.optionalAttrs isDarwin {
-          # macOS: Store passphrases in Keychain automatically
-          UseKeychain = "yes";
-        };
+        extraOptions = globalExtraOptions;
       };
     };
   };
