@@ -107,20 +107,15 @@ lib.mkIf cfg.enable {
   # Listens on localhost:caddyPort only — never exposed publicly.
   # Cloudflare handles TLS; Caddy receives plain HTTP from the tunnel daemon.
   # Using http:// prefix disables Caddy's automatic HTTPS / ACME entirely.
-  services.caddy = {
-    enable = true;
-    # Global config: disable automatic HTTPS since Cloudflare handles TLS.
-    globalConfig = ''
-      auto_https off
+  #
+  # Note: Caddy service itself is enabled by modules/caddy.nix.
+  services.caddy.virtualHosts."http://127.0.0.1:${caddyPort}" = {
+    extraConfig = ''
+      ${ageAssuranceBlocks}
+      handle {
+        reverse_proxy http://127.0.0.1:${pdsPort}
+      }
     '';
-    virtualHosts."http://127.0.0.1:${caddyPort}" = {
-      extraConfig = ''
-        ${ageAssuranceBlocks}
-        handle {
-          reverse_proxy http://127.0.0.1:${pdsPort}
-        }
-      '';
-    };
   };
 
   # ── Cloudflare tunnel ─────────────────────────────────────────────────────────

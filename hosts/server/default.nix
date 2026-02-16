@@ -8,6 +8,7 @@ in
     ./minimal-hardware.nix
     ../../modules/common.nix
     ../../modules/users.nix
+    ../../modules/caddy.nix
     ../../modules/pds.nix
     ../../profiles/server-hardened.nix
   ];

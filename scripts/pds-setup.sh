@@ -89,12 +89,35 @@ read_setting() {
     grep "${key}\s*=" "$SETTINGS" | grep -o '"[^"]*"\|[0-9]\+' | head -1 | tr -d '"'
 }
 
+# Send a test email via Resend API
+# Args: $1=API_KEY, $2=FROM_ADDRESS, $3=TO_ADDRESS
+send_test_email() {
+    local api_key="$1" from="$2" to="$3"
+    
+    local response
+    response=$(curl -s -X POST 'https://api.resend.com/emails' \
+        -H "Authorization: Bearer ${api_key}" \
+        -H 'Content-Type: application/json' \
+        -d "{
+            \"from\": \"${from}\",
+            \"to\": [\"${to}\"],
+            \"subject\": \"PDS Setup Complete! 🎉\",
+            \"html\": \"<h2>Your PDS is ready to deploy!</h2><p>SMTP email is working correctly. You can now proceed with deployment.</p><p><strong>Next steps:</strong></p><ul><li>Commit your changes</li><li>Deploy to your server</li><li>Add DNS records</li></ul>\"
+        }" 2>&1)
+    
+    if echo "$response" | grep -q '"id"'; then
+        ok "Test email sent to $to"
+    else
+        warn "Test email failed: $response"
+    fi
+}
+
 # ── Step 1: Prerequisites ─────────────────────────────────────────────────────
 
 log "Step 1/9 — Prerequisites"
 
 missing=()
-for cmd in openssl nix git; do command -v "$cmd" &>/dev/null || missing+=("$cmd"); done
+for cmd in openssl nix git curl; do command -v "$cmd" &>/dev/null || missing+=("$cmd"); done
 (( ${#missing[@]} == 0 )) || fail "Missing commands: ${missing[*]}"
 
 if command -v cloudflared &>/dev/null; then
@@ -166,9 +189,23 @@ if [[ -z "$SMTP_URL" ]]; then
     [[ -n "$SMTP_URL" ]] && read -rp "  FROM address (blank to skip): " SMTP_FROM
 fi
 
-[[ -n "$SMTP_URL" ]] \
-    && ok "SMTP: $SMTP_FROM via $SMTP_URL" \
-    || warn "SMTP skipped"
+if [[ -n "$SMTP_URL" ]]; then
+    ok "SMTP: $SMTP_FROM via $SMTP_URL"
+    
+    # Send test email if using Resend
+    if [[ "$SMTP_URL" == *"resend"* ]]; then
+        # Extract API key from SMTP URL: smtps://resend:<API_KEY>@smtp.resend.com:465/
+        RESEND_API_KEY=$(echo "$SMTP_URL" | sed -n 's|.*resend:\([^@]*\)@.*|\1|p')
+        
+        if [[ -n "$RESEND_API_KEY" ]] && [[ -n "$SMTP_FROM" ]] && [[ -n "$CUR_EMAIL" ]]; then
+            echo
+            section "Sending test email..."
+            send_test_email "$RESEND_API_KEY" "$SMTP_FROM" "$CUR_EMAIL"
+        fi
+    fi
+else
+    warn "SMTP skipped"
+fi
 
 # ── Step 3: PDS runtime secrets ───────────────────────────────────────────────
 
