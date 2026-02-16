@@ -10,6 +10,7 @@ result-*
 # --- Rust / Tools Specific ---
 # Your ./tools directory is a Rust project; ignore its build artifacts
 /tools/target/
+/target/
 
 # --- SECRETS (Deny-by-Default Strategy) ---
 # 1. Ignore everything in the secrets directory by default
