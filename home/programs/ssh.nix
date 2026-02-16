@@ -51,12 +51,10 @@ in
     matchBlocks = tailscaleHostBlocks // {
       # Global SSH configuration for all other hosts (git forges, etc.)
       "*" = {
-        extraOptions = globalExtraOptions;
-      } // lib.optionalAttrs isDarwin {
-        # macOS: Use Keychain - must use raw config to preserve casing
-        extraConfig = ''
-          UseKeychain yes
-        '';
+        extraOptions = globalExtraOptions // lib.optionalAttrs isDarwin {
+          # macOS: Store passphrases in Keychain automatically
+          UseKeychain = "yes";
+        };
       };
     };
   };
