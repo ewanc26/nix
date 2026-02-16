@@ -25,7 +25,7 @@ in
     ./programs/git.nix
     ./programs/yarn.nix
     (import ./programs/zsh.nix { inherit hostName isDarwin; })
-    (import ./programs/ssh.nix { inherit isDarwin; })
+    (import ./programs/ssh.nix { inherit isDarwin isDesktop; })
     ./programs/starship.nix
     ./programs/fastfetch.nix
     ./programs/vscode.nix
