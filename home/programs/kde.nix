@@ -18,7 +18,8 @@ in
     profiles = {
       "Catppuccin Mocha" = {
         name        = "Catppuccin Mocha";
-        colorScheme = "CatppuccinMochaMocha";
+        # Name= field from the .colorscheme file installed by catppuccin/konsole
+        colorScheme = "Catppuccin Mocha";
         font = {
           name = cfg.desktop.monoFontConsole;
           size = 11;

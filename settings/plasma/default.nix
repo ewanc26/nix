@@ -63,6 +63,18 @@
       };
     };
 
+    # ── Colour scheme and desktop theme ─────────────────────────────────────────
+    # mac: NSGlobalDomain.AppleInterfaceStyle = "Dark"
+    #      CustomUserPreferences.NSGlobalDomain.AppleAccentColor = 3 (Green)
+    # workspace.colorScheme sets the Qt/KDE colour palette (kdeglobals).
+    # The catppuccin home-manager module also sets this via lib.mkDefault;
+    # being explicit here ensures it is always set, even if that module changes.
+    workspace.colorScheme = "CatppuccinMochaGreen";
+
+    # Plasma desktop style (plasmarc Theme.name) — controls panel/widget chrome.
+    # No catppuccin plasma *style* package exists; Breeze Dark is the best base.
+    workspace.theme = "breeze-dark";
+
     # ── Window decoration ──────────────────────────────────────────────────────
     workspace.windowDecorations = {
       theme   = "Breeze";
@@ -242,15 +254,23 @@
     };
 
     # ── Dolphin (file manager) ────────────────────────────────────────────────
-    # mirrors: finder.AppleShowAllExtensions = true
-    #          finder._FXSortFoldersFirst = true
-    #          finder.ShowPathbar = true
-    #          finder.FXDefaultSearchScope = "SCcf" (search current folder)
+    # mirrors: finder.AppleShowAllExtensions  = true
+    #          finder._FXSortFoldersFirst     = true
+    #          finder.ShowPathbar             = true
+    #          finder.ShowStatusBar           = false
+    #          finder._FXShowPosixPathInTitle = true
+    #          finder.FXDefaultSearchScope    = "SCcf" (search current folder)
     configFile."dolphinrc".General = {
-      ShowHiddenFiles  = true;
-      SortFoldersFirst = true;   # mac: finder._FXSortFoldersFirst = true
+      ShowHiddenFiles       = true;
+      SortFoldersFirst      = true;   # mac: finder._FXSortFoldersFirst = true
+      ShowStatusBar         = false;  # mac: finder.ShowStatusBar = false
+      BreadcrumbNavigation  = true;   # mac: finder.ShowPathbar = true
     };
     configFile."dolphinrc".DetailsMode.ExpandableFolders = false;
+
+    # Display full posix path in the Dolphin title bar
+    # mac: finder._FXShowPosixPathInTitle = true
+    configFile."dolphinrc"."KFileDialog Settings"."Show Full Path" = true;
 
     # ── Spectacle (screenshot) ────────────────────────────────────────────────
     # mac: screencapture.location = "~/Desktop"  screencapture.type = "png"
