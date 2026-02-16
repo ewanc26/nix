@@ -66,7 +66,7 @@
     in nixpkgs.lib.nixosSystem {
       inherit system;
       pkgs = pkgsForSystem;
-      specialArgs = { inherit cfgLib; };
+      specialArgs = { inherit self cfgLib; settings = config; };
       modules = [
         hostFile
         ragenix.nixosModules.default
@@ -77,9 +77,11 @@
           home-manager.sharedModules = [
             catppuccin.homeModules.catppuccin
             plasma-manager.homeModules.plasma-manager
+            ragenix.homeManagerModules.default
           ];
           home-manager.extraSpecialArgs = { inherit cfgLib; };
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit hostName; };
+          home-manager.backupFileExtension = "backup";
         }
       ];
     };
@@ -106,6 +108,7 @@
           home-manager.sharedModules = [
             catppuccin.homeModules.catppuccin
             mac-app-util.homeManagerModules.default
+            ragenix.homeManagerModules.default
           ];
           home-manager.extraSpecialArgs = { inherit cfgLib; };
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit hostName; };

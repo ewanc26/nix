@@ -9,7 +9,7 @@
 #    Import this module and configure services.caddy.virtualHosts as needed.
 #    For PDS, the configuration is handled by modules/pds.nix.
 ##############################################################################
-{ config, lib, pkgs, ... }:
+{ lib, ... }:
 
 {
   # ── Caddy service ─────────────────────────────────────────────────────────────
@@ -26,8 +26,8 @@
   # Keep Caddy service running even if it crashes.
   systemd.services.caddy = {
     serviceConfig = {
-      Restart = "always";
-      RestartSec = "5s";
+      Restart = lib.mkForce "always";
+      RestartSec = lib.mkDefault "5s";
     };
   };
 }

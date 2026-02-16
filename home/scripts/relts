@@ -1,0 +1,240 @@
+#!/usr/bin/env zsh
+
+show_help() {
+  cat <<'EOF'
+relts — relative time helper
+
+Usage:
+  relts [flags] <date|string|timestamp>
+  relts                # interactive mode
+
+Input examples:
+  relts 2026-02-07T08:10:25Z
+  relts "2026-02-07 08:10"
+  relts 1738912345
+  relts +5m
+  relts 2 hours ago
+  relts tomorrow
+
+Flags:
+  --iso        Force ISO parsing
+  --utc        Show absolute time in UTC
+  --tz ZONE    Show absolute time in specific timezone (e.g. Europe/London)
+  --live       Live updating relative countdown
+  -h, --help   Show this help
+
+Interactive commands:
+  q   quit
+  r   refresh prompt
+  l   switch to live mode
+  c   copy relative output to clipboard
+
+Relative shortcuts:
+  +5m   in 5 minutes
+  -2h   2 hours ago
+  +3d   in 3 days
+  now | tomorrow | yesterday
+
+Examples:
+  relts --utc 2026-02-07T08:10:25Z
+  relts --live +10m
+  relts --tz Europe/Berlin "next friday 9am"
+EOF
+}
+
+mode="auto"
+tzmode="local"
+tzname=""
+livemode=0
+
+# ---------- flags ----------
+while [[ "$1" == --* || "$1" == -h ]]; do
+  case "$1" in
+    --iso) mode="iso"; shift ;;
+    --utc) tzmode="utc"; shift ;;
+    --tz) tzmode="tz"; tzname="$2"; shift 2 ;;
+    --live) livemode=1; shift ;;
+    --help|-h) show_help; exit 0 ;;
+    *) echo "Unknown flag: $1"; exit 1 ;;
+  esac
+done
+
+# ---------- input ----------
+if [[ $# -gt 0 ]]; then
+  input="$*"
+else
+  while true; do
+    read "?Date / timestamp / relative string (single-letter commands: q,r,l,c): " input || exit 1
+    input_l="${input:l}"  # lowercase copy for single-letter commands
+
+    case "$input_l" in
+      q) echo "Quit."; exit 0 ;;
+      r) echo "(Refreshing...)"; continue ;;
+      l) livemode=1; break ;;  # switch to live mode
+      c) echo "(Clipboard feature available after relative output)"; continue ;;
+      help) show_help; exit 0 ;;
+      *) break ;;  # normal input, parse
+    esac
+  done
+fi
+
+# set lowercase copy for Python too (may be empty)
+input_l="${input:l}"
+
+# ---------- python logic ----------
+python3 <<PY
+import sys, re, select, termios, tty, subprocess
+from datetime import datetime, timedelta, timezone
+
+text = """$input"""
+mode = "$mode"
+tzmode = "$tzmode"
+tzname = "$tzname"
+livemode = $livemode
+input_l = """${input_l:-}"""
+
+# ---------- parsing ----------
+def parse_iso(t):
+    # handle trailing Z as UTC
+    return datetime.fromisoformat(t.replace("Z", "+00:00"))
+
+def try_dateutil(t):
+    try:
+        from dateutil import parser
+        return parser.parse(t)
+    except:
+        return None
+
+def parse_rel(t):
+    s=t.lower().strip()
+    m=re.match(r'^([+-])(\\d+)([smhdw])$', s)
+    if m:
+        mult={'s':1,'m':60,'h':3600,'d':86400,'w':604800}[m.group(3)]
+        delta=int(m.group(2))*mult
+        if m.group(1)=='-': delta=-delta
+        return datetime.now()+timedelta(seconds=delta)
+
+    m=re.match(r'^(\\d+)\\s+(seconds?|minutes?|hours?|days?)\\s+ago$', s)
+    if m:
+        mult={'s':1,'m':60,'h':3600,'d':86400}[m.group(2)[0]]
+        return datetime.now()-timedelta(seconds=int(m.group(1))*mult)
+
+    if s=="now": return datetime.now()
+    if s=="tomorrow": return datetime.now()+timedelta(days=1)
+    if s=="yesterday": return datetime.now()-timedelta(days=1)
+    return None
+
+def parse(t):
+    if t.isdigit():
+        return datetime.fromtimestamp(int(t))
+    if mode=="iso":
+        return parse_iso(t)
+    d=try_dateutil(t)
+    if d:
+        return d
+    try:
+        return parse_iso(t)
+    except:
+        pass
+    r=parse_rel(t)
+    if r:
+        return r
+    return None
+
+dt=parse(text)
+if not dt:
+    print("Could not parse input")
+    sys.exit(1)
+
+# ---------- timezone normalisation ----------
+# Treat naive datetimes as local time so maths + astimezone works
+if dt.tzinfo is None:
+    local_tz = datetime.now().astimezone().tzinfo
+    dt = dt.replace(tzinfo=local_tz)
+
+# ---------- formatting ----------
+def fmt_absolute(dt):
+    if tzmode=="utc":
+        return dt.astimezone(timezone.utc).strftime("%a %d %b %Y %H:%M:%S UTC")
+
+    if tzmode=="tz" and tzname:
+        try:
+            from zoneinfo import ZoneInfo
+            return dt.astimezone(ZoneInfo(tzname)).strftime("%a %d %b %Y %H:%M:%S %Z")
+        except:
+            pass
+
+    return dt.astimezone().strftime("%a %d %b %Y %H:%M:%S %Z")
+
+def human(delta):
+    secs=int(delta.total_seconds())
+    y,rem = divmod(secs,31536000)
+    mo,rem = divmod(rem,2592000)
+    d,rem = divmod(rem,86400)
+    h,rem = divmod(rem,3600)
+    m,s = divmod(rem,60)
+    parts=[]
+    if y: parts.append(f"{y}y")
+    if mo: parts.append(f"{mo}mo")
+    if d: parts.append(f"{d}d")
+    if y==0:
+        if h: parts.append(f"{h}h")
+        if m: parts.append(f"{m}m")
+    if not parts: parts.append(f"{s}s")
+    return parts
+
+def relative_string(dt):
+    now = datetime.now(dt.tzinfo)
+    delta = abs(now-dt)
+    parts = human(delta)
+    return ("ago" if dt<now else "in") + " " + " ".join(parts)
+
+# ---------- output ----------
+abs_out=fmt_absolute(dt)
+rel_out=relative_string(dt)
+print("Date:", abs_out)
+
+# copy to clipboard if 'c' command was used in interactive prompt
+if input_l == "c":
+    try:
+        subprocess.run("pbcopy", input=rel_out.encode(), check=False)
+        print("Relative copied to clipboard!")
+    except:
+        pass
+
+if not livemode:
+    print("Relative:", rel_out)
+    sys.exit(0)
+
+# ---------- live mode with colours & single-letter commands ----------
+fd=sys.stdin.fileno()
+old=termios.tcgetattr(fd)
+tty.setcbreak(fd)
+
+try:
+    while True:
+        now=datetime.now(dt.tzinfo)
+        secs_remaining=int((dt-now).total_seconds())
+        if secs_remaining > 3600:
+            color="\\033[32m"  # green
+        elif secs_remaining > 600:
+            color="\\033[33m"  # yellow
+        else:
+            color="\\033[31m"  # red
+
+        rel=relative_string(dt)
+        print(f"\\rRelative: {color}{rel}\\033[0m (q=quit, r=refresh, c=copy) ", end="", flush=True)
+
+        if select.select([sys.stdin],[],[],1)[0]:
+            ch=sys.stdin.read(1).lower()
+            if ch=="q": break
+            elif ch=="r": continue
+            elif ch=="c":
+                try:
+                    subprocess.run("pbcopy", input=rel.encode(), check=False)
+                except:
+                    pass
+finally:
+    termios.tcsetattr(fd, termios.TCSADRAIN, old)
+    print()
+PY

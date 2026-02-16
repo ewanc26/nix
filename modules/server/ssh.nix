@@ -1,7 +1,7 @@
-{ lib, ... }:
+{ lib, settings, ... }:
 
 let
-  cfg = import ../../settings/config.nix;
+  cfg = settings;
 in
 {
   services.openssh = {

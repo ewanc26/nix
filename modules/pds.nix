@@ -27,10 +27,10 @@
 #    4. Set cfg.cloudflare.tunnelId to that UUID in settings/config/pds.nix.
 #    5. Add a CNAME in Cloudflare DNS: <hostname> → <UUID>.cfargotunnel.com
 ##############################################################################
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, self, settings, ... }:
 
 let
-  cfg      = (import ../../settings/config.nix).pds;
+  cfg      = settings.pds;
   pdsPort  = toString cfg.port;
   pdsHost  = cfg.hostname;
   caddyPort = toString cfg.caddyPort;
@@ -63,7 +63,7 @@ lib.mkIf cfg.enable {
 
   # ── Secrets ──────────────────────────────────────────────────────────────────
   age.secrets."pds.env" = {
-    file  = ../../secrets/age/pds.env.age;
+    file  = self + /secrets/age/pds.env.age;
     owner = "pds";
     group = "pds";
     mode  = "0400";
@@ -72,7 +72,7 @@ lib.mkIf cfg.enable {
   # JSON credentials file created by `cloudflared tunnel create pds`.
   # Encrypted with: nix run github:yaxitech/ragenix -- -e secrets/age/cf-tunnel-pds.json.age
   age.secrets."cf-tunnel-pds.json" = {
-    file  = ../../secrets/age/cf-tunnel-pds.json.age;
+    file  = self + /secrets/age/cf-tunnel-pds.json.age;
     owner = "cloudflared";
     mode  = "0400";
   };

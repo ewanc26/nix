@@ -1,7 +1,7 @@
-{ config, pkgs, ... }:
+{ config, pkgs, settings, ... }:
 
 let
-  cfg = import ../../settings/config.nix;
+  cfg = settings;
 
   toPkg = name:
     if pkgs ? ${name} then pkgs.${name}

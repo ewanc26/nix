@@ -101,5 +101,27 @@ in
       setopt PUSHD_IGNORE_DUPS    # Don't push duplicates
       setopt PUSHD_MINUS          # Swap meaning of +/-
     '';
+
+    # Migrated from .profile and .zprofile
+    profileExtra =
+      # ── Cross-platform ──────────────────────────────────────────────────────
+      ''
+        # Cargo
+        . "$HOME/.cargo/env"
+
+        # pipx / local user binaries
+        export PATH="$PATH:$HOME/.local/bin"
+      ''
+      # ── macOS only ──────────────────────────────────────────────────────────
+      + lib.optionalString isDarwin ''
+        # Deno
+        . "$HOME/.deno/env"
+
+        # Homebrew
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+
+        # OrbStack
+        source ~/.orbstack/shell/init.zsh 2>/dev/null || :
+      '';
   };
 }

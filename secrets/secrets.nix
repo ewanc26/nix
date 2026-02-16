@@ -32,4 +32,7 @@ in
 
   # Cloudflare tunnel JSON credentials file (from `cloudflared tunnel create pds`)
   "age/cf-tunnel-pds.json.age".publicKeys = pdsKeys;
+  "age/duckdns.tar.gz.age".publicKeys = all;
+  "age/docker-config.json.age".publicKeys = all;
+  "age/claude.json.age".publicKeys = all;
 }

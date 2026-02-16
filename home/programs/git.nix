@@ -14,7 +14,8 @@ in
         email = cfg.user.email;
       };
 
-      safe.directory = "/etc/nixos";
+      # /etc/nixos only exists on NixOS; skip on macOS/Darwin.
+      safe.directory = lib.mkIf (!pkgs.stdenv.isDarwin) "/etc/nixos";
 
       core = {
         editor = cfg.git.editor;
