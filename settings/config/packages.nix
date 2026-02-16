@@ -60,15 +60,19 @@
     "dotnet-sdk"       # .NET SDK
 
     # Go tooling
-    "gopls" # Go language server (golang.go extension)
+    "gopls"         # Go language server (golang.go extension)
     "golangci-lint" # Go linter
-    "delve" # Go debugger
+    "delve"         # Go debugger
 
     # Python tooling
     "pipx"
     "uv"
-    "ruff" # Fast Python linter + formatter
+    "ruff"    # Fast Python linter + formatter
     "pyright" # Python type checker / language server
+
+    # Shell tooling
+    "shellcheck" # Shell script static analysis (timonwong.shellcheck extension)
+    "shfmt"      # Shell script formatter (foxundermoon.shell-format extension)
 
     # Build tools
     "cmake"
