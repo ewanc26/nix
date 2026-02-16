@@ -94,7 +94,7 @@
       "microsoft-word"
       "netnewswire"
       "prismlauncher"
-      "tailscale"  # VPN for inter-host communication
+      "tailscale-app"  # VPN for inter-host communication
     ];
 
     # Mac App Store apps (by ID)
