@@ -30,6 +30,7 @@
     "tmux"
     
     # Network tools
+    "openssh"      # SSH client
     "wget"
     "curl"
     

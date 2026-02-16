@@ -26,9 +26,11 @@ in
     };
   };
   
-  # Linux: Enable SSH agent service via home-manager
+  # Linux: Enable SSH agent service via systemd user service
   # On macOS, the system handles this automatically
-  services.ssh-agent.enable = lib.mkIf (!isDarwin) true;
+  services.ssh-agent = lib.mkIf (!isDarwin) {
+    enable = true;
+  };
   
   # Ensure the socket directory exists
   home.file.".ssh/sockets/.keep".text = "";
