@@ -20,13 +20,13 @@
 #         matrix.ewancroft.uk → <UUID>.cfargotunnel.com
 #         git.ewancroft.uk → <UUID>.cfargotunnel.com
 ##############################################################################
-{ config, lib, self, settings, ... }:
+{ config, lib, self, cfgLib, ... }:
 
 let
-  cfg = settings.cloudflare;
-  pdsCfg = settings.pds;
-  matrixCfg = settings.matrix;
-  forgejoCfg = settings.forgejo;
+  cfg = cfgLib.cfg.cloudflare;
+  pdsCfg = cfgLib.cfg.pds;
+  matrixCfg = cfgLib.cfg.matrix;
+  forgejoCfg = cfgLib.cfg.forgejo;
   
   # Build ingress routes based on enabled services
   ingressRoutes = lib.mkMerge [

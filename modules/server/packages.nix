@@ -1,13 +1,8 @@
-{ config, pkgs, settings, ... }:
+{ config, pkgs, cfgLib, ... }:
 
 let
-  cfg = settings;
-
-  toPkg = name:
-    if pkgs ? ${name} then pkgs.${name}
-    else builtins.trace "WARNING: package '${name}' not found in nixpkgs, skipping" null;
-
-  resolve = names: builtins.filter (x: x != null) (map toPkg names);
+  cfg     = cfgLib.cfg;
+  resolve = cfgLib.resolvePackages pkgs;
 in
 {
   environment.systemPackages =
@@ -46,4 +41,10 @@ in
 
   programs.command-not-found.enable = true;
   programs.bash.completion.enable   = true;
+
+  # ── Restrict imperative package installation ──────────────────────────────────
+  # Only root and members of the wheel group may connect to the Nix daemon
+  # to build or install packages.  This keeps the server fully declarative:
+  # non-privileged users cannot run `nix-env -i` or `nix profile install`.
+  nix.settings.allowed-users = [ "root" "@wheel" ];
 }

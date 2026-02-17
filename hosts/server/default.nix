@@ -9,6 +9,7 @@ in
     ../../modules/common.nix
     ../../modules/users.nix
     ../../modules/caddy.nix
+    ../../modules/cockpit.nix
     ../../modules/cloudflare-tunnel.nix
     ../../modules/pds.nix
     ../../modules/matrix.nix

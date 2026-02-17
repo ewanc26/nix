@@ -1,7 +1,7 @@
-{ lib, settings, ... }:
+{ lib, cfgLib, ... }:
 
 let
-  cfg = settings;
+  cfg = cfgLib.cfg;
 in
 {
   services.fail2ban = {

@@ -32,6 +32,12 @@
           # Pre-rebuild preflight: daemon, lock, eval, git, age key, disk space.
           # Usage: nix run .#health-check
           health-check = { type = "app"; program = "${pkg}/bin/health-check"; };
+
+          # Interactive server configurator: service toggles, storage device,
+          # Cockpit, Forgejo, Matrix, PDS, Cloudflare settings.
+          # Usage: nix run .#server-config
+          #        nix run .#server-config -- --show  (read-only summary)
+          server-config = { type = "app"; program = "${pkg}/bin/server-config"; };
         }
       );
     };

@@ -4,8 +4,6 @@
   # PDS_PLC_ROTATION_KEY_K256_PRIVATE_KEY_HEX, PDS_EMAIL_SMTP_URL,
   # PDS_EMAIL_FROM_ADDRESS) live in secrets/age/pds.env.age.
 
-  enable = true;
-
   # Public hostname — also used as the Caddy virtual host and the Cloudflare
   # tunnel public hostname. Subdomains are used for account handles.
   hostname = "pds.ewancroft.uk";
@@ -35,9 +33,5 @@
 
   # Caddy internal listen port — Cloudflare tunnel routes here.
   caddyPort = 2020;
-
-  # systemd restart policy
-  restartSec = 5;
-  startLimitIntervalSec = 300;
-  startLimitBurst = 5;
+  # Restart policy is shared: see settings/config/server.nix → servicePolicy.
 }

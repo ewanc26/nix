@@ -67,7 +67,7 @@
     in nixpkgs.lib.nixosSystem {
       inherit system;
       pkgs = pkgsForSystem;
-      specialArgs = { inherit self cfgLib; settings = config; };
+      specialArgs = { inherit self cfgLib; };
       modules = [
         hostFile
         ragenix.nixosModules.default

@@ -3,6 +3,11 @@ name = "nix-config-tools"
 version = "0.1.0"
 edition = "2021"
 
+[dependencies]
+dialoguer = { version = "0.11", features = ["completion"] }
+console    = "0.15"
+regex      = "1"
+
 [lib]
 name = "tools_common"
 path = "src/lib.rs"
@@ -20,6 +25,10 @@ path = "src/bin/gen-diff.rs"
 [[bin]]
 name = "health-check"
 path = "src/bin/health-check.rs"
+
+[[bin]]
+name = "server-config"
+path = "src/bin/server-config.rs"
 
 # ── Removed tools (source kept for reference, not compiled) ──────────────────
 # darwin-export   — unnecessary: macOS settings are now fully declarative

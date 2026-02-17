@@ -3,8 +3,6 @@
   # Non-secret settings only. Secrets (secret key, mailer password, etc.)
   # live in secrets/age/forgejo.env.age.
 
-  enable = true;
-
   # Public hostname.
   hostname = "git.ewancroft.uk";
 
@@ -19,9 +17,5 @@
 
   # Disable public registration — invite-only or admin-created accounts only.
   disableRegistration = true;
-
-  # systemd restart policy
-  restartSec = 5;
-  startLimitIntervalSec = 300;
-  startLimitBurst = 5;
+  # Restart policy is shared: see settings/config/server.nix → servicePolicy.
 }

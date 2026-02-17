@@ -3,8 +3,6 @@
   # Non-secret settings only. Secrets (registration_shared_secret, macaroon_secret_key)
   # should be stored in secrets/age/matrix.env.age.
 
-  enable = true;
-
   # Public hostname — also used as the Caddy virtual host and the Cloudflare
   # tunnel public hostname.
   hostname = "matrix.ewancroft.uk";
@@ -18,9 +16,5 @@
 
   # Caddy internal listen port — Cloudflare tunnel routes here.
   caddyPort = 8448;
-
-  # systemd restart policy
-  restartSec = 5;
-  startLimitIntervalSec = 300;
-  startLimitBurst = 5;
+  # Restart policy is shared: see settings/config/server.nix → servicePolicy.
 }

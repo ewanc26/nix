@@ -38,10 +38,10 @@
 #    Handled by modules/cloudflare-tunnel.nix.
 #    See that module for setup instructions.
 ##############################################################################
-{ config, lib, pkgs, self, settings, ... }:
+{ config, lib, pkgs, self, cfgLib, ... }:
 
 let
-  cfg        = settings.matrix;
+  cfg        = cfgLib.cfg.matrix;
   synapsePort = toString cfg.port;
   caddyPort   = toString cfg.caddyPort;
   matrixHost  = cfg.hostname;
@@ -140,12 +140,12 @@ lib.mkIf cfg.enable {
   # Restart policy for Synapse
   systemd.services.matrix-synapse = {
     serviceConfig = {
-      Restart = lib.mkForce "always";
-      RestartSec = cfg.restartSec;
+      Restart    = lib.mkForce "always";
+      RestartSec = cfgLib.cfg.server.servicePolicy.restartSec;
     };
     unitConfig = {
-      StartLimitIntervalSec = cfg.startLimitIntervalSec;
-      StartLimitBurst = cfg.startLimitBurst;
+      StartLimitIntervalSec = cfgLib.cfg.server.servicePolicy.startLimitIntervalSec;
+      StartLimitBurst       = cfgLib.cfg.server.servicePolicy.startLimitBurst;
     };
   };
 

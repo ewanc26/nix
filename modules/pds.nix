@@ -23,10 +23,10 @@
 #    Handled by modules/cloudflare-tunnel.nix.
 #    See that module for setup instructions.
 ##############################################################################
-{ config, lib, pkgs, self, settings, ... }:
+{ config, lib, pkgs, self, cfgLib, ... }:
 
 let
-  cfg      = settings.pds;
+  cfg      = cfgLib.cfg.pds;
   pdsPort  = toString cfg.port;
   pdsHost  = cfg.hostname;
   caddyPort = toString cfg.caddyPort;
@@ -85,10 +85,10 @@ lib.mkIf cfg.enable {
 
   systemd.services.bluesky-pds = {
     serviceConfig.Restart    = "always";
-    serviceConfig.RestartSec = cfg.restartSec;
+    serviceConfig.RestartSec = cfgLib.cfg.server.servicePolicy.restartSec;
     unitConfig = {
-      StartLimitIntervalSec = cfg.startLimitIntervalSec;
-      StartLimitBurst       = cfg.startLimitBurst;
+      StartLimitIntervalSec = cfgLib.cfg.server.servicePolicy.startLimitIntervalSec;
+      StartLimitBurst       = cfgLib.cfg.server.servicePolicy.startLimitBurst;
     };
   };
 
