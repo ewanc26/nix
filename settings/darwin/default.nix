@@ -43,6 +43,7 @@
       "/Applications/Discord.app"
       "/Applications/Spotify.app"
       "/Applications/Firefox.app"
+      "/Applications/Steam.app"
       "/Applications/Obsidian.app"
       "/Applications/Visual Studio Code.app"
       "/Applications/Claude.app"
