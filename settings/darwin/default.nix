@@ -28,6 +28,25 @@
     wvous-br-corner = 4; # bottom-right → Desktop
     wvous-tl-corner = 1; # top-left     → None
     wvous-tr-corner = 5; # top-right    → Screen Saver
+    
+    # Persistent applications in the Dock (left to right)
+    # Note: Finder is always shown and doesn't need to be listed here
+    persistent-apps = [
+      "/System/Applications/Mail.app"
+      "/Applications/WhatsApp.app"
+      "/System/Applications/Phone.app"
+      "/System/Applications/iPhone Mirroring.app"
+      "/System/Applications/FaceTime.app"
+      "/System/Applications/Messages.app"
+      "/Applications/Signal.app"
+      "/Applications/Element.app"
+      "/Applications/Discord.app"
+      "/Applications/Spotify.app"
+      "/Applications/Firefox.app"
+      "/Applications/Obsidian.app"
+      "/Applications/Visual Studio Code.app"
+      "/System/Applications/Utilities/Terminal.app"
+    ];
   };
 
   # ── Finder ───────────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, cfgLib, ... }:
+{ config, lib, pkgs, cfgLib, ... }:
 
 let
   cfg = cfgLib.cfg;
@@ -10,6 +10,7 @@ in
     ../../modules/darwin/homebrew.nix
     ../../modules/darwin/system.nix
     ../../modules/darwin/launch-services.nix
+    ../../modules/darwin/gatekeeper.nix
   ];
 
   # Primary user for homebrew and user-specific options

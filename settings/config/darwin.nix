@@ -86,24 +86,67 @@
 
     # GUI applications via Homebrew Cask
     casks = [
-      "logitune"
-      "logitech-options"
+      # Communication
+      "discord"
+      "element"         # Matrix client
+      "signal"
+      "whatsapp"
+      
+      # Productivity
+      "obsidian"
+      "visual-studio-code"
+      "github"          # GitHub Desktop
+      "claude"
+      
+      # Browsers
+      "firefox"
+      
+      # Media & Entertainment
+      "obs"             # OBS Studio
+      "spotify"
+      "handbrake"
+      
+      # Gaming
+      "prismlauncher"   # Minecraft launcher
+      "steam"
+      "steam-link"
+      "epic-games"
+      "utm"             # Virtual machines
+      
+      # Utilities
+      "onedrive"
+      "cloudflare-warp"
+      "tailscale"       # VPN for inter-host communication
+      "the-unarchiver"
+      "transmission"    # BitTorrent client
+      "filezilla"       # FTP client
+      "onyx"            # System maintenance
+      "mos"             # Mouse/trackpad customization
+      "parsec"          # Remote desktop
+      
+      # Office & Documents
       "microsoft-excel"
       "microsoft-powerpoint"
       "microsoft-teams"
       "microsoft-word"
-      "netnewswire"
-      "prismlauncher"
-      "spotify"
-      "tailscale-app"  # VPN for inter-host communication
-      "element"         # Matrix client
+      "libreoffice"
+      
+      # Hardware
+      "logitune"        # Logitech webcam
+      "logitech-options" # Logitech devices
+      
+      # Other
+      "netnewswire"     # RSS reader
     ];
 
     # Mac App Store apps (by ID)
     masApps = {
       "Amphetamine" = 937984704;
       "EA app" = 1246969117;
+      "Mini Motorways" = 1453901000;
       "OP Auto Clicker" = 6754914118;
+      "Roblox" = 1319456934;
+      "TestFlight" = 899247664;
       "Zone Bar" = 6755328989;
     };
   };
