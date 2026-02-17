@@ -94,6 +94,7 @@
       "microsoft-word"
       "netnewswire"
       "prismlauncher"
+      "spotify"
       "tailscale-app"  # VPN for inter-host communication
       "element"         # Matrix client
     ];

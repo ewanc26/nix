@@ -9,6 +9,7 @@ in
     ../../modules/darwin/packages.nix
     ../../modules/darwin/homebrew.nix
     ../../modules/darwin/system.nix
+    ../../modules/darwin/launch-services.nix
   ];
 
   # Primary user for homebrew and user-specific options
