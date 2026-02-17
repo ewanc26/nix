@@ -31,8 +31,8 @@ in
     ./programs/vscode.nix
   ] ++ lib.optionals (!isDarwin) [
     ./programs/terminal.nix   # Konsole profile — all non-Darwin hosts
-  ] ++ lib.optionals isDesktop [
-    ./programs/kde.nix        # KDE Plasma settings — desktop only
+  ] ++ lib.optionals (isDesktop && !isDarwin) [
+    ./programs/kde.nix        # KDE Plasma settings — Linux desktop only
   ];
 
   home = {
