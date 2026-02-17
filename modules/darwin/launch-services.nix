@@ -14,17 +14,18 @@
   system.activationScripts.postActivation.text = lib.mkAfter ''
     echo "Rebuilding Launch Services database..." >&2
     
-    # Clear and rebuild the Launch Services database
+    # Modern approach: garbage collect and rescan all domains
     # This ensures all Nix apps are properly registered with macOS
+    # Using -gc (garbage collect) instead of deprecated -kill flag
     /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
-      -kill -r -domain local -domain system -domain user
+      -gc -R -apps u,s,l 2>/dev/null || true
     
     # Reset Launchpad cache to show updated apps
     # This is necessary for apps to appear in Spotlight and Launchpad
     find /private/var/folders/ -type d -name com.apple.dock.launchpad -exec rm -rf {} + 2>/dev/null || true
     
     # Restart Dock to apply changes
-    killall Dock || true
+    killall Dock 2>/dev/null || true
     
     echo "Launch Services database rebuilt successfully" >&2
   '';
