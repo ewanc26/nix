@@ -59,6 +59,7 @@ lib.mkIf cfg.enable {
   # ── Matrix Synapse service ────────────────────────────────────────────────────
   services.matrix-synapse = {
     enable = true;
+    dataDir = "/srv/matrix-synapse";
     
     settings = {
       server_name = cfg.serverName;  # Domain used in Matrix IDs (@user:ewancroft.uk)
@@ -126,6 +127,7 @@ lib.mkIf cfg.enable {
   # Enable PostgreSQL for Synapse
   services.postgresql = {
     enable = true;
+    dataDir = "/srv/postgresql";
     ensureDatabases = [ "matrix-synapse" ];
     ensureUsers = [
       {

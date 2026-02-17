@@ -72,6 +72,7 @@ lib.mkIf cfg.enable {
     enable           = true;
     environmentFiles = [ config.age.secrets."pds.env".path ];
     settings = {
+      PDS_DATA_DIRECTORY = "/srv/bluesky-pds";
       PDS_PORT        = cfg.port;
       PDS_HOSTNAME    = cfg.hostname;
       PDS_ADMIN_EMAIL = cfg.adminEmail;
