@@ -38,6 +38,8 @@
       "/System/Applications/iPhone Mirroring.app"
       "/System/Applications/FaceTime.app"
       "/System/Applications/Messages.app"
+      "/System/Applications/Calendar.app"
+      "/System/Applications/Reminders.app"
       "/Applications/Signal.app"
       "/Applications/Element.app"
       "/Applications/Discord.app"
