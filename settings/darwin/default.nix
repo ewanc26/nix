@@ -45,6 +45,7 @@
       "/Applications/Firefox.app"
       "/Applications/Obsidian.app"
       "/Applications/Visual Studio Code.app"
+      "/Applications/Claude.app"
       "/System/Applications/Utilities/Terminal.app"
     ];
   };
