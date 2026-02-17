@@ -82,7 +82,7 @@
           ];
           home-manager.extraSpecialArgs = { inherit cfgLib; };
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit isDesktop hostName; };
-          home-manager.backupFileExtension = "backup";
+          home-manager.backupFileExtension = "hm-backup-${toString builtins.currentTime}";
         }
       ];
     };
@@ -121,7 +121,10 @@
       nixosConfigurations = rec {
         default = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; hostName = "laptop"; };
         laptop  = default;
+        
+        # Server configurations for different architectures
         server  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/server; hostName = "server"; isDesktop = false; };
+        server-arm = mkNixOS { system = "aarch64-linux"; hostFile = ./hosts/server; hostName = "server"; isDesktop = false; };
       };
 
     darwinConfigurations = {
