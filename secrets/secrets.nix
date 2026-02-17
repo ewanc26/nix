@@ -15,11 +15,12 @@ let
 
   all = (builtins.attrValues users) ++ (builtins.attrValues systems);
 
-  # Until the server key is added above, PDS secrets are encrypted for ewan
+  # Until the server key is added above, secrets are encrypted for ewan
   # only (so rekeying works from the macmini/laptop today).
-  # After adding the server key, change this to: [ users.ewan systems.server ]
-  pdsKeys = [ users.ewan ];
+  # After adding the server key, change these to: [ users.ewan systems.server ]
+  pdsKeys    = [ users.ewan ];
   matrixKeys = [ users.ewan ];
+  forgejoKeys = [ users.ewan ];
 in
 {
   # Network credentials
@@ -36,4 +37,5 @@ in
   "age/matrix.env.age".publicKeys = matrixKeys;
   "age/cloudflare.token.age".publicKeys = matrixKeys;
   "age/cf-tunnel.json.age".publicKeys = matrixKeys;
+  "age/forgejo.env.age".publicKeys = forgejoKeys;
 }

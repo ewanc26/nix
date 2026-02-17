@@ -15,4 +15,5 @@
   docker  = { enable = true;  };   # ~/.docker/config.json
   claude  = { enable = true;  };   # ~/.claude.json
   duckdns = { enable = false; };   # ~/.duckdns/ — server/Linux only; enable per-host
+  forgejo = { enable = false; };   # Forgejo SECRET_KEY + INTERNAL_TOKEN — enable after creating secrets/age/forgejo.env.age
 }

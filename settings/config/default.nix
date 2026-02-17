@@ -24,6 +24,7 @@
   # - paths.nix       : Important path locations
   # - pds.nix         : Bluesky Personal Data Server settings
   # - matrix.nix      : Matrix Synapse homeserver settings
+  # - forgejo.nix     : Forgejo git forge settings
   # - cloudflare.nix  : Cloudflare Tunnel configuration
   
   user = import ./user.nix;
@@ -44,5 +45,6 @@
   paths = import ./paths.nix;
   pds = import ./pds.nix;
   matrix = import ./matrix.nix;
+  forgejo = import ./forgejo.nix;
   cloudflare = import ./cloudflare.nix;
 }

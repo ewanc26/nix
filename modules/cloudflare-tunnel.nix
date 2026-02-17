@@ -18,6 +18,7 @@
 #    5. Add CNAME records in Cloudflare DNS for each service:
 #         pds.ewancroft.uk → <UUID>.cfargotunnel.com
 #         matrix.ewancroft.uk → <UUID>.cfargotunnel.com
+#         git.ewancroft.uk → <UUID>.cfargotunnel.com
 ##############################################################################
 { config, lib, self, settings, ... }:
 
@@ -25,6 +26,7 @@ let
   cfg = settings.cloudflare;
   pdsCfg = settings.pds;
   matrixCfg = settings.matrix;
+  forgejoCfg = settings.forgejo;
   
   # Build ingress routes based on enabled services
   ingressRoutes = lib.mkMerge [
@@ -37,6 +39,11 @@ let
     # Matrix routes (if enabled)
     (lib.mkIf matrixCfg.enable {
       ${matrixCfg.hostname} = "http://127.0.0.1:${toString matrixCfg.caddyPort}";
+    })
+
+    # Forgejo routes (if enabled)
+    (lib.mkIf forgejoCfg.enable {
+      ${forgejoCfg.hostname} = "http://127.0.0.1:${toString forgejoCfg.caddyPort}";
     })
   ];
 in

@@ -12,6 +12,7 @@ in
     ../../modules/cloudflare-tunnel.nix
     ../../modules/pds.nix
     ../../modules/matrix.nix
+    ../../modules/forgejo.nix
     ../../profiles/server-hardened.nix
   ];
 
