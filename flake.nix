@@ -132,7 +132,7 @@
       };
 
     darwinConfigurations = {
-      macmini = mkDarwin { system = "aarch64-darwin"; hostFile = ./hosts/macmini; hostName = "macmini"; };
+      macmini = mkDarwin { system = "aarch64-darwin"; hostFile = ./hosts/macmini; hostName = "macmini"; isDesktop = true; };
     };
   };
 }
