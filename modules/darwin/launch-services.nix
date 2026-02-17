@@ -21,7 +21,7 @@
     
     # Reset Launchpad cache to show updated apps
     # This is necessary for apps to appear in Spotlight and Launchpad
-    find 2>/dev/null /private/var/folders/ -type d -name com.apple.dock.launchpad -exec rm -rf {} + || true
+    find /private/var/folders/ -type d -name com.apple.dock.launchpad -exec rm -rf {} + 2>/dev/null || true
     
     # Restart Dock to apply changes
     killall Dock || true
