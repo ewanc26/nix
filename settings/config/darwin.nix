@@ -124,11 +124,18 @@
 
       # Hardware
       "logitune"        # Logitech webcam
-      "logitech-options" # Logitech devices
+      "logi-options+"   # Logitech devices (replaces deprecated logitech-options)
+
+      # Gaming / social
+      "roblox"
+      "ea"              # EA app (game launcher)
 
       # Other
       "netnewswire"     # RSS reader
       "altserver"       # AltStore sideloading server
+      # 2fhey          — not in Homebrew, install manually
+      # letta-desktop  — not in Homebrew, install manually
+      # filezilla      — removed from Homebrew, install manually
     ];
 
     # Mac App Store apps (by ID)
