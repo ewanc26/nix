@@ -82,7 +82,9 @@
           ];
           home-manager.extraSpecialArgs = { inherit cfgLib; };
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit isDesktop hostName; };
-          home-manager.backupFileExtension = "hm-backup-${toString builtins.currentTime}";
+          # Automatically handle backup collisions
+          home-manager.backupFileExtension = "hm-bak";
+          home-manager.overwriteBackup = true;
         }
       ];
     };
@@ -113,7 +115,9 @@
           ];
           home-manager.extraSpecialArgs = { inherit cfgLib; };
           home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit isDesktop hostName; };
-          home-manager.backupFileExtension = "backup";
+          # Automatically handle backup collisions
+          home-manager.backupFileExtension = "hm-bak";
+          home-manager.overwriteBackup = true;
         }
       ];
     };
