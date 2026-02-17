@@ -23,12 +23,18 @@
 #    Handled by modules/cloudflare-tunnel.nix.
 #    See that module for setup instructions.
 ##############################################################################
-{ config, lib, pkgs, self, cfgLib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  self,
+  cfgLib,
+  ...
+}:
 
 let
-  cfg      = cfgLib.cfg.pds;
-  pdsPort  = toString cfg.port;
-  pdsHost  = cfg.hostname;
+  cfg = cfgLib.cfg.pds;
+  pdsPort = toString cfg.port;
   caddyPort = toString cfg.caddyPort;
 
   # UK Online Safety Act age-assurance static responses.
@@ -59,36 +65,34 @@ lib.mkIf cfg.enable {
 
   # ── Secrets ──────────────────────────────────────────────────────────────────
   age.secrets."pds.env" = {
-    file  = self + /secrets/age/pds.env.age;
+    file = self + /secrets/age/pds.env.age;
     owner = "pds";
     group = "pds";
-    mode  = "0400";
+    mode = "0400";
   };
 
   # ── PDS service ───────────────────────────────────────────────────────────────
   environment.systemPackages = [ pkgs.atproto-goat ];
 
   services.bluesky-pds = {
-    enable           = true;
+    enable = true;
     environmentFiles = [ config.age.secrets."pds.env".path ];
     settings = {
       PDS_DATA_DIRECTORY = "/srv/bluesky-pds";
-      PDS_PORT        = cfg.port;
-      PDS_HOSTNAME    = cfg.hostname;
+      PDS_PORT = cfg.port;
+      PDS_HOSTNAME = cfg.hostname;
       PDS_ADMIN_EMAIL = cfg.adminEmail;
-      PDS_SERVICE_HANDLE_DOMAINS =
-        lib.concatStringsSep "," cfg.serviceHandleDomains;
-      PDS_CRAWLERS =
-        lib.concatStringsSep "," cfg.crawlers;
+      PDS_SERVICE_HANDLE_DOMAINS = lib.concatStringsSep "," cfg.serviceHandleDomains;
+      PDS_CRAWLERS = lib.concatStringsSep "," cfg.crawlers;
     };
   };
 
   systemd.services.bluesky-pds = {
-    serviceConfig.Restart    = "always";
+    serviceConfig.Restart = "always";
     serviceConfig.RestartSec = cfgLib.cfg.server.servicePolicy.restartSec;
     unitConfig = {
       StartLimitIntervalSec = cfgLib.cfg.server.servicePolicy.startLimitIntervalSec;
-      StartLimitBurst       = cfgLib.cfg.server.servicePolicy.startLimitBurst;
+      StartLimitBurst = cfgLib.cfg.server.servicePolicy.startLimitBurst;
     };
   };
 

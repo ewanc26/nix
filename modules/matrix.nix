@@ -38,35 +38,41 @@
 #    Handled by modules/cloudflare-tunnel.nix.
 #    See that module for setup instructions.
 ##############################################################################
-{ config, lib, pkgs, self, cfgLib, ... }:
+{
+  config,
+  lib,
+  self,
+  cfgLib,
+  ...
+}:
 
 let
-  cfg        = cfgLib.cfg.matrix;
+  cfg = cfgLib.cfg.matrix;
   synapsePort = toString cfg.port;
-  caddyPort   = toString cfg.caddyPort;
-  matrixHost  = cfg.hostname;
+  caddyPort = toString cfg.caddyPort;
+  matrixHost = cfg.hostname;
 in
 lib.mkIf cfg.enable {
 
   # ── Secrets ──────────────────────────────────────────────────────────────────
   age.secrets."matrix.env" = {
-    file  = self + /secrets/age/matrix.env.age;
+    file = self + /secrets/age/matrix.env.age;
     owner = "matrix-synapse";
     group = "matrix-synapse";
-    mode  = "0400";
+    mode = "0400";
   };
 
   # ── Matrix Synapse service ────────────────────────────────────────────────────
   services.matrix-synapse = {
     enable = true;
     dataDir = "/srv/matrix-synapse";
-    
+
     settings = {
-      server_name = cfg.serverName;  # Domain used in Matrix IDs (@user:ewancroft.uk)
-      
+      server_name = cfg.serverName; # Domain used in Matrix IDs (@user:ewancroft.uk)
+
       # Public base URL for client-server API
       public_baseurl = "https://${matrixHost}";
-      
+
       # Listener configuration
       listeners = [
         {
@@ -75,10 +81,13 @@ lib.mkIf cfg.enable {
           type = "http";
           tls = false;
           x_forwarded = true;
-          
+
           resources = [
             {
-              names = [ "client" "federation" ];
+              names = [
+                "client"
+                "federation"
+              ];
               compress = false;
             }
           ];
@@ -95,7 +104,7 @@ lib.mkIf cfg.enable {
 
       # Enable registration (you may want to disable this and use registration_shared_secret)
       enable_registration = false;
-      
+
       # Allow guests (optional)
       allow_guest_access = false;
 
@@ -115,7 +124,7 @@ lib.mkIf cfg.enable {
 
       # Media
       max_upload_size = "50M";
-      
+
       # Security
       suppress_key_server_warning = true;
     };
@@ -140,12 +149,12 @@ lib.mkIf cfg.enable {
   # Restart policy for Synapse
   systemd.services.matrix-synapse = {
     serviceConfig = {
-      Restart    = lib.mkForce "always";
+      Restart = lib.mkForce "always";
       RestartSec = cfgLib.cfg.server.servicePolicy.restartSec;
     };
     unitConfig = {
       StartLimitIntervalSec = cfgLib.cfg.server.servicePolicy.startLimitIntervalSec;
-      StartLimitBurst       = cfgLib.cfg.server.servicePolicy.startLimitBurst;
+      StartLimitBurst = cfgLib.cfg.server.servicePolicy.startLimitBurst;
     };
   };
 

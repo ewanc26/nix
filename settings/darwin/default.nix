@@ -28,27 +28,34 @@
     wvous-br-corner = 4; # bottom-right → Desktop
     wvous-tl-corner = 1; # top-left     → None
     wvous-tr-corner = 5; # top-right    → Screen Saver
-    
-    # Persistent applications in the Dock (left to right)
-    # Note: Finder is always shown and doesn't need to be listed here
+
+    # Persistent applications in the Dock (left to right).
+    # Note: Finder is always shown and doesn't need to be listed here.
+    # Apps managed by Nix (darwin.packages) live in /Applications/Nix Apps/.
+    # Apps managed by Homebrew cask live in /Applications/.
+    # Apps managed by home-manager live in ~/Applications/Home Manager Apps/.
     persistent-apps = [
+      # ── Communication ─────────────────────────────────────────────
       "/System/Applications/Mail.app"
       "/Applications/WhatsApp.app"
+      "/System/Applications/Messages.app"
+      "/System/Applications/FaceTime.app"
       "/System/Applications/Phone.app"
       "/System/Applications/iPhone Mirroring.app"
-      "/System/Applications/FaceTime.app"
-      "/System/Applications/Messages.app"
+      "/Applications/Nix Apps/Signal.app"
+      "/Applications/Element.app"
+      "/Applications/Nix Apps/Discord.app"
+      # ── Productivity ───────────────────────────────────────────────
       "/System/Applications/Calendar.app"
       "/System/Applications/Reminders.app"
-      "/Applications/Signal.app"
-      "/Applications/Element.app"
-      "/Applications/Discord.app"
-      "/Applications/Spotify.app"
+      "/Applications/Nix Apps/Obsidian.app"
+      "/Applications/Nix Apps/Visual Studio Code.app"
+      "/Applications/Claude.app"
+      # ── Media & Gaming ─────────────────────────────────────────────
+      "/Applications/Nix Apps/Spotify.app"
       "/Applications/Firefox.app"
       "/Applications/Steam.app"
-      "/Applications/Obsidian.app"
-      "/Applications/Visual Studio Code.app"
-      "/Applications/Claude.app"
+      # ── System ─────────────────────────────────────────────────────
       "/System/Applications/Utilities/Terminal.app"
     ];
   };

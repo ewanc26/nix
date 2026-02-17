@@ -1,4 +1,4 @@
-{ config, lib, pkgs, cfgLib, ... }:
+{ pkgs, cfgLib, ... }:
 
 let
   cfg = cfgLib.cfg;
@@ -17,7 +17,7 @@ in
   system.primaryUser = cfg.user.username;
 
   networking = {
-    hostName     = "macmini";
+    hostName = "macmini";
     computerName = "MacMini";
   };
 
@@ -28,7 +28,7 @@ in
   time.timeZone = cfg.system.timeZone;
 
   users.users.${cfg.user.username} = {
-    home  = "/Users/${cfg.user.username}";
+    home = "/Users/${cfg.user.username}";
     shell = pkgs.${cfg.user.shell};
   };
 
