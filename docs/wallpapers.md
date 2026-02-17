@@ -8,12 +8,12 @@ Desktop wallpaper images used across the configuration.
 
 ## Usage
 
-The wallpaper is referenced directly in `home/programs/gnome.nix`:
+The wallpaper is referenced directly in `settings/plasma/default.nix`:
 
 ```nix
-"org/gnome/desktop/background" = {
-  picture-uri      = "file://${../../wallpapers/wallpaper.jpg}";
-  picture-uri-dark = "file://${../../wallpapers/wallpaper.jpg}";
+workspace = {
+  wallpaper = ../../wallpapers/wallpaper.jpg;
+  # ... other settings
 };
 ```
 
@@ -22,7 +22,7 @@ Applied automatically on every Home Manager rebuild.
 ## Changing the Wallpaper
 
 1. Replace `wallpapers/wallpaper.jpg` with your image (keep the same filename), or
-2. Add a new image and update the path in `home/programs/gnome.nix`
+2. Add a new image and update the path in `settings/plasma/default.nix`
 3. Rebuild: `sudo nixos-rebuild switch --flake .#laptop`
 
 ## Recommended Format

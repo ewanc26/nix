@@ -9,7 +9,8 @@
 #
 #  All font families, sizes, color schemes, and icon themes come from
 #  settings/config/desktop.nix — never hardcoded here.
-#  Wallpaper and the Konsole profile live in home/programs/kde.nix.
+#  Wallpaper lives in ../../wallpapers/wallpaper.jpg.
+#  The Konsole profile lives in home/programs/terminal.nix.
 #
 #  macOS-like layout:
 #  ┌─────────────────────────────────────────────────────────────────┐
@@ -134,8 +135,10 @@ in
     };
 
     # ── Workspace ─────────────────────────────────────────────────────────────
-    # Wallpaper is set in home/programs/kde.nix (path relative to that file).
     workspace = {
+
+      # Wallpaper — direct path to wallpaper.jpg.
+      wallpaper = ../../wallpapers/wallpaper.jpg;
 
       # Color scheme — from settings/config/desktop.nix.
       # Explicit here so it always wins, even if the catppuccin module changes
