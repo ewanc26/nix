@@ -99,7 +99,7 @@
 
       # Media & Entertainment
       "obs"             # OBS Studio (keep in Homebrew — complex macOS plugin deps)
-      "handbrake"
+      "handbrake-app"
 
       # Gaming
       "steam"

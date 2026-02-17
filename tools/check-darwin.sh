@@ -80,7 +80,7 @@ for name in \
   element \
   github claude \
   firefox \
-  obs handbrake \
+  obs handbrake-app \
   steam epic-games prismlauncher utm \
   cloudflare-warp tailscale-app parsec onyx mos \
   microsoft-excel microsoft-powerpoint microsoft-teams microsoft-word libreoffice \
