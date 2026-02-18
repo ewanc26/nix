@@ -1,169 +1,88 @@
-# Using cfgLib - Developer Guide
+# Module System — Developer Guide
 
-## Overview
+> **Note**: The `cfgLib` helper library has been removed. All configuration is now accessed directly through the standard NixOS module system via `config.myConfig.*` (system modules) or `osConfig.myConfig.*` (home-manager modules). No custom abstraction or manual wiring is needed.
 
-The `cfgLib` library is automatically available in all modules through `specialArgs`. You no longer need to manually import `settings/config.nix` in each module.
-
-## Basic Usage
-
-### Standard System Module
+## Accessing config in system modules
 
 ```nix
-{ config, pkgs, lib, cfgLib, ... }:
-
+# modules/my-module.nix
+{ config, pkgs, lib, ... }:
 let
-  cfg = cfgLib.cfg;  # Get the central config
+  cfg = config.myConfig;
 in
 {
-  # Your module code here
-  services.myservice.enable = cfg.myoption;
-}
-```
-
-### Home Manager Program Module
-
-```nix
-{ config, pkgs, lib, cfgLib, ... }:
-
-let
-  cfg = cfgLib.cfg;
-in
-{
-  programs.myprogram = {
-    enable = true;
-    setting = cfg.mysetting;
-  };
-}
-```
-
-### Home Manager Program with Platform Detection
-
-```nix
-{ isDarwin }:
-{ config, pkgs, lib, cfgLib, ... }:
-
-let
-  cfg = cfgLib.cfg;
-in
-{
-  programs.myprogram = {
-    enable = true;
-    # macOS-specific option
-    option = lib.mkIf isDarwin cfg.macos.option;
-  };
-}
-```
-
-## Helper Functions
-
-### 1. resolvePackages
-
-Safely resolve package names, skipping any that don't exist:
-
-```nix
-{ config, pkgs, cfgLib, ... }:
-
-let
-  resolve = cfgLib.resolvePackages pkgs;
-in
-{
-  environment.systemPackages = resolve [
-    "firefox"
-    "vscode"
-    "nonexistent-package"  # Will be skipped with warning
-  ];
-}
-```
-
-### 2. mkAuthorizedKeys
-
-Get SSH authorized keys excluding the current host:
-
-```nix
-{ config, cfgLib, ... }:
-
-{
-  users.users.myuser = {
-    openssh.authorizedKeys.keys = 
-      cfgLib.mkAuthorizedKeys config.networking.hostName;
-  };
-}
-```
-
-### 3. cfg (Central Config)
-
-Access any config value without importing:
-
-```nix
-let
-  cfg = cfgLib.cfg;
-in
-{
-  # Instead of: import ../settings/config.nix
-  # Just use:
-  time.timeZone = cfg.system.timeZone;
+  time.timeZone = cfg.timeZone;
   users.users.${cfg.user.username} = { ... };
-  programs.firefox.enable = cfg.packages.firefox.enable;
 }
 ```
 
-## Complete Example
-
-Here's a complete module using cfgLib:
+## Accessing config in home-manager modules
 
 ```nix
-{ config, pkgs, lib, cfgLib, ... }:
-
+# home/programs/my-program.nix
+{ osConfig, ... }:
 let
-  cfg = cfgLib.cfg;
-  resolve = cfgLib.resolvePackages pkgs;
+  cfg = osConfig.myConfig;
 in
 {
-  # Use config values
-  services.myservice = {
-    enable = cfg.myservice.enable;
-    port = cfg.myservice.port;
-  };
-
-  # Resolve packages safely
-  environment.systemPackages = 
-    resolve cfg.myservice.packages
-    ++ [ pkgs.myapp ];
-
-  # Access user config
-  users.users.${cfg.user.username} = {
-    extraGroups = [ "mygroup" ];
-  };
+  programs.git.userEmail = cfg.user.email;
 }
 ```
 
-## Migration Checklist
+## Resolving packages from a list of names
 
-When updating an old module to use cfgLib:
+The old `cfgLib.resolvePackages` helper is replaced by a simple inline expression using `builtins.filter` and `pkgs ? name`:
 
-1. Add `cfgLib` to the module arguments:
-   ```nix
-   { config, pkgs, lib, cfgLib, ... }:  # Add cfgLib here
-   ```
+```nix
+{ config, pkgs, lib, ... }:
+let
+  cfg = config.myConfig;
+  resolve = names:
+    map (n: pkgs.${n}) (builtins.filter (n: pkgs ? ${n}) names);
+in
+{
+  environment.systemPackages = resolve cfg.packages.common;
+}
+```
 
-2. Replace config import:
-   ```nix
-   # Old:
-   let cfg = import ../settings/config.nix;
-   
-   # New:
-   let cfg = cfgLib.cfg;
-   ```
+## Authorized SSH keys
 
-3. Use helpers where applicable:
-   ```nix
-   # Old:
-   let
-     toPkg = name: if pkgs ? ${name} then pkgs.${name} else null;
-     resolve = names: filter (x: x != null) (map toPkg names);
-   
-   # New:
-   let resolve = cfgLib.resolvePackages pkgs;
-   ```
+The `mkAuthorizedKeys` helper is replaced by the inline logic in `modules/users.nix`:
 
-4. Test with `nix flake check`
+```nix
+let
+  allKeys = import ./ssh-keys.nix;
+  authorizedKeys = lib.attrValues (
+    lib.filterAttrs (name: _: name != config.networking.hostName) allKeys
+  );
+in
+{
+  users.users.ewan.openssh.authorizedKeys.keys = authorizedKeys;
+}
+```
+
+## All option declarations
+
+All options and their defaults live in `modules/options.nix`. See [`docs/settings-config.md`](../docs/settings-config.md) for a full reference table.
+
+## Adding a new option
+
+```nix
+# 1. Declare it in modules/options.nix
+myNewThing = {
+  enable = lib.mkOption {
+    type = lib.types.bool;
+    default = false;
+    description = "Enable the new thing.";
+  };
+};
+
+# 2. Use it in a module
+lib.mkIf config.myConfig.myNewThing.enable {
+  # ...
+}
+
+# 3. Override per-host if needed
+# hosts/server/default.nix
+myConfig.myNewThing.enable = true;
+```

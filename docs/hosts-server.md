@@ -10,11 +10,11 @@ Hardened NixOS server running a Bluesky ATProto PDS, exposed via a Cloudflare tu
 Internet → Cloudflare edge (TLS)
                ↓ encrypted tunnel (outbound from server)
            cloudflared daemon
-               ↓ HTTP
-           Caddy (127.0.0.1:2020)
-               ↓ age-assurance static responses (UK OSA)
-               ↓ reverse proxy
-           bluesky-pds (127.0.0.1:3000)
+               ↓ HTTP (hostname-based routing)
+           Caddy
+               ├── pds.ewancroft.uk    → bluesky-pds     (127.0.0.1:3000)
+               ├── matrix.ewancroft.uk → matrix-synapse   (127.0.0.1:8008)
+               └── git.ewancroft.uk   → forgejo           (127.0.0.1:3001)
 ```
 
 No ports 80/443 need to be open in the firewall. SSH is the only public port.
@@ -71,11 +71,14 @@ cloudflared tunnel create pds
 
 ### 3. Update the tunnel UUID in settings
 
-Edit `settings/config/pds.nix` and replace the placeholder UUID:
+Edit `modules/options.nix` and replace the placeholder UUID in the `cloudflare` block:
 
 ```nix
 cloudflare = {
-  tunnelId = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";  # ← paste real UUID here
+  tunnelId = mkOption {
+    type = str;
+    default = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";  # ← paste real UUID here
+  };
 };
 ```
 
@@ -200,7 +203,7 @@ All non-secret PDS settings live in `settings/config/pds.nix`:
 | Handle domains | `.ewancroft.uk` |
 | PDS port | `3000` (internal only) |
 | Caddy port | `2020` (internal only) |
-| Tunnel ID | set in `settings/config/pds.nix` |
+| Tunnel ID | set in `modules/options.nix` → `myConfig.cloudflare.tunnelId` |
 
 ---
 

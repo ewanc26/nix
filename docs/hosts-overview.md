@@ -90,7 +90,7 @@ This document provides a comprehensive overview of all hosts in this configurati
 - ✅ Auto-upgrades (daily)
 - ✅ SMART disk monitoring
 - ✅ Minimal package set
-- ✅ Bluesky PDS + Caddy + cloudflared
+- ✅ Bluesky PDS + Matrix Synapse + Forgejo + Caddy + cloudflared
 - ❌ No GUI, no gaming, no multimedia
 
 **Status**: Configuration complete, hardware not yet provisioned. See [hosts-server.md](hosts-server.md) for the deploy runbook.
@@ -148,6 +148,10 @@ Which modules does each host use?
 | `gaming.nix` | ✅ | ❌ | ❌ | Steam, Gamemode |
 | `caddy.nix` | ❌ | ✅ | ❌ | Caddy web server |
 | `pds.nix` | ❌ | ✅ | ❌ | Bluesky PDS |
+| `matrix.nix` | ❌ | ✅ | ❌ | Matrix Synapse |
+| `forgejo.nix` | ❌ | ✅ | ❌ | Forgejo git forge |
+| `cloudflare-tunnel.nix` | ❌ | ✅ | ❌ | Cloudflare tunnel |
+| `cockpit.nix` | ❌ | ✅ | ❌ | Cockpit web console |
 | `server/default.nix` | ❌ | ✅ | ❌ | Server sub-modules (firewall, fail2ban, sshd, ...) |
 | `profiles/server-hardened.nix` | ❌ | ✅ | ❌ | Security hardening |
 | `darwin/common.nix` | ❌ | ❌ | ✅ | macOS Nix settings |
@@ -206,7 +210,7 @@ secrets/age/*.age  (encrypted, committed to git)
 config.age.secrets.<name>.path  (decrypted at runtime)
 ```
 
-Available on hosts that import `modules/secrets.nix`.
+The host's `/etc/ssh/ssh_host_ed25519_key` is used as the age decryption key. Recipients and creation rules are declared in `.sops.yaml`.
 
 ## Unified Home Manager
 

@@ -264,6 +264,8 @@ myConfig.audio.backend = "pulseaudio";
 # Edit fonts, theme, Konsole profile, etc.
 ```
 
+Changes are applied on the next `nixos-rebuild switch`.
+
 **GUI settings**:
 While Plasma settings are declarative, you can still use the GUI to preview changes. However, to make them permanent, you must translate them to Nix configuration. The `plasma-manager` module ensures reproducibility.
 

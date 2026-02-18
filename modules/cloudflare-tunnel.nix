@@ -44,6 +44,17 @@ let
 in
 lib.mkIf cfg.services.cloudflare.enable {
 
+  # ── User / group ────────────────────────────────────────────────────────────
+  # The cloudflared nixpkgs service uses DynamicUser at the systemd level and
+  # does not create a static entry in config.users.users.  We declare it here
+  # so that sops-nix can resolve the owner/group at evaluation time and so
+  # that the credentials file has a stable owner on disk.
+  users.users.cloudflared = {
+    isSystemUser = true;
+    group = "cloudflared";
+  };
+  users.groups.cloudflared = { };
+
   # ── Secret ──────────────────────────────────────────────────────────────────
   # JSON credentials file created by `cloudflared tunnel create server`.
   # Encrypt with: sops --encrypt --age <age-pubkey> cf-tunnel.json > secrets/cf-tunnel.json
@@ -51,6 +62,8 @@ lib.mkIf cfg.services.cloudflare.enable {
     sopsFile = ../secrets/cf-tunnel.json;
     format = "binary";
     owner = "cloudflared";
+    group = "cloudflared"; # set explicitly — cloudflared uses DynamicUser so the
+                           # user isn't in config.users.users without the block above
     mode = "0400";
   };
 

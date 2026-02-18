@@ -122,15 +122,12 @@ sops updatekeys secrets/cf-tunnel.json
 
 | File | Purpose | Accessible by |
 |---|---|---|
-| `secrets/wifi-home` | Home WiFi passphrase | all hosts |
-| `secrets/ssh-passphrase` | SSH private key passphrase | all hosts |
 | `secrets/docker-config.json` | Docker Hub credentials | all hosts |
 | `secrets/claude.json` | Claude API / config | all hosts |
 | `secrets/duckdns.tar.gz` | DuckDNS config bundle | all hosts |
 | `secrets/pds.env` | Bluesky PDS runtime secrets | ewan + server |
 | `secrets/matrix.env` | Matrix Synapse secrets | ewan + server |
 | `secrets/forgejo.env` | Forgejo `SECRET_KEY` etc. | ewan + server |
-| `secrets/cloudflare.token` | Cloudflare API token | ewan + server |
 | `secrets/cf-tunnel.json` | Cloudflare tunnel credentials | ewan + server |
 
 ## Security rules
