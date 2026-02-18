@@ -68,6 +68,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          home-manager.extraSpecialArgs = { isDarwin = false; };
           home-manager.sharedModules = sharedHMModules ++ [
             plasma-manager.homeModules.plasma-manager
           ];
@@ -89,6 +90,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          home-manager.extraSpecialArgs = { isDarwin = true; };
           home-manager.sharedModules = sharedHMModules ++ [
             mac-app-util.homeManagerModules.default
           ];

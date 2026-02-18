@@ -12,10 +12,16 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 CONFIG_DIR="$HOME/.config/nix-config"
-CASKS_FILE="$CONFIG_DIR/settings/config/darwin.nix"
+CASKS_FILE="$CONFIG_DIR/modules/options.nix"
 
-# Extract cask list
-CASKS=$(grep -A 50 'casks = \[' "$CASKS_FILE" | grep '"' | grep -v '^\s*#' | sed 's/.*"\(.*\)".*/\1/')
+# Extract cask list from modules/options.nix (darwin.homebrew.casks default list)
+CASKS=$(awk '
+  /homebrew = \{/ { in_hb=1 }
+  in_hb && /casks = mkOption/ { in_casks=1 }
+  in_casks && /default = \[/ { in_list=1; next }
+  in_list && /\];/ { exit }
+  in_list && /"/ { gsub(/[[:space:]]*"/, ""); gsub(/".*/, ""); if (length > 0) print }
+' "$CASKS_FILE")
 
 echo "Checking all Homebrew cask apps from config..."
 echo ""

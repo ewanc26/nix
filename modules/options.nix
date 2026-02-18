@@ -388,11 +388,11 @@ in
     secrets = {
       docker.enable = mkOption {
         type = bool;
-        default = true;
+        default = false;
       };
       claude.enable = mkOption {
         type = bool;
-        default = true;
+        default = false;
       };
       duckdns.enable = mkOption {
         type = bool;

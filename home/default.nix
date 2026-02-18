@@ -1,17 +1,17 @@
 # Home-manager configuration — all hosts.
 #
 # Access system-level options via `osConfig.myConfig.*`.
-# Platform detection uses `pkgs.stdenv.isDarwin` — no flags passed as args.
+# Platform detection: `isDarwin` is passed via extraSpecialArgs in flake.nix.
 {
   config,
   pkgs,
   lib,
   osConfig,
+  isDarwin,
   ...
 }:
 let
   cfg = osConfig.myConfig;
-  isDarwin = pkgs.stdenv.isDarwin;
 
   # Custom scripts from home/scripts/ — available on PATH on both platforms.
   myScripts = pkgs.stdenv.mkDerivation {
@@ -129,6 +129,9 @@ in
   };
 
   # ── Encrypted secrets (sops-nix) ─────────────────────────────────────────
+  # Tell the home-manager sops module to decrypt using the host's SSH ed25519
+  # key as an age key — same source as the system-level sops in common.nix.
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   sops.secrets = lib.mkMerge [
     (lib.mkIf cfg.secrets.docker.enable {
       "docker-config" = {

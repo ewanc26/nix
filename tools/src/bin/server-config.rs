@@ -1,57 +1,22 @@
 /// server-config — interactive configurator for the NixOS server settings.
 ///
-/// Reads the current values from settings/config/{server,forgejo,matrix,pds,cloudflare}.nix,
-/// presents an interactive menu to change them, then writes the modified files back in-place.
+/// Reads defaults from modules/options.nix and host overrides from
+/// hosts/server/default.nix, then writes any changes back as
+/// `myConfig.X.Y = value;` override attributes in the host file.
+///
+/// modules/options.nix is never modified — it is the canonical default source.
 ///
 /// Usage:
-///   nix run .#server-config          # interactive (full menu)
-///   nix run .#server-config -- --show # print current config and exit
+///   nix run .#server-config           # interactive (full menu)
+///   nix run .#server-config -- --show  # print current config and exit
 use console::Style;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, MultiSelect, Select};
 use regex::Regex;
-use std::fmt::Write as _;
 use tools_common::*;
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 fn theme() -> ColorfulTheme { ColorfulTheme::default() }
-
-/// Replace the value of a Nix attribute in-place.
-///   key   = the bare attribute name (e.g. `"device"`)
-///   value = the new Nix literal to write (e.g. `"\"/dev/sdb1\""`)
-///
-/// Handles:
-///   key = "string";
-///   key = true;  / key = false;
-///   key = 1234;
-fn nix_set_scalar(src: &str, key: &str, value: &str) -> String {
-    // Match `key = <anything up to semicolon>;` with optional whitespace
-    let pattern = format!(r"(?m)(\b{key}\s*=\s*)([^;]+)(;)");
-    let re = Regex::new(&pattern).unwrap();
-    if re.is_match(src) {
-        re.replace(src, format!("${{1}}{value}${{3}}")).into_owned()
-    } else {
-        eprintln!("⚠️  key '{key}' not found — skipping");
-        src.to_string()
-    }
-}
-
-/// Read a scalar value from a Nix file.
-fn nix_get_scalar<'a>(src: &'a str, key: &str) -> Option<&'a str> {
-    let pattern = format!(r"(?m)\b{key}\s*=\s*([^;]+);");
-    let re = Regex::new(&pattern).unwrap();
-    re.captures(src).map(|c| {
-        // We can't return a lifetime-bound reference from a local Regex,
-        // so we find the match start manually.
-        let m = re.find(src).unwrap();
-        let cap_start = m.start() + c.get(0).unwrap().as_str().find(c.get(1).unwrap().as_str()).unwrap();
-        &src[cap_start..cap_start + c.get(1).unwrap().as_str().len()]
-    })
-}
-
-fn strip_nix_string(s: &str) -> String {
-    s.trim().trim_matches('"').to_string()
-}
 
 fn read_file(path: &Path) -> String {
     fs::read_to_string(path).unwrap_or_else(|e| {
@@ -67,7 +32,148 @@ fn write_file(path: &Path, content: &str) {
     });
 }
 
-// ── config representation ────────────────────────────────────────────────────
+fn strip_nix_string(s: &str) -> String {
+    s.trim().trim_matches('"').to_string()
+}
+
+// ── options.nix readers ───────────────────────────────────────────────────────
+//
+// modules/options.nix structure (4-space top-level sections, 6-space keys):
+//
+//     forgejo = {
+//       hostname = mkOption {
+//         type = str;
+//         default = "git.ewancroft.uk";
+//       };
+//     };
+//
+// For doubly-nested sections (server.storage.srv, server.cockpit) the
+// indentation is 6/8/10 spaces.
+
+/// Extract the `default = ` value for a key inside a top-level section.
+/// `section` = "forgejo", `key` = "hostname" → returns `"git.ewancroft.uk"`
+fn opts_get(src: &str, section: &str, key: &str) -> Option<String> {
+    let sec_marker = format!("\n    {section} = {{");
+    let sec_start  = src.find(&sec_marker)? + sec_marker.len();
+    let rest       = &src[sec_start..];
+
+    // Key at 6-space indent inside the section
+    let key_marker = format!("\n      {key} = mkOption {{");
+    let key_rel    = rest.find(&key_marker)?;
+    let after_key  = &rest[key_rel..];
+
+    // The mkOption block closes at the next `      };`
+    let block_end  = after_key.find("\n      };")?;
+    let block      = &after_key[..block_end];
+
+    let dp         = block.find("default = ")?;
+    let after_def  = &block[dp + "default = ".len()..];
+    let end        = after_def.find(';')?;
+    Some(after_def[..end].trim().to_string())
+}
+
+/// Like opts_get but for keys one level deeper (e.g. server.storage.srv.device).
+/// `outer` = "server", `inner_block` = "storage.srv", `key` = "device"
+fn opts_get_nested(src: &str, outer: &str, inner_block: &str, key: &str) -> Option<String> {
+    let outer_marker  = format!("\n    {outer} = {{");
+    let outer_start   = src.find(&outer_marker)? + outer_marker.len();
+    let outer_rest    = &src[outer_start..];
+
+    let inner_marker  = format!("\n      {inner_block} = {{");
+    let inner_rel     = outer_rest.find(&inner_marker)?;
+    let after_inner   = &outer_rest[inner_rel..];
+
+    // Key at 8-space indent
+    let key_marker    = format!("\n        {key} = mkOption {{");
+    let key_rel       = after_inner.find(&key_marker)?;
+    let after_key     = &after_inner[key_rel..];
+
+    let block_end     = after_key.find("\n        };")?;
+    let block         = &after_key[..block_end];
+
+    let dp            = block.find("default = ")?;
+    let after_def     = &block[dp + "default = ".len()..];
+    let end           = after_def.find(';')?;
+    Some(after_def[..end].trim().to_string())
+}
+
+// ── host file readers/writers ─────────────────────────────────────────────────
+//
+// hosts/server/default.nix contains overrides like:
+//   myConfig.services.forgejo.enable = true;
+//   myConfig.forgejo.hostname = "git.ewancroft.uk";
+//
+// If no override is present the options.nix default applies.
+
+/// Read a `myConfig.<dotted_path> = value;` line from the host file.
+fn host_get(src: &str, dotted_path: &str) -> Option<String> {
+    let pattern = format!("myConfig.{dotted_path} = ");
+    let pos     = src.find(&pattern)?;
+    let after   = &src[pos + pattern.len()..];
+    let end     = after.find(';')?;
+    Some(after[..end].trim().to_string())
+}
+
+/// Add or update a `myConfig.<dotted_path> = <value>;` line in the host file.
+/// Inserts before `system.stateVersion` if the line doesn't exist yet.
+fn host_set(src: &mut String, dotted_path: &str, value: &str) {
+    let search   = format!("myConfig.{dotted_path} = ");
+    let new_line = format!("  myConfig.{dotted_path} = {value};");
+
+    if let Some(pos) = src.find(&search) {
+        let line_start = src[..pos].rfind('\n').map(|i| i + 1).unwrap_or(0);
+        let line_end   = src[pos..].find('\n').map(|i| pos + i).unwrap_or(src.len());
+        src.replace_range(line_start..line_end, &new_line);
+    } else {
+        // Insert before `  system.stateVersion` to keep the file tidy
+        let anchor = "  system.stateVersion";
+        if let Some(pos) = src.find(anchor) {
+            src.insert_str(pos, &format!("{new_line}\n\n  "));
+        } else {
+            // Fall back: insert before the closing `}`
+            if let Some(pos) = src.rfind('}') {
+                src.insert_str(pos, &format!("  {new_line}\n"));
+            }
+        }
+    }
+}
+
+/// Resolve the effective value: host override → options.nix default → fallback.
+fn resolve_str(
+    opts: &str, host: &str,
+    section: &str, key: &str, dotted_path: &str,
+    fallback: &str,
+) -> String {
+    if let Some(v) = host_get(host, dotted_path) {
+        return strip_nix_string(&v);
+    }
+    if let Some(v) = opts_get(opts, section, key) {
+        return strip_nix_string(&v);
+    }
+    fallback.to_string()
+}
+
+fn resolve_u16(
+    opts: &str, host: &str,
+    section: &str, key: &str, dotted_path: &str,
+    fallback: u16,
+) -> u16 {
+    let s = resolve_str(opts, host, section, key, dotted_path, "");
+    s.parse().unwrap_or(fallback)
+}
+
+fn resolve_bool(
+    opts: &str, host: &str,
+    dotted_path: &str,
+    fallback: bool,
+) -> bool {
+    if let Some(v) = host_get(host, dotted_path) {
+        return v.trim() == "true";
+    }
+    fallback
+}
+
+// ── config structs ────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]
 struct ServiceToggles {
@@ -119,124 +225,128 @@ struct CloudflareConfig {
     tunnel_id: String,
 }
 
-// ── readers ──────────────────────────────────────────────────────────────────
+// ── readers ───────────────────────────────────────────────────────────────────
 
-fn parse_bool(s: &str) -> bool { s.trim() == "true" }
-fn parse_u16(s: &str) -> u16  { s.trim().parse().unwrap_or(0) }
-
-fn read_services(src: &str) -> ServiceToggles {
+fn read_services(host_src: &str) -> ServiceToggles {
     ServiceToggles {
-        forgejo:    parse_bool(nix_get_scalar(src, "forgejo").unwrap_or("true")),
-        pds:        parse_bool(nix_get_scalar(src, "pds").unwrap_or("true")),
-        matrix:     parse_bool(nix_get_scalar(src, "matrix").unwrap_or("true")),
-        cloudflare: parse_bool(nix_get_scalar(src, "cloudflare").unwrap_or("true")),
+        forgejo:    host_get(host_src, "services.forgejo.enable").map(|v| v == "true").unwrap_or(false),
+        pds:        host_get(host_src, "services.pds.enable").map(|v| v == "true").unwrap_or(false),
+        matrix:     host_get(host_src, "services.matrix.enable").map(|v| v == "true").unwrap_or(false),
+        cloudflare: host_get(host_src, "services.cloudflare.enable").map(|v| v == "true").unwrap_or(false),
     }
 }
 
-fn read_storage(src: &str) -> StorageConfig {
+fn read_storage(opts_src: &str, host_src: &str) -> StorageConfig {
     StorageConfig {
-        device:  strip_nix_string(nix_get_scalar(src, "device").unwrap_or("\"/dev/sdb\"")),
-        fs_type: strip_nix_string(nix_get_scalar(src, "fsType").unwrap_or("\"ext4\"")),
+        device: {
+            host_get(host_src, "server.storage.srv.device")
+                .map(|v| strip_nix_string(&v))
+                .or_else(|| opts_get_nested(opts_src, "server", "storage.srv", "device").map(|v| strip_nix_string(&v)))
+                .unwrap_or_else(|| "/dev/sdb".to_string())
+        },
+        fs_type: {
+            host_get(host_src, "server.storage.srv.fsType")
+                .map(|v| strip_nix_string(&v))
+                .or_else(|| opts_get_nested(opts_src, "server", "storage.srv", "fsType").map(|v| strip_nix_string(&v)))
+                .unwrap_or_else(|| "ext4".to_string())
+        },
     }
 }
 
-fn read_cockpit(src: &str) -> CockpitConfig {
-    // cockpit.enable lives alongside other booleans so we need to find it
-    // after the "cockpit" heading comment
-    let enable = if let Some(pos) = src.find("cockpit = {") {
-        parse_bool(nix_get_scalar(&src[pos..], "enable").unwrap_or("true"))
-    } else { true };
-    let port = if let Some(pos) = src.find("cockpit = {") {
-        parse_u16(nix_get_scalar(&src[pos..], "port").unwrap_or("9090"))
-    } else { 9090 };
+fn read_cockpit(opts_src: &str, host_src: &str) -> CockpitConfig {
+    let enable = host_get(host_src, "server.cockpit.enable")
+        .map(|v| v == "true")
+        .or_else(|| opts_get_nested(opts_src, "server", "cockpit", "enable").map(|v| v == "true"))
+        .unwrap_or(true);
+    let port = host_get(host_src, "server.cockpit.port")
+        .and_then(|v| v.trim().parse().ok())
+        .or_else(|| opts_get_nested(opts_src, "server", "cockpit", "port").and_then(|v| v.trim().parse().ok()))
+        .unwrap_or(9090);
     CockpitConfig { enable, port }
 }
 
-fn read_forgejo(src: &str) -> ForgejoConfig {
+fn read_forgejo(opts_src: &str, host_src: &str) -> ForgejoConfig {
     ForgejoConfig {
-        hostname:             strip_nix_string(nix_get_scalar(src, "hostname").unwrap_or("\"git.ewancroft.uk\"")),
-        port:                 parse_u16(nix_get_scalar(src, "port").unwrap_or("3001")),
-        caddy_port:           parse_u16(nix_get_scalar(src, "caddyPort").unwrap_or("3002")),
-        app_name:             strip_nix_string(nix_get_scalar(src, "appName").unwrap_or("\"Forgejo\"")),
-        disable_registration: parse_bool(nix_get_scalar(src, "disableRegistration").unwrap_or("true")),
+        hostname:             resolve_str(opts_src, host_src, "forgejo", "hostname",             "forgejo.hostname",             "git.ewancroft.uk"),
+        port:                 resolve_u16(opts_src, host_src, "forgejo", "port",                 "forgejo.port",                 3001),
+        caddy_port:           resolve_u16(opts_src, host_src, "forgejo", "caddyPort",            "forgejo.caddyPort",            3002),
+        app_name:             resolve_str(opts_src, host_src, "forgejo", "appName",              "forgejo.appName",              "Ewan's Git"),
+        disable_registration: {
+            host_get(host_src, "forgejo.disableRegistration").map(|v| v == "true")
+                .or_else(|| opts_get(opts_src, "forgejo", "disableRegistration").map(|v| v == "true"))
+                .unwrap_or(true)
+        },
     }
 }
 
-fn read_matrix(src: &str) -> MatrixConfig {
+fn read_matrix(opts_src: &str, host_src: &str) -> MatrixConfig {
     MatrixConfig {
-        hostname:    strip_nix_string(nix_get_scalar(src, "hostname").unwrap_or("\"matrix.ewancroft.uk\"")),
-        server_name: strip_nix_string(nix_get_scalar(src, "serverName").unwrap_or("\"ewancroft.uk\"")),
-        port:        parse_u16(nix_get_scalar(src, "port").unwrap_or("8008")),
-        caddy_port:  parse_u16(nix_get_scalar(src, "caddyPort").unwrap_or("8448")),
+        hostname:    resolve_str(opts_src, host_src, "matrix", "hostname",   "matrix.hostname",   "matrix.ewancroft.uk"),
+        server_name: resolve_str(opts_src, host_src, "matrix", "serverName", "matrix.serverName", "ewancroft.uk"),
+        port:        resolve_u16(opts_src, host_src, "matrix", "port",       "matrix.port",       8008),
+        caddy_port:  resolve_u16(opts_src, host_src, "matrix", "caddyPort",  "matrix.caddyPort",  8448),
     }
 }
 
-fn read_pds(src: &str) -> PdsConfig {
+fn read_pds(opts_src: &str, host_src: &str) -> PdsConfig {
     PdsConfig {
-        hostname:    strip_nix_string(nix_get_scalar(src, "hostname").unwrap_or("\"pds.ewancroft.uk\"")),
-        port:        parse_u16(nix_get_scalar(src, "port").unwrap_or("3000")),
-        caddy_port:  parse_u16(nix_get_scalar(src, "caddyPort").unwrap_or("2020")),
-        admin_email: strip_nix_string(nix_get_scalar(src, "adminEmail").unwrap_or("\"admin@example.com\"")),
+        hostname:    resolve_str(opts_src, host_src, "pds", "hostname",   "pds.hostname",   "pds.ewancroft.uk"),
+        port:        resolve_u16(opts_src, host_src, "pds", "port",       "pds.port",       3000),
+        caddy_port:  resolve_u16(opts_src, host_src, "pds", "caddyPort",  "pds.caddyPort",  2020),
+        admin_email: resolve_str(opts_src, host_src, "pds", "adminEmail", "pds.adminEmail", "pds@ewancroft.uk"),
     }
 }
 
-fn read_cloudflare(src: &str) -> CloudflareConfig {
+fn read_cloudflare(opts_src: &str, host_src: &str) -> CloudflareConfig {
     CloudflareConfig {
-        tunnel_id: strip_nix_string(nix_get_scalar(src, "tunnelId").unwrap_or("\"<unset>\"")),
+        tunnel_id: resolve_str(opts_src, host_src, "cloudflare", "tunnelId", "cloudflare.tunnelId", "<unset>"),
     }
 }
 
-// ── writers ──────────────────────────────────────────────────────────────────
+// ── writers ───────────────────────────────────────────────────────────────────
+// All writes go to hosts/server/default.nix as myConfig.X.Y = value; overrides.
 
-fn write_services(src: &str, s: &ServiceToggles) -> String {
-    // The service toggles sit inside a `services = { … }` block. Because all
-    // four keys are bare booleans we can replace them by key name directly.
-    // We scope each replacement to avoid touching unrelated `enable` fields.
-    let src = nix_set_scalar(src, "forgejo",    &s.forgejo.to_string());
-    let src = nix_set_scalar(&src, "pds",       &s.pds.to_string());
-    let src = nix_set_scalar(&src, "matrix",    &s.matrix.to_string());
-    nix_set_scalar(&src, "cloudflare",          &s.cloudflare.to_string())
+fn write_services(host_src: &mut String, s: &ServiceToggles) {
+    host_set(host_src, "services.forgejo.enable",    &s.forgejo.to_string());
+    host_set(host_src, "services.pds.enable",        &s.pds.to_string());
+    host_set(host_src, "services.matrix.enable",     &s.matrix.to_string());
+    host_set(host_src, "services.cloudflare.enable", &s.cloudflare.to_string());
 }
 
-fn write_storage(src: &str, st: &StorageConfig) -> String {
-    let src = nix_set_scalar(src, "device",  &format!("\"{}\"", st.device));
-    nix_set_scalar(&src, "fsType",           &format!("\"{}\"", st.fs_type))
+fn write_storage(host_src: &mut String, st: &StorageConfig) {
+    host_set(host_src, "server.storage.srv.device",  &format!("\"{}\"", st.device));
+    host_set(host_src, "server.storage.srv.fsType",  &format!("\"{}\"", st.fs_type));
 }
 
-fn write_cockpit(src: &str, c: &CockpitConfig) -> String {
-    // Cockpit block comes AFTER the storage block in server.nix so we
-    // replace only within the cockpit = { … } section.
-    let block_start = src.find("cockpit = {").unwrap_or(0);
-    let (before, after) = src.split_at(block_start);
-    let after = nix_set_scalar(after, "enable", &c.enable.to_string());
-    let after = nix_set_scalar(&after, "port",   &c.port.to_string());
-    format!("{before}{after}")
+fn write_cockpit(host_src: &mut String, c: &CockpitConfig) {
+    host_set(host_src, "server.cockpit.enable", &c.enable.to_string());
+    host_set(host_src, "server.cockpit.port",   &c.port.to_string());
 }
 
-fn write_forgejo(src: &str, f: &ForgejoConfig) -> String {
-    let src = nix_set_scalar(src, "hostname",             &format!("\"{}\"", f.hostname));
-    let src = nix_set_scalar(&src, "port",                &f.port.to_string());
-    let src = nix_set_scalar(&src, "caddyPort",           &f.caddy_port.to_string());
-    let src = nix_set_scalar(&src, "appName",             &format!("\"{}\"", f.app_name));
-    nix_set_scalar(&src, "disableRegistration",           &f.disable_registration.to_string())
+fn write_forgejo(host_src: &mut String, f: &ForgejoConfig) {
+    host_set(host_src, "forgejo.hostname",             &format!("\"{}\"", f.hostname));
+    host_set(host_src, "forgejo.port",                 &f.port.to_string());
+    host_set(host_src, "forgejo.caddyPort",            &f.caddy_port.to_string());
+    host_set(host_src, "forgejo.appName",              &format!("\"{}\"", f.app_name));
+    host_set(host_src, "forgejo.disableRegistration",  &f.disable_registration.to_string());
 }
 
-fn write_matrix(src: &str, m: &MatrixConfig) -> String {
-    let src = nix_set_scalar(src, "hostname",   &format!("\"{}\"", m.hostname));
-    let src = nix_set_scalar(&src, "serverName",&format!("\"{}\"", m.server_name));
-    let src = nix_set_scalar(&src, "port",      &m.port.to_string());
-    nix_set_scalar(&src, "caddyPort",           &m.caddy_port.to_string())
+fn write_matrix(host_src: &mut String, m: &MatrixConfig) {
+    host_set(host_src, "matrix.hostname",    &format!("\"{}\"", m.hostname));
+    host_set(host_src, "matrix.serverName",  &format!("\"{}\"", m.server_name));
+    host_set(host_src, "matrix.port",        &m.port.to_string());
+    host_set(host_src, "matrix.caddyPort",   &m.caddy_port.to_string());
 }
 
-fn write_pds(src: &str, p: &PdsConfig) -> String {
-    let src = nix_set_scalar(src, "hostname",   &format!("\"{}\"", p.hostname));
-    let src = nix_set_scalar(&src, "port",      &p.port.to_string());
-    let src = nix_set_scalar(&src, "caddyPort", &p.caddy_port.to_string());
-    nix_set_scalar(&src, "adminEmail",          &format!("\"{}\"", p.admin_email))
+fn write_pds(host_src: &mut String, p: &PdsConfig) {
+    host_set(host_src, "pds.hostname",    &format!("\"{}\"", p.hostname));
+    host_set(host_src, "pds.port",        &p.port.to_string());
+    host_set(host_src, "pds.caddyPort",   &p.caddy_port.to_string());
+    host_set(host_src, "pds.adminEmail",  &format!("\"{}\"", p.admin_email));
 }
 
-fn write_cloudflare(src: &str, c: &CloudflareConfig) -> String {
-    nix_set_scalar(src, "tunnelId", &format!("\"{}\"", c.tunnel_id))
+fn write_cloudflare(host_src: &mut String, c: &CloudflareConfig) {
+    host_set(host_src, "cloudflare.tunnelId", &format!("\"{}\"", c.tunnel_id));
 }
 
 // ── display ───────────────────────────────────────────────────────────────────
@@ -248,7 +358,7 @@ fn print_summary(
     fg: &ForgejoConfig, mx: &MatrixConfig, pd: &PdsConfig, cf: &CloudflareConfig,
 ) {
     let h1 = Style::new().bold().cyan();
-    let kv = |k: &str, v: &str| println!("    {:<26} {}", format!("{k}:"), v);
+    let kv = |k: &str, v: &str| println!("    {:<28} {}", format!("{k}:"), v);
 
     println!("\n{}", h1.apply_to("  ── Service toggles ──────────────────────"));
     kv("forgejo",    bool_str(svc.forgejo));
@@ -292,17 +402,14 @@ fn print_summary(
 // ── interactive sections ──────────────────────────────────────────────────────
 
 fn edit_services(svc: &mut ServiceToggles) {
-    let names = ["forgejo", "pds (Bluesky ATProto)", "matrix", "cloudflare tunnel"];
-    let current = [svc.forgejo, svc.pds, svc.matrix, svc.cloudflare];
-    let defaults: Vec<bool> = current.to_vec();
-
+    let names    = ["forgejo", "pds (Bluesky ATProto)", "matrix", "cloudflare tunnel"];
+    let defaults = vec![svc.forgejo, svc.pds, svc.matrix, svc.cloudflare];
     let selected = MultiSelect::with_theme(&theme())
         .with_prompt("Select services to ENABLE (space = toggle, enter = confirm)")
         .items(&names)
         .defaults(&defaults)
         .interact()
         .unwrap();
-
     svc.forgejo    = selected.contains(&0);
     svc.pds        = selected.contains(&1);
     svc.matrix     = selected.contains(&2);
@@ -311,16 +418,16 @@ fn edit_services(svc: &mut ServiceToggles) {
 
 fn edit_storage(st: &mut StorageConfig) {
     st.device = Input::with_theme(&theme())
-        .with_prompt("/srv block device  (e.g. /dev/sdb, /dev/sdb1)")
+        .with_prompt("/srv block device  (e.g. /dev/sdb, /dev/nvme0n1p2)")
         .with_initial_text(&st.device)
         .interact_text().unwrap();
 
     let fs_opts = ["ext4", "xfs", "btrfs"];
-    let current_idx = fs_opts.iter().position(|&f| f == st.fs_type).unwrap_or(0);
+    let idx = fs_opts.iter().position(|&f| f == st.fs_type).unwrap_or(0);
     let sel = Select::with_theme(&theme())
         .with_prompt("Filesystem type")
         .items(&fs_opts)
-        .default(current_idx)
+        .default(idx)
         .interact().unwrap();
     st.fs_type = fs_opts[sel].to_string();
 }
@@ -330,13 +437,12 @@ fn edit_cockpit(ck: &mut CockpitConfig) {
         .with_prompt("Enable Cockpit dashboard?")
         .default(ck.enable)
         .interact().unwrap();
-
     if ck.enable {
-        let new_port: String = Input::with_theme(&theme())
-            .with_prompt("Cockpit port  (accessible over Tailscale only)")
+        let p: String = Input::with_theme(&theme())
+            .with_prompt("Cockpit port  (Tailscale-only access)")
             .with_initial_text(&ck.port.to_string())
             .interact_text().unwrap();
-        ck.port = new_port.trim().parse().unwrap_or(ck.port);
+        ck.port = p.trim().parse().unwrap_or(ck.port);
     }
 }
 
@@ -345,24 +451,20 @@ fn edit_forgejo(fg: &mut ForgejoConfig) {
         .with_prompt("Forgejo public hostname")
         .with_initial_text(&fg.hostname)
         .interact_text().unwrap();
-
     fg.app_name = Input::with_theme(&theme())
         .with_prompt("Forgejo display name")
         .with_initial_text(&fg.app_name)
         .interact_text().unwrap();
-
     let p: String = Input::with_theme(&theme())
         .with_prompt("Forgejo internal port")
         .with_initial_text(&fg.port.to_string())
         .interact_text().unwrap();
     fg.port = p.trim().parse().unwrap_or(fg.port);
-
     let cp: String = Input::with_theme(&theme())
         .with_prompt("Caddy internal port (tunnel → Caddy → Forgejo)")
         .with_initial_text(&fg.caddy_port.to_string())
         .interact_text().unwrap();
     fg.caddy_port = cp.trim().parse().unwrap_or(fg.caddy_port);
-
     fg.disable_registration = Confirm::with_theme(&theme())
         .with_prompt("Disable public registration?")
         .default(fg.disable_registration)
@@ -371,21 +473,18 @@ fn edit_forgejo(fg: &mut ForgejoConfig) {
 
 fn edit_matrix(mx: &mut MatrixConfig) {
     mx.hostname = Input::with_theme(&theme())
-        .with_prompt("Matrix public hostname  (e.g. matrix.example.com)")
+        .with_prompt("Matrix public hostname")
         .with_initial_text(&mx.hostname)
         .interact_text().unwrap();
-
     mx.server_name = Input::with_theme(&theme())
         .with_prompt("Matrix server name  (used in @user:domain IDs)")
         .with_initial_text(&mx.server_name)
         .interact_text().unwrap();
-
     let p: String = Input::with_theme(&theme())
         .with_prompt("Synapse internal port")
         .with_initial_text(&mx.port.to_string())
         .interact_text().unwrap();
     mx.port = p.trim().parse().unwrap_or(mx.port);
-
     let cp: String = Input::with_theme(&theme())
         .with_prompt("Caddy internal port")
         .with_initial_text(&mx.caddy_port.to_string())
@@ -395,21 +494,18 @@ fn edit_matrix(mx: &mut MatrixConfig) {
 
 fn edit_pds(pd: &mut PdsConfig) {
     pd.hostname = Input::with_theme(&theme())
-        .with_prompt("PDS public hostname  (e.g. pds.example.com)")
+        .with_prompt("PDS public hostname")
         .with_initial_text(&pd.hostname)
         .interact_text().unwrap();
-
     pd.admin_email = Input::with_theme(&theme())
         .with_prompt("PDS admin email")
         .with_initial_text(&pd.admin_email)
         .interact_text().unwrap();
-
     let p: String = Input::with_theme(&theme())
         .with_prompt("PDS internal port")
         .with_initial_text(&pd.port.to_string())
         .interact_text().unwrap();
     pd.port = p.trim().parse().unwrap_or(pd.port);
-
     let cp: String = Input::with_theme(&theme())
         .with_prompt("Caddy internal port")
         .with_initial_text(&pd.caddy_port.to_string())
@@ -430,49 +526,40 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let show_only = args.iter().any(|a| a == "--show");
 
-    let root   = git_root();
-    let cfg    = root.join("settings/config");
+    let root          = git_root();
+    let opts_path     = root.join("modules/options.nix");
+    let host_path     = root.join("hosts/server/default.nix");
 
-    let server_path     = cfg.join("server.nix");
-    let forgejo_path    = cfg.join("forgejo.nix");
-    let matrix_path     = cfg.join("matrix.nix");
-    let pds_path        = cfg.join("pds.nix");
-    let cloudflare_path = cfg.join("cloudflare.nix");
+    let opts_src      = read_file(&opts_path);
+    let mut host_src  = read_file(&host_path);
 
-    // Read all files
-    let mut server_src     = read_file(&server_path);
-    let mut forgejo_src    = read_file(&forgejo_path);
-    let mut matrix_src     = read_file(&matrix_path);
-    let mut pds_src        = read_file(&pds_path);
-    let mut cloudflare_src = read_file(&cloudflare_path);
-
-    // Parse current values
-    let mut svc = read_services(&server_src);
-    let mut st  = read_storage(&server_src);
-    let mut ck  = read_cockpit(&server_src);
-    let mut fg  = read_forgejo(&forgejo_src);
-    let mut mx  = read_matrix(&matrix_src);
-    let mut pd  = read_pds(&pds_src);
-    let mut cf  = read_cloudflare(&cloudflare_src);
+    let mut svc = read_services(&host_src);
+    let mut st  = read_storage(&opts_src, &host_src);
+    let mut ck  = read_cockpit(&opts_src, &host_src);
+    let mut fg  = read_forgejo(&opts_src, &host_src);
+    let mut mx  = read_matrix(&opts_src,  &host_src);
+    let mut pd  = read_pds(&opts_src,     &host_src);
+    let mut cf  = read_cloudflare(&opts_src, &host_src);
 
     let title = Style::new().bold().green();
     println!("\n{}", title.apply_to("  🖥️   Server configurator"));
-    println!("  Repo: {}\n", root.display());
+    println!("  Options : {}", opts_path.display());
+    println!("  Host    : {}\n", host_path.display());
+    println!("  (defaults from modules/options.nix; overrides written to hosts/server/default.nix)\n");
 
     if show_only {
         print_summary(&svc, &st, &ck, &fg, &mx, &pd, &cf);
         return;
     }
 
-    // ── interactive menu loop ─────────────────────────────────────────────────
     let menu_items = [
-        "Service toggles   (forgejo / pds / matrix / cloudflare)",
-        "/srv storage       (block device, filesystem)",
-        "Cockpit dashboard  (enable, port)",
-        "Forgejo            (hostname, ports, app name, registration)",
-        "Matrix Synapse     (hostname, server name, ports)",
-        "Bluesky PDS        (hostname, ports, admin email)",
-        "Cloudflare Tunnel  (tunnel UUID)",
+        "Service toggles    (forgejo / pds / matrix / cloudflare)",
+        "/srv storage        (block device, filesystem)",
+        "Cockpit dashboard   (enable, port)",
+        "Forgejo             (hostname, ports, app name, registration)",
+        "Matrix Synapse      (hostname, server name, ports)",
+        "Bluesky PDS         (hostname, ports, admin email)",
+        "Cloudflare Tunnel   (tunnel UUID)",
         "── Show current config",
         "── Save and exit",
         "── Exit without saving",
@@ -496,25 +583,19 @@ fn main() {
             6 => edit_cloudflare(&mut cf),
             7 => print_summary(&svc, &st, &ck, &fg, &mx, &pd, &cf),
             8 => {
-                // Apply changes to source strings
-                server_src     = write_services(&server_src, &svc);
-                server_src     = write_storage(&server_src, &st);
-                server_src     = write_cockpit(&server_src, &ck);
-                forgejo_src    = write_forgejo(&forgejo_src, &fg);
-                matrix_src     = write_matrix(&matrix_src, &mx);
-                pds_src        = write_pds(&pds_src, &pd);
-                cloudflare_src = write_cloudflare(&cloudflare_src, &cf);
+                write_services(&mut host_src, &svc);
+                write_storage(&mut host_src, &st);
+                write_cockpit(&mut host_src, &ck);
+                write_forgejo(&mut host_src, &fg);
+                write_matrix(&mut host_src, &mx);
+                write_pds(&mut host_src, &pd);
+                write_cloudflare(&mut host_src, &cf);
 
-                // Write files
-                write_file(&server_path,     &server_src);
-                write_file(&forgejo_path,    &forgejo_src);
-                write_file(&matrix_path,     &matrix_src);
-                write_file(&pds_path,        &pds_src);
-                write_file(&cloudflare_path, &cloudflare_src);
+                write_file(&host_path, &host_src);
+                println!("\n✅  Saved to {}.", host_path.display());
+                println!("    modules/options.nix was NOT modified — it is the default source.");
+                println!("    Run `nrs` or `sudo nixos-rebuild switch --flake .#server` to apply.\n");
 
-                println!("\n✅  Saved. Run `nrs` to apply changes.");
-
-                // Optionally rebuild immediately
                 if Confirm::with_theme(&theme())
                     .with_prompt("Run nixos-rebuild switch now?")
                     .default(false)
@@ -522,7 +603,8 @@ fn main() {
                     .unwrap()
                 {
                     let status = Command::new("sudo")
-                        .args(["nixos-rebuild", "switch", "--flake", &format!("{}#server", root.display())])
+                        .args(["nixos-rebuild", "switch", "--flake",
+                               &format!("{}#server", root.display())])
                         .status();
                     match status {
                         Ok(s) if s.success() => println!("✅  Rebuild succeeded."),
@@ -532,10 +614,7 @@ fn main() {
                 }
                 break;
             }
-            9 => {
-                println!("Exiting without saving.");
-                break;
-            }
+            9 => { println!("Exiting without saving."); break; }
             _ => {}
         }
     }
