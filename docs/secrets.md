@@ -144,4 +144,29 @@ sops updatekeys secrets/cf-tunnel.json
 | `no matching keys` | Secret not encrypted for this key | Add key to `.sops.yaml`, run `sops updatekeys <file>` |
 | `key not found` | Missing `~/.config/age/keys.txt` or host SSH key | Restore key or re-derive host key |
 | `failed to decrypt` | Wrong key or corrupted file | Verify key with `age-keygen --to-public-key` |
-| Secret path is empty | sops-nix activation failed | Check `journalctl -b | grep sops` |
+| Secret path is empty | sops-nix activation failed | Check `journalctl -b \| grep sops` |
+| `attribute '<user>' missing` at eval time | Secret has `owner = "<user>"` but the service uses `DynamicUser` in its systemd unit, so no static entry exists in `config.users.users` | Declare the user/group explicitly (see below) |
+
+### DynamicUser services and sops-nix
+
+Some NixOS services (including `cloudflared`) use systemd's `DynamicUser = true`, which means they do **not** create a static entry in `config.users.users`. sops-nix tries to derive `group` from that attribute at evaluation time and fails with `attribute '<user>' missing`.
+
+Fix: explicitly declare the user and group alongside the secret:
+
+```nix
+users.users.cloudflared = {
+  isSystemUser = true;
+  group = "cloudflared";
+};
+users.groups.cloudflared = { };
+
+sops.secrets."cf-tunnel.json" = {
+  sopsFile = ../secrets/cf-tunnel.json;
+  format   = "binary";
+  owner    = "cloudflared";
+  group    = "cloudflared"; # must be set explicitly — cannot be derived from DynamicUser
+  mode     = "0400";
+};
+```
+
+This pattern is already applied in `modules/cloudflare-tunnel.nix`.
