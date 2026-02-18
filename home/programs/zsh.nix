@@ -74,13 +74,13 @@ in
         # ── Platform-specific rebuild aliases ─────────────────────────────────
         nrs =
           if isDarwin then
-            "sudo darwin-rebuild switch --flake ~/.config/nix-config#macmini"
+            "sudo darwin-rebuild switch --flake ~/.config/nix-config#macmini --verbose"
           else
             "sudo nixos-rebuild switch --flake ~/.config/nix-config";
         nrb = if isDarwin then null else "sudo nixos-rebuild boot --flake ~/.config/nix-config";
         nrt =
           if isDarwin then
-            "sudo darwin-rebuild test --flake ~/.config/nix-config#macmini"
+            "sudo darwin-rebuild test --flake ~/.config/nix-config#macmini --verbose"
           else
             "sudo nixos-rebuild test --flake ~/.config/nix-config";
         hms = "home-manager switch --flake ~/.config/nix-config";
