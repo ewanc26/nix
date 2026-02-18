@@ -70,39 +70,40 @@ brew update && brew upgrade && brew cleanup
 
 ```
 hosts/macmini/
-└── default.nix
+└── default.nix             # host-specific imports and myConfig.* overrides
 
 modules/darwin/
-├── common.nix        # Shared macOS nix settings (gc, flakes, zsh)
-├── packages.nix      # Nix-managed CLI tools
-├── homebrew.nix      # Homebrew formulae and casks
-└── system.nix        # macOS system settings
+├── common.nix              # Shared macOS nix settings (gc, flakes, zsh)
+├── packages.nix            # Nix-managed CLI tools
+├── homebrew.nix            # Homebrew formulae and casks
+└── system.nix              # macOS system settings + Time Machine activation
+
+modules/options.nix         # ⭐ All darwin.* option values live here
 
 settings/darwin/
-└── default.nix       # macOS system.defaults (Dock, Finder, login window, etc.)
-
-settings/config/darwin.nix   # All darwin values — edit here
+└── default.nix             # macOS system.defaults (Dock, Finder, login window, etc.)
 ```
 
 ## Package Management
 
-### What goes in Nix (`settings/config/darwin.nix` → `packages`)
+### What goes in Nix (`modules/options.nix` → `packages.darwin`)
 CLI tools, development tools, languages — anything with good Nix packaging.
 
-### What goes in Homebrew (`settings/config/darwin.nix` → `homebrew`)
-- **Casks** — GUI apps (VLC, OrbStack, etc.)
-- **Brews** — Complex media codecs and libraries that work better via brew
+### What goes in Homebrew (`modules/options.nix` → `darwin.homebrew`)
+- **`casks`** — GUI apps
+- **`brews`** — Complex media codecs and libraries that work better via brew
+- **`masApps`** — Mac App Store apps
 
-Edit `settings/config/darwin.nix` to add packages to either list.
+Edit `modules/options.nix` (the `darwin.homebrew` defaults) to add packages to either list.
 
 ## System Settings
 
-Controlled via `settings/config/darwin.nix`:
-- `keyboard` — key mapping, Caps Lock
-- `startup.chime` — boot chime
-- `security.touchIdForSudo` — Touch ID for sudo
+High-level toggles are options in `modules/options.nix`:
+- `darwin.keyboard.*` — key mapping, Caps Lock
+- `darwin.startup.chime` — boot chime
+- `darwin.security.touchIdForSudo` — Touch ID for sudo
 
-Fine-grained defaults (Dock, Finder, trackpad, login window, etc.) live in `settings/darwin/default.nix`. Edit them directly in Nix rather than exporting from the GUI.
+Fine-grained defaults (Dock, Finder, trackpad, login window, etc.) live in `settings/darwin/default.nix`. Edit them directly in Nix rather than exporting from System Settings.
 
 ## Architecture
 

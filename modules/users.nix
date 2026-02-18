@@ -1,20 +1,32 @@
-{ config, pkgs, lib, cfgLib, ... }:
-
+# Standard user configuration
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
-  cfg = cfgLib.cfg;  # Use config from cfgLib instead of importing
-  authorizedKeys = cfgLib.mkAuthorizedKeys config.networking.hostName;
-  shellPkg = if cfg.user.shell == "zsh" then pkgs.zsh else pkgs.bash;
+  cfg = config.myConfig;
+
+  allKeys = import ./ssh-keys.nix;
+  authorizedKeys = lib.attrValues (
+    lib.filterAttrs (name: _: name != config.networking.hostName) allKeys
+  );
 in
 {
-  # Standard user configuration
-  # Can be imported by any NixOS host
-
   users.users.${cfg.user.username} = {
     isNormalUser = true;
     description = cfg.user.fullName;
-    extraGroups = [ "networkmanager" "wheel" ] 
-      ++ lib.optionals (config.services.pipewire.enable or false) [ "audio" "video" ];
-    shell = shellPkg;
+    extraGroups =
+      [
+        "networkmanager"
+        "wheel"
+      ]
+      ++ lib.optionals config.services.pipewire.enable [
+        "audio"
+        "video"
+      ];
+    shell = pkgs.zsh;
     openssh.authorizedKeys.keys = authorizedKeys;
   };
 }

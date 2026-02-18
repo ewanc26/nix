@@ -1,21 +1,22 @@
-# Terminal emulator profile — shared by all non-Darwin hosts (laptop + server).
-# Controls the font and colour scheme used by Konsole / any KDE-aware terminal.
-# Font and size come from settings/config/desktop.nix — never hardcoded here.
-{ lib, cfgLib, ... }:
-
+# Konsole terminal profile — all non-Darwin hosts.
+{
+  osConfig,
+  ...
+}:
 let
-  d = cfgLib.cfg.desktop;
+  cfg = osConfig.myConfig;
+  d = cfg.desktop;
 in
 {
   programs.konsole = {
-    enable         = true;
+    enable = true;
     defaultProfile = "Catppuccin Mocha";
     profiles."Catppuccin Mocha" = {
-      name        = "Catppuccin Mocha";
-      colorScheme = "Catppuccin Mocha";   # installed by the catppuccin/konsole package
+      name = "Catppuccin Mocha";
+      colorScheme = "Catppuccin Mocha";
       font = {
-        name = d.monoFontConsole;   # "FiraCode Nerd Font Mono"
-        size = d.monoFontSize;      # 11
+        name = d.monoFontFamily;
+        size = d.monoFontSize;
       };
     };
   };

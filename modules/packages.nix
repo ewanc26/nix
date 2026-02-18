@@ -1,21 +1,33 @@
-{ config, pkgs, cfgLib, ... }:
-
+# System-wide packages for Linux desktop hosts.
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
-  cfg = cfgLib.cfg;
-  resolve = cfgLib.resolvePackages pkgs;
+  cfg = config.myConfig;
+
+  resolvePackages =
+    names:
+    builtins.filter (x: x != null) (
+      map (
+        name:
+        if pkgs ? ${name} then
+          pkgs.${name}
+        else
+          builtins.trace "WARNING: package '${name}' not found in nixpkgs, skipping" null
+      ) names
+    );
 in
 {
-  # System-wide programs with dedicated NixOS module options
   programs = {
     firefox.enable = true;
-    git.enable     = true;
+    git.enable = true;
   };
 
   environment.systemPackages =
-    # Common CLI utilities (all systems)
-    resolve cfg.packages.common
-    # Cross-platform development packages
-    ++ resolve cfg.packages.development
-    # NixOS desktop / GUI apps
-    ++ resolve cfg.packages.desktop;
+    resolvePackages cfg.packages.common
+    ++ resolvePackages cfg.packages.development
+    ++ lib.optionals cfg.isDesktop (resolvePackages cfg.packages.desktop);
 }

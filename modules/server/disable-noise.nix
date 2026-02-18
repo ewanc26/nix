@@ -1,5 +1,5 @@
-{ lib, ... }:
+{ ... }:
 {
-  services.avahi.enable = lib.mkDefault false;
-  services.printing.enable = lib.mkDefault false;
+  services.avahi.enable = false;
+  services.printing.enable = false;
 }

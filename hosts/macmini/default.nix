@@ -1,7 +1,10 @@
-{ pkgs, cfgLib, ... }:
-
+{
+  config,
+  pkgs,
+  ...
+}:
 let
-  cfg = cfgLib.cfg;
+  cfg = config.myConfig;
 in
 {
   imports = [
@@ -24,12 +27,12 @@ in
   # SMB/NetBIOS hostname (used by network discovery and file sharing)
   system.defaults.smb.NetBIOSName = "macmini";
 
-  # Timezone — driven from settings/config/system.nix
-  time.timeZone = cfg.system.timeZone;
+  # Timezone — driven from myConfig.timeZone
+  time.timeZone = cfg.timeZone;
 
   users.users.${cfg.user.username} = {
     home = "/Users/${cfg.user.username}";
-    shell = pkgs.${cfg.user.shell};
+    shell = pkgs.zsh;
   };
 
   # nix-darwin uses an integer for stateVersion

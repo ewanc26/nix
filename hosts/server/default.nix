@@ -1,12 +1,13 @@
-{ cfgLib, ... }:
-
+{
+  config,
+  ...
+}:
 let
-  cfg = cfgLib.cfg;
+  cfg = config.myConfig;
 in
 {
   imports = [
     ./minimal-hardware.nix
-    ../../modules/common.nix
     ../../modules/users.nix
     ../../modules/caddy.nix
     ../../modules/cockpit.nix
@@ -16,6 +17,12 @@ in
     ../../modules/forgejo.nix
     ../../profiles/server-hardened.nix
   ];
+
+  # Service toggles — all services run on the server.
+  myConfig.services.forgejo.enable = true;
+  myConfig.services.pds.enable = true;
+  myConfig.services.matrix.enable = true;
+  myConfig.services.cloudflare.enable = true;
 
   networking.hostName = "server";
 
@@ -28,5 +35,5 @@ in
     wheelNeedsPassword = true;
   };
 
-  system.stateVersion = cfg.system.stateVersion;
+  system.stateVersion = cfg.stateVersion;
 }

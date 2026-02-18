@@ -193,21 +193,21 @@ gen-diff
 
 ## Customization
 
-All laptop-specific customization should be done through `settings/config/` files, not by editing the host file directly.
+For values shared across all hosts, edit the defaults in `modules/options.nix`. For laptop-only behaviour, add `myConfig.*` overrides in `hosts/laptop/default.nix`.
 
 ### Common Customizations
 
 | What to change | Where to edit |
 |---|---|
-| Username / email | `settings/config/user.nix` |
-| Desktop theme | `settings/config/desktop.nix` → `theme` / `iconTheme` |
-| Fonts | `settings/config/desktop.nix` → `monoFont` |
-| Add applications | `settings/config/packages.nix` → `desktop` list |
-| Gaming enable/disable | `settings/config/gaming.nix` → `enable` |
-| Audio backend | `settings/config/audio.nix` → `backend` |
-| VSCode extensions | `settings/config/development.nix` → `vscode.extensions` |
-| Shell aliases | `settings/config/shell.nix` → `aliases` |
-| Git settings | `settings/config/git.nix` |
+| Username / email | `modules/options.nix` → `user.*` defaults |
+| Desktop theme | `modules/options.nix` → `desktop.theme` / `desktop.iconTheme` |
+| Fonts | `modules/options.nix` → `desktop.monoFontBase` |
+| Add applications | `modules/options.nix` → `packages.desktop` list |
+| Gaming enable/disable | `hosts/laptop/default.nix` → `myConfig.gaming.enable` |
+| Audio backend | `modules/options.nix` → `audio.backend` |
+| VSCode extensions | `home/programs/vscode.nix` |
+| Shell aliases | `home/programs/zsh.nix` → `shellAliases` |
+| Git settings | `modules/options.nix` → `git.*` or `home/programs/git.nix` |
 | Plasma layout | `settings/plasma/default.nix` |
 | Konsole theme | `home/programs/kde.nix` |
 
@@ -215,45 +215,42 @@ All laptop-specific customization should be done through `settings/config/` file
 
 **System-wide packages** (available to all users):
 ```nix
-# settings/config/packages.nix
-desktop = [
-  "firefox"
-  "vlc"
-  "gimp"
-  # Add your package here
-];
+# modules/options.nix
+packages.desktop = mkOption {
+  default = [
+    # ... existing list ...
+    "my-new-package"   # add here
+  ];
+};
 ```
 
-**User packages** (just for your home):
+**Linux-only user packages**:
 ```nix
-# settings/config/packages.nix
-linux = [
-  "htop"
-  "neofetch"
-  # Add your package here
-];
+# modules/options.nix
+packages.linux = mkOption {
+  default = [
+    "vlc"
+    "my-linux-tool"   # add here
+  ];
+};
 ```
 
 ### Disabling Gaming
 
-If you don't game, disable the gaming module:
+Remove or comment out the override in the laptop host file:
 ```nix
-# settings/config/gaming.nix
-{
-  enable = false;  # Change to false
-  # ... rest stays the same
-}
+# hosts/laptop/default.nix
+# myConfig.gaming.enable = true;  ← remove this line
 ```
+
+The default in `modules/options.nix` is `false`, so removing the override disables it.
 
 ### Changing Audio Backend
 
 To switch from PipeWire to PulseAudio:
 ```nix
-# settings/config/audio.nix
-{
-  enable  = true;
-  backend = "pulseaudio";  # Change from "pipewire"
-}
+# modules/options.nix (changes all hosts) — or override in hosts/laptop/default.nix
+myConfig.audio.backend = "pulseaudio";
 ```
 
 ### KDE Plasma Customization

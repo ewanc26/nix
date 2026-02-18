@@ -1,7 +1,12 @@
-{ config, pkgs, lib, osConfig, cfgLib, ... }:
-
+# Git configuration.
+{
+  pkgs,
+  lib,
+  osConfig,
+  ...
+}:
 let
-  cfg = cfgLib.cfg;
+  cfg = osConfig.myConfig;
 in
 {
   programs.git = {
@@ -10,11 +15,10 @@ in
 
     settings = {
       user = {
-        name  = cfg.user.fullName;
+        name = cfg.user.fullName;
         email = cfg.user.email;
       };
 
-      # /etc/nixos only exists on NixOS; skip on macOS/Darwin.
       safe.directory = lib.mkIf (!pkgs.stdenv.isDarwin) "/etc/nixos";
 
       core = {
@@ -24,13 +28,16 @@ in
 
       init.defaultBranch = cfg.git.defaultBranch;
 
-      # SSH commit signing
       gpg.format = cfg.git.signing.format;
       user.signingkey = "${cfg.ssh.keyFile}.pub";
       commit.gpgsign = cfg.git.signing.enabled;
       gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
 
-      alias = cfg.git.aliases;
+      alias = {
+        la = "log --all --graph --pretty=format:'%C(auto)%h%d %s %C(bold black)(%ar by <%aN>)%Creset'";
+        law = "log --all --graph --pretty=format:'%C(auto)%h%d %w(100,0,8)%s %C(bold black)(%ar by <%aN>)%Creset'";
+        lad = "log --all --graph --pretty=format:'%Cgreen%ad%Creset %C(auto)%h%d %s %C(bold black)<%aN>%Creset' --date=format-local:'%Y-%m-%d %H:%M (%a)'";
+      };
     };
   };
 }

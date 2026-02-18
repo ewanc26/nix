@@ -1,107 +1,150 @@
 # Secrets Management
 
-Encrypted secrets managed with [ragenix](https://github.com/yaxitech/ragenix) (age encryption). Secrets are decrypted at runtime to `/run/agenix/<name>` and referenced via `config.age.secrets.<name>.path`.
+Encrypted secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix) using [age](https://age-encryption.org/) as the encryption backend. Secrets are decrypted at activation time and referenced via `config.sops.secrets.<name>.path` (system-level) or `config.sops.secrets.<name>.path` inside home-manager.
 
-## Quick Start
+## How it works
 
-```bash
-bash ./secrets/setup.sh
-```
+- Each secret file is committed to the repo **already encrypted** — it is useless without the private key.
+- `sops` uses the rules in `.sops.yaml` at the repo root to know which age keys can decrypt each file.
+- On NixOS hosts, `sops-nix` decrypts secrets at activation using the host's `/etc/ssh/ssh_host_ed25519_key` (automatically converted to an age key). No separate key file is needed on the system itself.
+- On macOS, your personal age key (`~/.config/age/keys.txt`) is used.
 
-**What the script does:**
-1. Manages `~/.config/age/keys.txt` (your master identity — copy this to every machine)
-2. Converts the machine's SSH host key to an age key and adds it to the `systems` block in `secrets/secrets.nix`
-3. Additively updates `secrets.nix` without removing existing entries
-4. Validates Nix syntax and re-encrypts (rekeys) secrets for the new hardware
+## Key inventory
 
-## Adding a New Secret
+Keys are declared in `.sops.yaml`:
 
-### 1. Register it in `settings/config/secrets.nix`
+| Name | Type | Location |
+|---|---|---|
+| `ewan` | User (personal) | `~/.config/age/keys.txt` |
+| `macmini` | Host | `/etc/ssh/ssh_host_ed25519_key` on macmini |
+| `laptop` | Host | `/etc/ssh/ssh_host_ed25519_key` on laptop |
+| `server` | Host | `/etc/ssh/ssh_host_ed25519_key` on server *(add after first boot)* |
 
-```nix
-{
-  files = [
-    "ssh-passphrase"
-    "wifi-home"
-    "my-new-secret"   # add here
-  ];
-}
-```
-
-`modules/secrets.nix` automatically generates `age.secrets` entries for every file in this list.
-
-### 2. Encrypt the secret
-
-```nix
-# Using ragenix (recommended)
-nix run github:yaxitech/ragenix -- \
-  --rules secrets/secrets.nix \
-  --editor "code --wait" \
-  -e secrets/age/my-new-secret.age
-```
-
-Or encrypt directly with rage:
+## Quick reference
 
 ```bash
-rage -e -r "$(cat ~/.ssh/id_ed25519.pub)" my-secret.txt > secrets/age/my-new-secret.age
+# Edit an existing secret (opens $EDITOR with decrypted content)
+sops secrets/pds.env
+
+# Encrypt a new file in-place
+sops --encrypt secrets/new-secret.env > secrets/new-secret.env
+
+# Re-encrypt all secrets after adding a new key to .sops.yaml
+sops updatekeys secrets/pds.env
 ```
 
-### 3. Register the public key in `secrets/secrets.nix`
+## Adding a new secret
 
-```nix
-"age/my-new-secret.age".publicKeys = all;  # or a subset
+### 1. Create and encrypt the file
+
+```bash
+# Create plaintext in /tmp, never in the repo
+cat > /tmp/my-secret.env << 'EOF'
+MY_KEY=some-value
+EOF
+
+# Encrypt it into the secrets directory
+sops --encrypt /tmp/my-secret.env > secrets/my-secret.env
+rm /tmp/my-secret.env
 ```
 
-### 4. Rebuild
+`sops` reads `.sops.yaml` automatically and encrypts for the correct recipients based on the filename.
 
-The secret is now available at `config.age.secrets.my-new-secret.path`.
-
-## Using Secrets in Config
+### 2. Declare it in the NixOS module that uses it
 
 ```nix
-# Service password file
-services.someService.passwordFile = config.age.secrets.my-secret.path;
+# e.g. modules/my-service.nix
+sops.secrets."my-secret.env" = {
+  sopsFile = ../secrets/my-secret.env;
+  format   = "binary";   # for env files / raw content
+  owner    = "my-service";
+  mode     = "0400";
+};
+```
 
-# Environment variable
-systemd.services.myservice.environment.TOKEN_FILE =
-  config.age.secrets.api-token.path;
+For structured files (YAML/JSON/dotenv), you can also extract individual keys:
+
+```nix
+sops.secrets."my-service/api-key" = {
+  sopsFile = ../secrets/my-service.yaml;
+  # sops-nix extracts the "my-service/api-key" key automatically
+};
+```
+
+### 3. Reference the decrypted path
+
+```nix
+# In a systemd service
+systemd.services.my-service.serviceConfig.EnvironmentFile =
+  config.sops.secrets."my-secret.env".path;
 
 # In a script
 script = ''
-  TOKEN=$(cat ${config.age.secrets.api-token.path})
+  TOKEN=$(cat ${config.sops.secrets."my-service/api-key".path})
 '';
 ```
 
-## Rekeying (after adding a new machine)
+### 4. Home-manager secrets
+
+Home-manager secrets use the same `sops-nix` module (via `sops-nix.homeManagerModules.sops`):
+
+```nix
+# home/default.nix
+sops.secrets."claude-config" = {
+  sopsFile = ../secrets/claude.json;
+  path     = "${config.home.homeDirectory}/.claude.json";
+  mode     = "0600";
+};
+```
+
+The `path` field places the decrypted file at a specific location rather than `/run/user/<uid>/secrets/`.
+
+## Adding a new host
+
+When a new machine is provisioned, its SSH host key must be added to `.sops.yaml` so it can decrypt the secrets it needs.
 
 ```bash
-nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --rekey
+# 1. Get the host's age public key from its SSH host key
+ssh-keyscan <host-ip> | ssh-to-age
+
+# 2. Add the result to .sops.yaml under `keys:`
+#    - &server age1...
+
+# 3. Reference it in the relevant creation_rules
+
+# 4. Re-encrypt every secret the host needs
+sops updatekeys secrets/pds.env
+sops updatekeys secrets/cf-tunnel.json
+# ... etc
 ```
 
-## File Structure
+## Existing secrets
 
-```
-secrets/
-├── secrets.nix      # Public key mappings — safe to commit
-├── setup.sh         # Key management automation
-└── age/
-    ├── *.age        # Encrypted secrets — safe to commit
-    └── ...
+| File | Purpose | Accessible by |
+|---|---|---|
+| `secrets/wifi-home` | Home WiFi passphrase | all hosts |
+| `secrets/ssh-passphrase` | SSH private key passphrase | all hosts |
+| `secrets/docker-config.json` | Docker Hub credentials | all hosts |
+| `secrets/claude.json` | Claude API / config | all hosts |
+| `secrets/duckdns.tar.gz` | DuckDNS config bundle | all hosts |
+| `secrets/pds.env` | Bluesky PDS runtime secrets | ewan + server |
+| `secrets/matrix.env` | Matrix Synapse secrets | ewan + server |
+| `secrets/forgejo.env` | Forgejo `SECRET_KEY` etc. | ewan + server |
+| `secrets/cloudflare.token` | Cloudflare API token | ewan + server |
+| `secrets/cf-tunnel.json` | Cloudflare tunnel credentials | ewan + server |
 
-~/.config/age/keys.txt   # ⚠️  Private master key — NEVER commit
-```
+## Security rules
 
-## Security Rules
-
-1. `~/.config/age/keys.txt` is your master private key — treat it like your SSH private key
-2. Sync `keys.txt` to other machines via `scp` over Tailscale (never via git)
-3. `.age` files are safe to commit — they are useless without the private key
-4. **UI preferences are NOT secrets** — they live in `settings/gnome/` and `settings/darwin/`
+1. `~/.config/age/keys.txt` is your personal private key — treat it like an SSH private key. Never commit it.
+2. Sync it to other machines via `scp` over Tailscale: `scp ~/.config/age/keys.txt ewan@laptop:~/.config/age/keys.txt`
+3. Encrypted secret files (in `secrets/`) **are** committed to git — they are useless without a matching private key.
+4. Host keys are derived from the host's SSH `ed25519` host key and are never stored anywhere beyond the key itself.
 
 ## Troubleshooting
 
 | Error | Cause | Fix |
 |---|---|---|
-| "No rule for file" | `.age` file not in `secrets.nix` | Add it to `secrets/secrets.nix` |
-| "Decryption failed" | New system key added but not rekeyed | Run `--rekey` from a machine that has access |
-| Path errors | Running from wrong directory | Pass `--rules secrets/secrets.nix` explicitly |
+| `no matching keys` | Secret not encrypted for this key | Add key to `.sops.yaml`, run `sops updatekeys <file>` |
+| `key not found` | Missing `~/.config/age/keys.txt` or host SSH key | Restore key or re-derive host key |
+| `failed to decrypt` | Wrong key or corrupted file | Verify key with `age-keygen --to-public-key` |
+| Secret path is empty | sops-nix activation failed | Check `journalctl -b | grep sops` |

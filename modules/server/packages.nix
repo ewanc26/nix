@@ -1,17 +1,31 @@
-{ config, pkgs, cfgLib, ... }:
-
+{
+  config,
+  pkgs,
+  ...
+}:
 let
-  cfg     = cfgLib.cfg;
-  resolve = cfgLib.resolvePackages pkgs;
+  cfg = config.myConfig;
+
+  resolvePackages =
+    names:
+    builtins.filter (x: x != null) (
+      map (
+        name:
+        if pkgs ? ${name} then
+          pkgs.${name}
+        else
+          builtins.trace "WARNING: package '${name}' not found in nixpkgs, skipping" null
+      ) names
+    );
 in
 {
   environment.systemPackages =
-    # Common CLI utilities (shared with laptop via settings/config/packages.nix)
-    resolve cfg.packages.common
+    # Common CLI utilities (shared with laptop via myConfig.packages.common)
+    resolvePackages cfg.packages.common
     # Cross-platform development tools (shared with laptop)
-    ++ resolve cfg.packages.development
-    # Server-only extras (defined in settings/config/packages.nix → server)
-    ++ resolve cfg.packages.server
+    ++ resolvePackages cfg.packages.development
+    # Server-only extras
+    ++ resolvePackages cfg.packages.server
     # Server-specific tools not suited to the shared package lists
     ++ (with pkgs; [
       # System inspection
@@ -22,8 +36,8 @@ in
       usbutils
 
       # Network diagnostics
-      bind        # dig / nslookup
-      inetutils   # telnet, ftp
+      bind # dig / nslookup
+      inetutils # telnet, ftp
       traceroute
       mtr
 
@@ -40,11 +54,14 @@ in
     ]);
 
   programs.command-not-found.enable = true;
-  programs.bash.completion.enable   = true;
+  programs.bash.completion.enable = true;
 
-  # ── Restrict imperative package installation ──────────────────────────────────
+  # ── Restrict imperative package installation ──────────────────────────────
   # Only root and members of the wheel group may connect to the Nix daemon
-  # to build or install packages.  This keeps the server fully declarative:
+  # to build or install packages. This keeps the server fully declarative:
   # non-privileged users cannot run `nix-env -i` or `nix profile install`.
-  nix.settings.allowed-users = [ "root" "@wheel" ];
+  nix.settings.allowed-users = [
+    "root"
+    "@wheel"
+  ];
 }

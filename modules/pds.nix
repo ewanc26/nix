@@ -2,44 +2,32 @@
 #  Bluesky ATProto Personal Data Server — NixOS module.
 #
 #  Architecture:
-#    PDS (127.0.0.1:cfg.port)
+#    PDS (127.0.0.1:cfg.pds.port)
 #      ↑ reverse proxy
-#    Caddy (127.0.0.1:cfg.caddyPort — internal only, no TLS here)
-#      ↑ Cloudflare tunnel (cloudflared — outbound only, no firewall ports needed)
+#    Caddy (127.0.0.1:cfg.pds.caddyPort — internal only, no TLS here)
+#      ↑ Cloudflare tunnel (outbound only, no firewall ports needed)
 #
-#  Non-secret settings live in settings/config/pds.nix.
-#  Secrets decrypted by ragenix at activation time.
-#
-#  Required secrets (set in secrets/age/pds.env.age as KEY=value pairs):
-#    PDS_JWT_SECRET                         openssl rand --hex 16
-#    PDS_ADMIN_PASSWORD                     openssl rand --hex 16
-#    PDS_PLC_ROTATION_KEY_K256_PRIVATE_KEY_HEX
-#      openssl ecparam --name secp256k1 --genkey --noout --outform DER \
-#        | tail --bytes=+8 | head --bytes=32 | xxd --plain --cols 32
-#    PDS_EMAIL_SMTP_URL                     (optional — for email verification)
-#    PDS_EMAIL_FROM_ADDRESS                 (optional — for email verification)
-#
-#  Cloudflare tunnel setup (one-time, outside Nix):
-#    Handled by modules/cloudflare-tunnel.nix.
-#    See that module for setup instructions.
+#  Secrets (sops-encrypted, age backend):
+#    secrets/pds.env — KEY=value env file, must contain:
+#      PDS_JWT_SECRET                              openssl rand --hex 16
+#      PDS_ADMIN_PASSWORD                          openssl rand --hex 16
+#      PDS_PLC_ROTATION_KEY_K256_PRIVATE_KEY_HEX  see pds docs
+#      PDS_EMAIL_SMTP_URL                          (optional)
+#      PDS_EMAIL_FROM_ADDRESS                      (optional)
 ##############################################################################
 {
   config,
   lib,
   pkgs,
-  self,
-  cfgLib,
   ...
 }:
-
 let
-  cfg = cfgLib.cfg.pds;
-  pdsPort = toString cfg.port;
-  caddyPort = toString cfg.caddyPort;
+  cfg = config.myConfig;
+  pds = cfg.pds;
+  pdsPort = toString pds.port;
+  caddyPort = toString pds.caddyPort;
 
   # UK Online Safety Act age-assurance static responses.
-  # Required for UK-based PDS instances (Online Safety Act 2023).
-  # Source: https://gist.github.com/mary-ext/6e27b24a83838202908808ad528b3318
   ageAssuranceBlocks = ''
     handle /xrpc/app.bsky.unspecced.getAgeAssuranceState {
       header Content-Type "application/json"
@@ -61,47 +49,42 @@ let
     }
   '';
 in
-lib.mkIf cfg.enable {
+lib.mkIf cfg.services.pds.enable {
 
-  # ── Secrets ──────────────────────────────────────────────────────────────────
-  age.secrets."pds.env" = {
-    file = self + /secrets/age/pds.env.age;
+  sops.secrets."pds.env" = {
+    sopsFile = ../secrets/pds.env;
+    format = "binary";
     owner = "pds";
     group = "pds";
     mode = "0400";
   };
 
-  # ── PDS service ───────────────────────────────────────────────────────────────
   environment.systemPackages = [ pkgs.atproto-goat ];
 
   services.bluesky-pds = {
     enable = true;
-    environmentFiles = [ config.age.secrets."pds.env".path ];
+    environmentFiles = [ config.sops.secrets."pds.env".path ];
     settings = {
       PDS_DATA_DIRECTORY = "/srv/bluesky-pds";
-      PDS_PORT = cfg.port;
-      PDS_HOSTNAME = cfg.hostname;
-      PDS_ADMIN_EMAIL = cfg.adminEmail;
-      PDS_SERVICE_HANDLE_DOMAINS = lib.concatStringsSep "," cfg.serviceHandleDomains;
-      PDS_CRAWLERS = lib.concatStringsSep "," cfg.crawlers;
+      PDS_PORT = pds.port;
+      PDS_HOSTNAME = pds.hostname;
+      PDS_ADMIN_EMAIL = pds.adminEmail;
+      PDS_SERVICE_HANDLE_DOMAINS = lib.concatStringsSep "," pds.serviceHandleDomains;
+      PDS_CRAWLERS = lib.concatStringsSep "," pds.crawlers;
     };
   };
 
   systemd.services.bluesky-pds = {
-    serviceConfig.Restart = "always";
-    serviceConfig.RestartSec = cfgLib.cfg.server.servicePolicy.restartSec;
+    serviceConfig = {
+      Restart = "always";
+      RestartSec = cfg.server.servicePolicy.restartSec;
+    };
     unitConfig = {
-      StartLimitIntervalSec = cfgLib.cfg.server.servicePolicy.startLimitIntervalSec;
-      StartLimitBurst = cfgLib.cfg.server.servicePolicy.startLimitBurst;
+      StartLimitIntervalSec = cfg.server.servicePolicy.startLimitIntervalSec;
+      StartLimitBurst = cfg.server.servicePolicy.startLimitBurst;
     };
   };
 
-  # ── Caddy reverse proxy ───────────────────────────────────────────────────────
-  # Listens on localhost:caddyPort only — never exposed publicly.
-  # Cloudflare handles TLS; Caddy receives plain HTTP from the tunnel daemon.
-  # Using http:// prefix disables Caddy's automatic HTTPS / ACME entirely.
-  #
-  # Note: Caddy service itself is enabled by modules/caddy.nix.
   services.caddy.virtualHosts."http://127.0.0.1:${caddyPort}" = {
     extraConfig = ''
       ${ageAssuranceBlocks}
@@ -110,8 +93,4 @@ lib.mkIf cfg.enable {
       }
     '';
   };
-
-  # ── Firewall ──────────────────────────────────────────────────────────────────
-  # Cloudflare tunnel is configured by modules/cloudflare-tunnel.nix.
-  # SSH is handled by modules/server/firewall.nix and modules/server/ssh.nix.
 }

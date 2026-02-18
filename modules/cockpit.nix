@@ -14,27 +14,24 @@
 #      https://server:9090
 #
 #    Log in with any local system user that is a member of the wheel group.
-#
-#  Port configured in settings/config/server.nix → cockpit.port
 ##############################################################################
-{ lib, cfgLib, ... }:
-
+{
+  config,
+  lib,
+  ...
+}:
 let
-  cfg = cfgLib.cfg.server.cockpit;
+  cfg = config.myConfig.server.cockpit;
 in
 lib.mkIf cfg.enable {
 
   services.cockpit = {
     enable = true;
-    port   = cfg.port;
-
-    # Only bind to the Tailscale interface and loopback.
-    # This ensures Cockpit is never reachable from the public internet,
-    # even if the firewall is misconfigured.
+    port = cfg.port;
     settings.WebService.AllowUnencrypted = true;
   };
 
-  # ── Firewall ──────────────────────────────────────────────────────────────────
+  # ── Firewall ────────────────────────────────────────────────────────────────
   # Allow Cockpit only on the Tailscale interface (tailscale0).
   # The trusted interface already bypasses the firewall (set in firewall.nix),
   # so this rule is belt-and-braces — it blocks access from every other interface.

@@ -120,18 +120,17 @@ Each host specializes:
 
 ```
 ┌─────────────────────────────────────────┐
-│     settings/config/*.nix               │  ← Global values (DRY)
-│  (user, packages, theme, git, etc.)     │
+│        modules/options.nix              │  ← All option declarations + defaults
 └─────────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────────┐
 │        modules/*.nix                     │  ← Reusable components
-│  (common, desktop, gaming, services)    │
+│  (common, desktop, gaming, services)    │     read via config.myConfig.*
 └─────────────────────────────────────────┘
               ↓
 ┌──────────────┬──────────────┬───────────┐
-│   laptop/    │   server/    │ macmini/  │  ← Host-specific
-│ default.nix  │ default.nix  │default.nix│     (imports + overrides)
+│   laptop/    │   server/    │ macmini/  │  ← Per-host overrides
+│ default.nix  │ default.nix  │default.nix│     myConfig.isDesktop = true; etc.
 └──────────────┴──────────────┴───────────┘
 ```
 
@@ -156,26 +155,25 @@ Which modules does each host use?
 | `darwin/homebrew.nix` | ❌ | ❌ | ✅ | Homebrew management |
 | `darwin/system.nix` | ❌ | ❌ | ✅ | macOS system defaults |
 
-## Settings Scope
+## Option Scope
 
-How `settings/config/` values are used across hosts:
+Which `myConfig.*` option categories are active on each host:
 
-| Setting File | laptop | server | macmini | Notes |
+| Option category | laptop | server | macmini | Notes |
 |---|:---:|:---:|:---:|---|
-| `user.nix` | ✅ | ✅ | ✅ | Used everywhere |
-| `system.nix` | ✅ | ✅ | Partial | NixOS-specific |
-| `nix.nix` | ✅ | ✅ | ✅ | Nix itself |
-| `packages.nix` | ✅ | Minimal | ❌ | Linux packages |
-| `git.nix` | ✅ | ✅ | ✅ | Via home-manager |
-| `shell.nix` | ✅ | ✅ | ✅ | Via home-manager |
-| `desktop.nix` | ✅ | ❌ | ❌ | Desktop-only |
-| `ssh.nix` | ✅ | ✅ | ✅ | Via home-manager |
-| `audio.nix` | ✅ | ❌ | ❌ | Desktop-only |
-| `gaming.nix` | ✅ | ❌ | ❌ | Desktop-only |
-| `server.nix` | ❌ | ✅ | ❌ | Server-only |
-| `darwin.nix` | ❌ | ❌ | ✅ | macOS-only |
-| `secrets.nix` | ✅ | ✅ | ✅ | All (via age) |
-| `development.nix` | ✅ | ❌ | ✅ | Development hosts |
+| `user.*` | ✅ | ✅ | ✅ | Used everywhere |
+| `stateVersion`, `timeZone`, `locale` | ✅ | ✅ | Partial | NixOS-specific |
+| `packages.common` / `.development` | ✅ | ✅ | ✅ | All hosts |
+| `packages.desktop` / `.linux` | ✅ | ❌ | ❌ | `isDesktop = true` hosts |
+| `packages.darwin` | ❌ | ❌ | ✅ | macOS only |
+| `desktop.*` | ✅ | ❌ | ❌ | Desktop-only |
+| `audio.*` | ✅ | ❌ | ❌ | Desktop-only |
+| `gaming.*` | ✅ | ❌ | ❌ | `gaming.enable = true` on laptop |
+| `server.*` | ❌ | ✅ | ❌ | Server-only |
+| `services.*` | ❌ | ✅ | ❌ | Toggled in `hosts/server/default.nix` |
+| `darwin.*` | ❌ | ❌ | ✅ | macOS-only |
+| `secrets.*` | ✅ | ✅ | ✅ | All hosts (via sops-nix) |
+| `development.vscode` | ✅ | ❌ | ✅ | Development hosts |
 
 ## Network Architecture
 
@@ -221,7 +219,7 @@ All three hosts share the same home-manager configuration:
 
 Platform-specific modules are conditionally imported:
 ```nix
-# home/home.nix
+# home/default.nix
 imports = [
   ./programs/git.nix        # All platforms
   ./programs/zsh.nix        # All platforms
@@ -229,7 +227,9 @@ imports = [
   ./programs/starship.nix   # All platforms
   ./programs/vscode.nix     # All platforms
 ] ++ lib.optionals (!isDarwin) [
-  ./programs/kde.nix        # Linux only
+  ./programs/terminal.nix   # Konsole — Linux only
+] ++ lib.optionals (cfg.isDesktop && !isDarwin) [
+  ./programs/kde.nix        # KDE Plasma — Linux desktop only
 ];
 ```
 
@@ -238,29 +238,29 @@ imports = [
 ### Scenario 1: Change Username Everywhere
 
 ```bash
-# Edit once (on macmini, your primary computer)
-vim settings/config/user.nix
-# Change: username = "newname";
+# Edit the default in modules/options.nix
+vim modules/options.nix
+# Change: username = mkOption { ... default = "newname"; };
 
 # Apply to macmini (local)
-darwin-rebuild switch --flake .#macmini
+nrs  # alias for: sudo darwin-rebuild switch --flake .#macmini
 
 # Apply to laptop (when you use it)
-ssh laptop sudo nixos-rebuild switch --flake .#laptop
+ssh laptop 'cd ~/.config/nix-config && nrs'
 
 # Apply to server (when deployed)
-ssh server sudo nixos-rebuild switch --flake .#server
+ssh server 'cd ~/.config/nix-config && nrs'
 ```
 
 ### Scenario 2: Add Package to macOS (Primary)
 
 ```bash
-# Edit on macmini
-vim settings/config/darwin.nix
-# Add to "packages" or "homebrew.casks"
+# Edit modules/options.nix
+vim modules/options.nix
+# Add to packages.darwin or darwin.homebrew.casks list
 
 # Apply immediately
-darwin-rebuild switch --flake .#macmini
+nrs
 
 # Applies to: macmini ✅, laptop ❌, server ❌
 ```
@@ -268,12 +268,12 @@ darwin-rebuild switch --flake .#macmini
 ### Scenario 3: Add Package to Linux Hosts Only
 
 ```bash
-# Edit on macmini
-vim settings/config/packages.nix
-# Add to "linux" or "desktop" list
+# Edit modules/options.nix
+vim modules/options.nix
+# Add to packages.linux or packages.desktop list
 
 # Apply to laptop (when you use it)
-ssh laptop sudo nixos-rebuild switch --flake .#laptop
+ssh laptop 'cd ~/.config/nix-config && nrs'
 
 # Applies to: laptop ✅, server ✅ (when deployed), macmini ❌
 ```
@@ -281,28 +281,28 @@ ssh laptop sudo nixos-rebuild switch --flake .#laptop
 ### Scenario 4: Test Config on Secondary Before Primary
 
 ```bash
-# Make a risky change on macmini
-vim settings/config/packages.nix
+# Make a risky change
+vim modules/options.nix
 
 # Test on laptop first (secondary, less critical)
 ssh laptop sudo nixos-rebuild test --flake .#laptop
 
 # If it works, apply to macmini (primary)
-darwin-rebuild switch --flake .#macmini
+nrs
 ```
 
-### Scenario 5: Change Shell Alias Everywhere
+### Scenario 5: Add a Shell Alias Everywhere
 
 ```bash
-# Edit once on macmini (primary)
-vim settings/config/shell.nix
-# Add alias to "aliases"
+# Shell aliases live in home/programs/zsh.nix
+vim home/programs/zsh.nix
+# Add to shellAliases
 
-# Apply to macmini immediately (you're using it now)
-darwin-rebuild switch --flake .#macmini
+# Apply to macmini immediately
+nrs
 
 # Apply to laptop next time you use it
-ssh laptop sudo nixos-rebuild switch --flake .#laptop
+ssh laptop 'cd ~/.config/nix-config && nrs'
 
 # Propagates via home-manager to all hosts
 ```
@@ -367,7 +367,7 @@ nixos-rebuild switch --flake .#server \
 
 **NixOS hosts** (laptop, server):
 ```bash
-# Auto-runs weekly (configured in settings/config/nix.nix)
+# Auto-runs weekly (configured in modules/common.nix)
 sudo nix-collect-garbage -d
 
 # Manual cleanup
@@ -384,13 +384,13 @@ darwin-rebuild switch --flake .#macmini
 ### Updates
 
 **Automated** (laptop, server):
-- Configured in `settings/config/maintenance.nix`
+- Configured in `modules/common.nix` via `system.autoUpgrade`
 - Daily auto-upgrades (if enabled)
 - Weekly garbage collection
 
 **Manual** (macmini):
-- Update when needed
-- No auto-upgrade configured (macOS best practice)
+- `nix flake update && nrs`
+- No auto-upgrade in nix-darwin (macOS best practice)
 
 ### Health Checks
 
@@ -509,17 +509,20 @@ grep -r "../../modules/gaming.nix" hosts/
 
 ### Secrets Not Available on Host
 
-Secrets are managed via ragenix. Ensure the secret is enabled in `settings/config/secrets.nix` and that the host's age key is in `secrets/secrets.nix`. Check activation logs for decryption errors.
+Secrets are managed via sops-nix. Check that:
+- The host's age key is listed in `.sops.yaml` as a recipient for that secret
+- The secret has been re-encrypted with `sops updatekeys secrets/<file>` after adding the key
+- Check activation logs: `journalctl -b | grep sops`
 
 ## Best Practices
 
-1. **Keep hosts/*/default.nix minimal** — just imports and overrides
-2. **Use settings/config/ for shared values** — edit once, apply everywhere
+1. **Keep hosts/*/default.nix minimal** — just imports and `myConfig.*` overrides
+2. **Change defaults in modules/options.nix** — shared values live there, not in host files
 3. **Test on one host before deploying to all** — laptop → test → others
 4. **Document host-specific quirks** — in host file comments
 5. **Use version control** — commit after working changes
-6. **Keep secrets separate** — never commit unencrypted secrets
-7. **Regular backups** — especially of ~/.config/nix-config
+6. **Never commit unencrypted secrets** — always encrypt with `sops` first
+7. **Re-encrypt after adding a new host** — `sops updatekeys secrets/<file>` for every affected secret
 8. **Monitor all hosts** — check logs after rebuild
 
 ## Resources

@@ -1,28 +1,30 @@
-{ config, pkgs, lib, cfgLib, ... }:
-
+# Common NixOS settings shared across all hosts.
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  cfg = cfgLib.cfg;
+  cfg = config.myConfig;
 in
 {
-  # Common NixOS settings shared across all hosts
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
-  # Enable flakes and nix command
-  nix.settings.experimental-features = cfg.nix.experimentalFeatures;
+  nix.settings.auto-optimise-store = true;
 
-  # Nix store optimisation
-  nix.settings.auto-optimise-store = cfg.nix.autoOptimise;
-
-  # Automatic garbage collection
   nix.gc = {
-    automatic = cfg.nix.gc.automatic;
-    dates     = cfg.nix.gc.dates;
-    options   = cfg.nix.gc.options;
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
   };
 
-  # Enable zsh system-wide
   programs.zsh.enable = true;
 
-  # Symlink config repo into /etc/nixos for convenience
+  # Symlink config repo into /etc/nixos for convenience.
   system.activationScripts.linkConfigs = ''
     mkdir -p /etc/nixos
     if [ ! -L /etc/nixos ]; then
@@ -31,38 +33,38 @@ in
     fi
   '';
 
-  # Automatic system upgrades
   system.autoUpgrade = {
-    enable            = cfg.maintenance.autoUpgrade.enable;
-    flake             = "/home/${cfg.user.username}/.config/nix-config";
-    flags             = map (i: "--update-input ${i}") cfg.maintenance.autoUpgrade.updateInputs
-                        ++ [ "--commit-lock-file" ];
-    dates             = cfg.maintenance.autoUpgrade.dates;
-    randomizedDelaySec = cfg.maintenance.autoUpgrade.randomizedDelaySec;
-    allowReboot       = cfg.maintenance.autoUpgrade.allowReboot;
+    enable = true;
+    flake = "/home/${cfg.user.username}/.config/nix-config";
+    flags = [
+      "--update-input"
+      "nixpkgs"
+      "--commit-lock-file"
+    ];
+    dates = "daily";
+    randomizedDelaySec = "45min";
+    allowReboot = false;
   };
 
-  # Default timezone and locale (can be overridden per host)
-  time.timeZone         = lib.mkDefault cfg.system.timeZone;
-  i18n.defaultLocale    = lib.mkDefault cfg.system.locale;
+  time.timeZone = lib.mkDefault cfg.timeZone;
+  i18n.defaultLocale = lib.mkDefault cfg.locale;
 
-  # Console configuration defaults
   console = {
-    font   = lib.mkDefault "Lat2-Terminus16";
+    font = lib.mkDefault "Lat2-Terminus16";
     keyMap = lib.mkDefault "uk";
   };
 
-  # Networking
-  networking.networkmanager.enable = lib.mkDefault cfg.system.network.enableNetworkManager;
+  networking.networkmanager.enable = lib.mkDefault true;
 
-  # Boot configuration defaults
   boot = {
     loader = {
-      systemd-boot.enable     = lib.mkDefault (cfg.system.boot.loader == "systemd-boot");
+      systemd-boot.enable = lib.mkDefault true;
       efi.canTouchEfiVariables = lib.mkDefault true;
     };
-    kernelPackages = lib.mkDefault (
-      if cfg.system.kernel.useLatest then pkgs.linuxPackages_latest else pkgs.linuxPackages
-    );
+    kernelPackages = lib.mkDefault pkgs.linuxPackages_latest;
   };
+
+  # sops-nix: decrypt secrets using the host's SSH ed25519 key as an age key.
+  # This key is generated on first boot and lives outside the Nix store.
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 }

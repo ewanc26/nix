@@ -4,11 +4,13 @@
 ```
 ├── flake.nix
 ├── flake.lock
+├── .sops.yaml                # sops age key and creation rules
 ├── hosts/
 │   ├── laptop/               # NixOS desktop (Dell Inspiron 3501)
 │   ├── server/               # NixOS headless server
 │   └── macmini/              # macOS (nix-darwin)
 ├── modules/
+│   ├── options.nix           # ⭐ All option declarations + defaults
 │   ├── common.nix            # Base NixOS settings
 │   ├── desktop.nix           # KDE Plasma 6 + SDDM
 │   ├── packages.nix          # Desktop applications
@@ -17,9 +19,11 @@
 │   ├── users.nix             # User accounts
 │   ├── caddy.nix             # Caddy web server
 │   ├── pds.nix               # Bluesky PDS service
+│   ├── matrix.nix            # Matrix Synapse
+│   ├── forgejo.nix           # Forgejo git forge
+│   ├── cloudflare-tunnel.nix # Cloudflare tunnel
 │   ├── ssh-keys.nix          # Public key registry
 │   ├── server/               # Headless server modules
-│   │   ├── default.nix
 │   │   ├── firewall.nix
 │   │   ├── intrusion.nix     # fail2ban
 │   │   ├── ssh.nix
@@ -33,20 +37,14 @@
 │   ├── server-base.nix
 │   └── server-hardened.nix
 ├── home/
-│   ├── home.nix
+│   ├── default.nix           # ⭐ Home-manager entry point (all hosts)
 │   ├── programs/             # git, zsh, ssh, starship, vscode, kde, ...
 │   └── scripts/              # verify-tailscale-ssh, update-all, update-everything, relts
-├── lib/
-│   ├── default.nix           # cfgLib helpers
-│   └── USAGE.md
 ├── secrets/
-│   ├── secrets.nix           # age public key mappings
 │   ├── setup.sh              # Key management helper
-│   └── age/*.age             # Encrypted secret files
+│   └── *.env / *.json / ...  # sops-encrypted secret files (safe to commit)
 ├── settings/
-│   ├── config.nix            # Entry point
-│   ├── config/               # ⭐ Edit here — one file per domain
-│   ├── darwin/               # macOS system defaults
+│   ├── darwin/               # macOS system.defaults (Dock, Finder, trackpad, etc.)
 │   └── plasma/               # KDE Plasma declarative settings
 ├── tools/                    # Rust maintenance tools
 │   └── src/bin/              # health-check, flake-bump, gen-diff
@@ -60,7 +58,7 @@
 | `nrs` | Rebuild and switch (shell alias) |
 | `nrt` | Test build without switching |
 | `nrb` | Build for next boot (NixOS only) |
-| `update` | Update flake inputs + rebuild |
+| `update-all` | Update flake inputs + rebuild |
 | `cleanup` | Garbage collect old generations |
 | `health-check` | Pre-build validation |
 | `gen-diff` | Compare generations |
@@ -78,19 +76,21 @@ nrs && ssh laptop 'cd ~/.config/nix-config && sudo nixos-rebuild switch --flake 
 
 | What | Where |
 |---|---|
-| Username / email | `settings/config/user.nix` |
-| Add package (Linux) | `settings/config/packages.nix` |
-| Add package (macOS) | `settings/config/darwin.nix` → `packages` |
-| Add Homebrew cask | `settings/config/darwin.nix` → `homebrew.casks` |
-| Theme / fonts | `settings/config/desktop.nix` |
+| Username / email | `modules/options.nix` → `user.*` defaults |
+| Timezone / locale | `modules/options.nix` → `timeZone` / `locale` |
+| Add package (Linux) | `modules/options.nix` → `packages.common` or `packages.desktop` |
+| Add package (macOS) | `modules/options.nix` → `packages.darwin` |
+| Add Homebrew cask | `modules/options.nix` → `darwin.homebrew.casks` |
+| Theme / fonts | `modules/options.nix` → `desktop.*` |
 | KDE Plasma settings | `settings/plasma/default.nix` + `home/programs/kde.nix` |
-| Shell aliases | `settings/config/shell.nix` |
-| Git settings | `settings/config/git.nix` |
-| VS Code | `settings/config/development.nix` |
-| Wallpaper | `wallpapers/wallpaper.jpg` |
-| Firewall ports | `settings/config/server.nix` |
+| macOS system defaults | `settings/darwin/default.nix` |
+| Toggle desktop mode | `hosts/<n>/default.nix` → `myConfig.isDesktop = true` |
+| Enable gaming | `hosts/laptop/default.nix` → `myConfig.gaming.enable = true` |
+| Enable server service | `hosts/server/default.nix` → `myConfig.services.<n>.enable = true` |
+| Firewall ports | `modules/options.nix` → `server.firewall.allowedTCPPorts` |
 | SSH hosts | `home/programs/ssh.nix` → `internalHosts` |
 | SSH public keys | `modules/ssh-keys.nix` |
+| Wallpaper | `wallpapers/wallpaper.jpg` |
 
 ## Hardware (laptop)
 - **Model**: Dell Inspiron 3501
@@ -116,6 +116,18 @@ ssh macmini   # → Tailscale → macmini (self — usually skipped)
 ```
 
 macOS binary path: `/Applications/Tailscale.app/Contents/MacOS/Tailscale`
+
+## Secrets
+
+Secrets are encrypted with [sops](https://github.com/getsops/sops) using age keys. Encrypted files live in `secrets/` and are safe to commit. The key inventory and creation rules are in `.sops.yaml`.
+
+```bash
+sops secrets/pds.env               # Edit a secret
+sops --encrypt secrets/new.env > secrets/new.env   # Create a new secret
+sops updatekeys secrets/pds.env    # Re-encrypt after adding a host key
+```
+
+See [secrets.md](secrets.md) for full documentation.
 
 ## Emergency Recovery
 

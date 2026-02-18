@@ -1,99 +1,146 @@
-# Configuration Directory — Single Source of Truth
+# Configuration Options Reference
 
-Every configurable value for the entire NixOS / nix-darwin setup lives here, split into focused files. **No module or host file should contain a hardcoded value that belongs here.**
+All configurable values are declared in `modules/options.nix` as typed NixOS module options. Defaults are set there; per-host overrides go in `hosts/<n>/default.nix`.
 
-## File Map
+> This file was previously the reference for the now-removed `settings/config/` directory. That directory and `settings/config.nix` have been deleted — see [settings.md](settings.md) for the current approach.
 
-| File | What it controls |
+## Option map
+
+### User (`myConfig.user`)
+
+| Option | Default | Description |
+|---|---|---|
+| `username` | `"ewan"` | Unix username |
+| `fullName` | `"Ewan Croft"` | Display name for Git, etc. |
+| `email` | `"git@ewancroft.uk"` | Email for Git commits |
+
+### System
+
+| Option | Default | Description |
+|---|---|---|
+| `stateVersion` | `"25.11"` | NixOS / home-manager state version |
+| `timeZone` | `"Europe/London"` | System timezone |
+| `locale` | `"en_GB.UTF-8"` | Default locale |
+| `isDesktop` | `false` | Whether this is an interactive desktop — set `true` in the host file |
+
+### Audio (`myConfig.audio`)
+
+| Option | Default |
 |---|---|
-| `user.nix` | Username, full name, email, shell |
-| `system.nix` | State version, timezone, locale, boot, kernel, network |
-| `nix.nix` | Experimental features, store optimisation, garbage collection |
-| `packages.nix` | Package lists — common, fonts, linux, desktop, gaming, server |
-| `git.nix` | Branch, editor, LFS, commit signing, aliases, global gitignore |
-| `shell.nix` | Aliases, git shortcuts, platform aliases, history |
-| `desktop.nix` | Theme, icon theme, mono fonts, display manager, KDE Plasma settings |
-| `ssh.nix` | Key file path, SSH agent |
-| `audio.nix` | Backend (pipewire / pulseaudio) |
-| `gaming.nix` | Enable flag, Steam, Gamemode |
-| `server.nix` | sshd, fail2ban, firewall |
-| `darwin.nix` | Homebrew brews/casks, nixpkgs packages, keyboard, startup, security |
-| `secrets.nix` | Age key path, secret file list |
-| `development.nix` | Languages, VS Code theme/fonts/extensions |
-| `maintenance.nix` | Auto-upgrade, backup |
-| `paths.nix` | Config repo path, home-manager path |
+| `enable` | `true` |
+| `backend` | `"pipewire"` |
 
-## Usage
+### Gaming (`myConfig.gaming`)
 
-```nix
-let
-  cfg = import ../../settings/config.nix;
-in {
-  home.username            = cfg.user.username;
-  programs.git.userEmail   = cfg.user.email;
-  home.stateVersion        = cfg.system.stateVersion;
-  environment.systemPackages = map (p: pkgs.${p}) cfg.packages.common;
-  programs.vscode.profiles.default.extensions =
-    map toExt cfg.development.vscode.extensions;
-}
-```
+| Option | Default | Notes |
+|---|---|---|
+| `enable` | `false` | Set `true` in `hosts/laptop/default.nix` |
+| `steam.enable` | `true` | |
+| `steam.openFirewall` | `false` | |
 
-## Quick-edit cheatsheet
+### Packages (`myConfig.packages`)
 
-| I want to change… | Edit |
+| Option | Description |
 |---|---|
-| Username / email | `user.nix` |
-| Timezone / locale | `system.nix` |
-| Add a package (Linux) | `packages.nix` → `common` or `desktop` |
-| Add a package (macOS) | `darwin.nix` → `packages` |
-| Add a Homebrew cask | `darwin.nix` → `homebrew.casks` |
-| Git alias | `git.nix` → `aliases` |
-| Shell alias | `shell.nix` → `aliases` |
-| Theme / icon theme | `desktop.nix` → `theme` / `iconTheme` |
-| Monospace font | `desktop.nix` → `monoFont` / `monoFontConsole` |
-| KDE Plasma packages | `desktop.nix` → `plasma.excludePackages` |
-| VS Code extensions | `development.nix` → `vscode.extensions` |
-| VS Code font | `development.nix` → `vscode.fontFamily` |
-| Enable gaming | `gaming.nix` → `enable = true` |
-| SSH port | `server.nix` → `sshd.port` |
-| Firewall ports | `server.nix` → `firewall.allowedTCPPorts` |
-| Auto-upgrade | `maintenance.nix` → `autoUpgrade.enable` |
-| Add a secret | `secrets.nix` → `files` list, then create the `.age` file |
-| macOS Touch ID sudo | `darwin.nix` → `security.touchIdForSudo` |
-| macOS startup chime | `darwin.nix` → `startup.chime` |
+| `common` | CLI tools on every host |
+| `development` | Languages and tooling (laptop + macmini) |
+| `fonts` | Nerd Font names to install via home-manager |
+| `linux` | Linux-only GUI extras (e.g. `vlc`) |
+| `desktop` | Linux desktop GUI apps |
+| `gaming` | Gaming packages |
+| `server` | Server-only extras |
+| `darwin` | macOS-specific Nix packages |
 
-## Adding a new secret
+### Desktop (`myConfig.desktop`)
 
-```bash
-# 1. Encrypt it
-rage -e -r "$(cat ~/.ssh/id_ed25519.pub)" my-secret.txt > secrets/age/my-secret.age
+| Option | Default |
+|---|---|
+| `environment` | `"plasma6"` |
+| `displayManager` | `"sddm"` |
+| `uiFont` / `uiFontSize` | `"Noto Sans"` / `10` |
+| `monoFontBase` | `"FiraCode"` |
+| `monoFontFamily` | `"FiraCode Nerd Font Mono"` |
+| `monoFontSize` | `11` |
+| `theme` | `"Catppuccin-Mocha-Standard-Green-Dark"` |
+| `iconTheme` | `"Papirus-Dark"` |
+| `plasma.colorScheme` | `"CatppuccinMochaGreen"` |
+| `plasma.desktopTheme` | `"breeze-dark"` |
+| `plasma.excludePackages` | `["oxygen" "elisa"]` |
 
-# 2. Register in settings/config/secrets.nix
-#    files = [ "ssh-passphrase" "wifi-home" "my-secret" ];
+### Git (`myConfig.git`)
 
-# 3. Rebuild — available at config.age.secrets.my-secret.path
-```
+| Option | Default |
+|---|---|
+| `defaultBranch` | `"main"` |
+| `editor` | `"code --wait"` |
+| `lfs.enable` | `true` |
+| `signing.enabled` | `true` |
+| `signing.format` | `"ssh"` |
 
-## Adding a new settings category
+### Development / VS Code (`myConfig.development.vscode`)
 
-```bash
-# 1. Create the file
-cat > settings/config/monitoring.nix << 'EOF'
-{
-  prometheus = { enable = false; port = 9090; };
-  grafana    = { enable = false; port = 3000; };
-}
-EOF
+| Option | Default |
+|---|---|
+| `enable` | `true` |
+| `colorTheme` | `"Catppuccin Mocha"` |
+| `iconTheme` | `"catppuccin-vsc-icons"` |
+| `fontSize` | `14` |
+| `terminalFontSize` | `13` |
+| `lineHeight` | `22` |
+| `fontLigatures` | `true` |
 
-# 2. Register in default.nix
-#    monitoring = import ./monitoring.nix;
+### Secrets (`myConfig.secrets`)
 
-# 3. Use anywhere
-#    cfg.monitoring.prometheus.enable
-```
+| Option | Default | What it enables |
+|---|---|---|
+| `docker.enable` | `true` | `~/.docker/config.json` |
+| `claude.enable` | `true` | `~/.claude.json` |
+| `duckdns.enable` | `false` | `~/.duckdns/` bundle |
 
-## Further Reading
+### Server services (`myConfig.services`)
 
-- [settings.md](settings.md) — overview and export workflow
-- [settings-structure.md](settings-structure.md) — why the config is modular
-- [REFERENCE.md](REFERENCE.md) — quick-reference command card
+| Option | Default | Set in |
+|---|---|---|
+| `forgejo.enable` | `false` | `hosts/server/default.nix` |
+| `pds.enable` | `false` | `hosts/server/default.nix` |
+| `matrix.enable` | `false` | `hosts/server/default.nix` |
+| `cloudflare.enable` | `false` | `hosts/server/default.nix` |
+
+### Server SSH (`myConfig.server.sshd`)
+
+| Option | Default |
+|---|---|
+| `enable` | `true` |
+| `permitRootLogin` | `"no"` |
+| `passwordAuthentication` | `false` |
+| `port` | `22` |
+| `maxAuthTries` | `3` |
+| `x11Forwarding` | `false` |
+
+### Firewall (`myConfig.server.firewall`)
+
+| Option | Default |
+|---|---|
+| `enable` | `true` |
+| `allowPing` | `true` |
+| `allowedTCPPorts` | `[22]` |
+| `allowedUDPPorts` | `[]` |
+
+### Darwin (`myConfig.darwin`)
+
+| Option | Default |
+|---|---|
+| `keyboard.enableKeyMapping` | `true` |
+| `keyboard.remapCapsLockToControl` | `false` |
+| `startup.chime` | `true` |
+| `security.touchIdForSudo` | `true` |
+| `homebrew.enable` | `true` |
+| `homebrew.taps` | `[]` |
+| `homebrew.brews` | *(media codec list — see options.nix)* |
+| `homebrew.casks` | *(GUI app list — see options.nix)* |
+| `homebrew.masApps` | *(Mac App Store apps — see options.nix)* |
+
+## Further reading
+
+- [settings.md](settings.md) — how to make changes
+- [REFERENCE.md](REFERENCE.md) — command reference

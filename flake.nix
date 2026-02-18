@@ -1,9 +1,8 @@
 {
-  description = "NixOS configuration";
+  description = "NixOS / nix-darwin configuration";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-    nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-25.11-darwin";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
@@ -12,11 +11,11 @@
 
     nix-darwin = {
       url = "github:LnL7/nix-darwin/nix-darwin-25.11";
-      inputs.nixpkgs.follows = "nixpkgs-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    ragenix = {
-      url = "github:yaxitech/ragenix";
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -36,103 +35,103 @@
     mac-app-util.url = "github:hraban/mac-app-util";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-darwin, home-manager, nix-darwin, ragenix, nix-vscode-extensions, catppuccin, mac-app-util, plasma-manager, ... }:
-  let
-    # generic lib from the main nixpkgs input
-    lib = nixpkgs.lib;
-    
-    # Central configuration - single source of truth
-    config = import ./settings/config.nix;
-    userConfig = config.user;
-    
-    # Custom library with helpers to reduce repetition
-    cfgLib = import ./lib { inherit lib; };
-    
-    # helper that returns the value to use as the home manager user module
-    homeUser = { pkgsFor, isDarwin, isDesktop, hostName }: import ./home/home.nix {
-      pkgs = pkgsFor;
-      lib = lib;
-      isDarwin = isDarwin;
-      isDesktop = isDesktop;
-      hostName = hostName;
-    };
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      nix-darwin,
+      sops-nix,
+      nix-vscode-extensions,
+      catppuccin,
+      mac-app-util,
+      plasma-manager,
+      ...
+    }:
+    let
+      # Shared home-manager modules used by every host.
+      sharedHMModules = [
+        catppuccin.homeModules.catppuccin
+        sops-nix.homeManagerModules.sops
+      ];
 
-    # DRY NixOS builder: compute pkgsForSystem and pass it explicitly into homeUser
-    mkNixOS = { system, hostFile, hostName, isDesktop ? true }: let
-      pkgsForSystem = import nixpkgs {
-  inherit system;
-  config = { allowUnfree = config.packages.allowUnfree; };
-  overlays = [ nix-vscode-extensions.overlays.default ];
-};
-    in nixpkgs.lib.nixosSystem {
-      inherit system;
-      pkgs = pkgsForSystem;
-      specialArgs = { inherit self cfgLib; };
-      modules = [
-        hostFile
-        ragenix.nixosModules.default
+      # Modules common to every NixOS host.
+      nixosModules = [
+        ./modules/options.nix
+        ./modules/common.nix
+        sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
+        {
+          nixpkgs.config.allowUnfree = true;
+          nixpkgs.overlays = [ nix-vscode-extensions.overlays.default ];
+        }
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.sharedModules = [
-            catppuccin.homeModules.catppuccin
+          home-manager.sharedModules = sharedHMModules ++ [
             plasma-manager.homeModules.plasma-manager
-            ragenix.homeManagerModules.default
           ];
-          home-manager.extraSpecialArgs = { inherit cfgLib; };
-          home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForSystem; isDarwin = false; inherit isDesktop hostName; };
-          # Automatically handle backup collisions
+          home-manager.users.ewan = ./home/default.nix;
           home-manager.backupFileExtension = "hm-bak";
           home-manager.overwriteBackup = true;
         }
       ];
-    };
 
-    # DRY Darwin builder: compute pkgs for Darwin and pass into homeUser
-    mkDarwin = { system, hostFile, hostName, isDesktop ? false }: let
-      pkgsForDarwin = import nixpkgs-darwin {
-  inherit system;
-  config = { allowUnfree = config.packages.allowUnfree; };
-  overlays = [ nix-vscode-extensions.overlays.default ];
-};
-    in nix-darwin.lib.darwinSystem {
-      inherit system;
-      pkgs = pkgsForDarwin;
-      specialArgs = { inherit cfgLib; };
-      modules = [
-        hostFile
-        ragenix.darwinModules.default
+      # Modules common to every nix-darwin host.
+      darwinModules = [
+        ./modules/options.nix
         mac-app-util.darwinModules.default
         home-manager.darwinModules.home-manager
         {
+          nixpkgs.config.allowUnfree = true;
+          nixpkgs.overlays = [ nix-vscode-extensions.overlays.default ];
+        }
+        {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.sharedModules = [
-            catppuccin.homeModules.catppuccin
+          home-manager.sharedModules = sharedHMModules ++ [
             mac-app-util.homeManagerModules.default
-            ragenix.homeManagerModules.default
           ];
-          home-manager.extraSpecialArgs = { inherit cfgLib; };
-          home-manager.users.${userConfig.username} = homeUser { pkgsFor = pkgsForDarwin; isDarwin = true; inherit isDesktop hostName; };
-          # Automatically handle backup collisions
+          home-manager.users.ewan = ./home/default.nix;
           home-manager.backupFileExtension = "hm-bak";
           home-manager.overwriteBackup = true;
         }
       ];
-    };
-  in {
-      nixosConfigurations = rec {
-        default = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/laptop; hostName = "laptop"; };
-        laptop  = default;
-        
-        # Server configurations for different architectures
-        server  = mkNixOS { system = "x86_64-linux"; hostFile = ./hosts/server; hostName = "server"; isDesktop = false; };
-        server-arm = mkNixOS { system = "aarch64-linux"; hostFile = ./hosts/server; hostName = "server"; isDesktop = false; };
+
+      forAllSystems =
+        f: nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ] (system: f system);
+    in
+    {
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+
+      nixosConfigurations = {
+        laptop = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit self; };
+          modules = nixosModules ++ [ ./hosts/laptop ];
+        };
+
+        server = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit self; };
+          modules = nixosModules ++ [
+            ./hosts/server
+            { nixpkgs.hostPlatform = "x86_64-linux"; }
+          ];
+        };
+
+        server-arm = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit self; };
+          modules = nixosModules ++ [
+            ./hosts/server
+            { nixpkgs.hostPlatform = "aarch64-linux"; }
+          ];
+        };
       };
 
-    darwinConfigurations = {
-      macmini = mkDarwin { system = "aarch64-darwin"; hostFile = ./hosts/macmini; hostName = "macmini"; isDesktop = true; };
+      darwinConfigurations = {
+        macmini = nix-darwin.lib.darwinSystem {
+          specialArgs = { inherit self; };
+          modules = darwinModules ++ [ ./hosts/macmini ];
+        };
+      };
     };
-  };
 }

@@ -1,14 +1,18 @@
+# VS Code configuration.
 {
   pkgs,
   lib,
-  cfgLib,
+  osConfig,
   ...
 }:
-
 let
-  cfg = cfgLib.cfg;
+  cfg = osConfig.myConfig;
+  d = cfg.desktop;
 
-  # Resolve "publisher.name" → pkgs.vscode-extensions.<publisher>.<n>
+  # Font strings derived from desktop options — single source of truth.
+  editorFont = d.monoFontBase; # "FiraCode"
+  terminalFont = "${d.monoFontBase} Nerd Font"; # "FiraCode Nerd Font"
+
   toNixpkgsExt =
     extStr:
     let
@@ -16,14 +20,40 @@ let
     in
     pkgs.vscode-extensions.${builtins.elemAt parts 0}.${builtins.elemAt parts 1};
 
-  # Resolve "publisher.name" → pkgs.vscode-marketplace.<publisher>.<n>
-  # Provided by the nix-vscode-extensions overlay added in flake.nix.
   toMarketplaceExt =
     extStr:
     let
       parts = lib.splitString "." extStr;
     in
     pkgs.vscode-marketplace.${builtins.elemAt parts 0}.${builtins.elemAt parts 1};
+
+  nixpkgsExtensions = [
+    "jnoortheen.nix-ide"
+    "ms-python.python"
+    "ms-python.debugpy"
+    "rust-lang.rust-analyzer"
+    "ms-dotnettools.csharp"
+    "ms-dotnettools.csdevkit"
+    "mads-hartmann.bash-ide-vscode"
+    "timonwong.shellcheck"
+    "foxundermoon.shell-format"
+    "ms-azuretools.vscode-docker"
+    "tamasfe.even-better-toml"
+    "redhat.vscode-yaml"
+    "bradlc.vscode-tailwindcss"
+    "dbaeumer.vscode-eslint"
+    "esbenp.prettier-vscode"
+    "eamodio.gitlens"
+    "editorconfig.editorconfig"
+    "streetsidesoftware.code-spell-checker"
+    "christian-kohler.path-intellisense"
+  ];
+
+  marketplaceExtensions = [
+    "golang.go"
+    "svelte.svelte-vscode"
+    "ms-vscode.makefile-tools"
+  ];
 in
 {
   programs.vscode = {
@@ -31,13 +61,12 @@ in
 
     profiles.default = {
       extensions =
-        map toNixpkgsExt cfg.development.vscode.extensions
-        ++ map toMarketplaceExt cfg.development.vscode.marketplaceExtensions;
+        map toNixpkgsExt nixpkgsExtensions ++ map toMarketplaceExt marketplaceExtensions;
 
       userSettings = {
         "workbench.colorTheme" = lib.mkDefault cfg.development.vscode.colorTheme;
         "workbench.iconTheme" = lib.mkDefault cfg.development.vscode.iconTheme;
-        "editor.fontFamily" = cfg.development.vscode.fontFamily;
+        "editor.fontFamily" = "'${editorFont}', 'monospace'";
         "editor.fontSize" = cfg.development.vscode.fontSize;
         "editor.lineHeight" = cfg.development.vscode.lineHeight;
         "editor.fontLigatures" = cfg.development.vscode.fontLigatures;
@@ -54,13 +83,12 @@ in
         "files.autoSaveDelay" = 1000;
         "git.autofetch" = true;
         "git.confirmSync" = false;
-        "terminal.integrated.fontFamily" = cfg.development.vscode.terminalFontFamily;
+        "terminal.integrated.fontFamily" = "'${terminalFont}'";
         "terminal.integrated.fontSize" = cfg.development.vscode.terminalFontSize;
         "workbench.startupEditor" = "none";
         "explorer.confirmDelete" = false;
         "explorer.confirmDragAndDrop" = false;
 
-        # ── Per-language default formatters ───────────────────────────────────
         "[javascript]"."editor.defaultFormatter" = "esbenp.prettier-vscode";
         "[typescript]"."editor.defaultFormatter" = "esbenp.prettier-vscode";
         "[svelte]"."editor.defaultFormatter" = "svelte.svelte-vscode";
@@ -75,29 +103,22 @@ in
         "[makefile]"."editor.defaultFormatter" = "ms-vscode.makefile-tools";
         "[python]"."editor.defaultFormatter" = "charliermarsh.ruff";
 
-        # ── Nix IDE ───────────────────────────────────────────────────────────
         "nix.enableLanguageServer" = true;
         "nix.serverPath" = "nil";
         "nix.serverSettings".nil.formatting.command = [ "nixfmt" ];
 
-        # ── Go ────────────────────────────────────────────────────────────────
         "go.useLanguageServer" = true;
 
-        # ── Python ───────────────────────────────────────────────────────────
         "python.analysis.typeCheckingMode" = "basic";
         "ruff.lint.enable" = true;
 
-        # ── Shell ─────────────────────────────────────────────────────────────
-        # Point extensions at Nix-managed binaries so they work regardless of PATH.
         "shellcheck.executablePath" = "shellcheck";
         "shellformat.path" = "shfmt";
         "bashIde.shellcheckPath" = "shellcheck";
 
-        # ── YAML ──────────────────────────────────────────────────────────────
         "yaml.format.enable" = true;
         "yaml.validate" = true;
 
-        # ── TOML ──────────────────────────────────────────────────────────────
         "evenBetterToml.formatter.alignEntries" = false;
         "evenBetterToml.formatter.arrayTrailingComma" = true;
       };

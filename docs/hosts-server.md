@@ -28,8 +28,7 @@ doesn't need to exist yet.
 
 ### 1. Generate PDS secrets
 
-If you haven't already done this (check whether `secrets/age/pds.env.age` is
-populated with real secrets — not a placeholder):
+If `secrets/pds.env` doesn't exist yet or contains placeholder values:
 
 ```bash
 # Generate each secret separately — do NOT reuse values
@@ -38,21 +37,23 @@ PDS_ADMIN_PASSWORD=$(openssl rand --hex 16)
 PDS_PLC_ROTATION_KEY=$(openssl ecparam --name secp256k1 --genkey --noout \
   --outform DER | tail --bytes=+8 | head --bytes=32 | xxd --plain --cols 32)
 
-# Edit the secret file (ragenix opens $EDITOR):
-nix run github:yaxitech/ragenix -- \
-  --rules secrets/secrets.nix \
-  --editor "code --wait" \
-  -e secrets/age/pds.env.age
-```
-
-The file should contain (one per line):
-
-```
-PDS_JWT_SECRET=<value>
-PDS_ADMIN_PASSWORD=<value>
-PDS_PLC_ROTATION_KEY_K256_PRIVATE_KEY_HEX=<value>
+# Write plaintext to a temp file, then encrypt with sops
+cat > /tmp/pds.env << EOF
+PDS_JWT_SECRET=${PDS_JWT_SECRET}
+PDS_ADMIN_PASSWORD=${PDS_ADMIN_PASSWORD}
+PDS_PLC_ROTATION_KEY_K256_PRIVATE_KEY_HEX=${PDS_PLC_ROTATION_KEY}
 PDS_EMAIL_SMTP_URL=smtps://resend:<api-key>@smtp.resend.com:465/
 PDS_EMAIL_FROM_ADDRESS=pds@ewancroft.uk
+EOF
+
+sops --encrypt /tmp/pds.env > secrets/pds.env
+rm /tmp/pds.env
+git add secrets/pds.env
+```
+
+To edit an existing secret:
+```bash
+sops secrets/pds.env
 ```
 
 ### 2. Create the Cloudflare tunnel
@@ -83,16 +84,9 @@ cloudflare = {
 The JSON credentials file is at `~/.cloudflared/<UUID>.json` after step 2:
 
 ```bash
-cp ~/.cloudflared/<UUID>.json /tmp/cf-tunnel-pds.json
-
-nix run github:yaxitech/ragenix -- \
-  --rules secrets/secrets.nix \
-  --editor "code --wait" \
-  -e secrets/age/cf-tunnel-pds.json.age
-
-# Paste the JSON file contents into the editor, save and close.
-# Delete the plaintext copy:
-rm /tmp/cf-tunnel-pds.json
+# Encrypt directly with sops (reads .sops.yaml for recipients)
+sops --encrypt ~/.cloudflared/<UUID>.json > secrets/cf-tunnel.json
+git add secrets/cf-tunnel.json
 ```
 
 ### 5. Add the DNS CNAME in Cloudflare
@@ -129,26 +123,35 @@ While still on the installer (or after first boot):
 nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'
 ```
 
-Paste the result into `secrets/secrets.nix`:
+Paste the result into `.sops.yaml` under `keys:` and add it to the relevant `creation_rules`:
 
-```nix
-systems = {
+```yaml
+keys:
   # ...
-  server = "age1...";  # ← paste here
-};
+  - &server age1...   # ← paste here
+
+creation_rules:
+  - path_regex: secrets/(pds\.env|matrix\.env|...)
+    key_groups:
+      - age:
+          - *ewan
+          - *server   # ← uncomment / add
 ```
 
-Also change `pdsKeys` from `[ users.ewan ]` to `[ users.ewan systems.server ]`.
+### 3. Re-encrypt secrets for the server
 
-### 3. Rekey secrets for the server
-
-From your macmini or laptop (you need your private age key):
+From your macmini or laptop (you need your personal age key `~/.config/age/keys.txt`):
 
 ```bash
 cd ~/.config/nix-config
-nix run github:yaxitech/ragenix -- --rules secrets/secrets.nix --rekey
-git add secrets/age/ secrets/secrets.nix
-git commit -m "secrets: add server key and rekey PDS secrets"
+# Re-encrypt each server secret with the new key added
+sops updatekeys secrets/pds.env
+sops updatekeys secrets/matrix.env
+sops updatekeys secrets/cf-tunnel.json
+sops updatekeys secrets/cloudflare.token
+sops updatekeys secrets/forgejo.env
+git add .sops.yaml secrets/
+git commit -m "secrets: add server age key, re-encrypt server secrets"
 git push
 ```
 

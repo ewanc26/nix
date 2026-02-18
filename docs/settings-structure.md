@@ -1,82 +1,78 @@
-# Settings Structure
+# Configuration Structure
 
-## Why split into modules?
+> **Note**: The `settings/config/` directory and `settings/config.nix` have been removed. This document describes the current structure.
 
-A single monolithic `config.nix` becomes hard to navigate as it grows. Splitting by domain gives each setting a clear home and keeps files small.
+## How configuration is organised
+
+All options are declared once in `modules/options.nix` with typed defaults. Hosts override what they need in their own `default.nix`. There is no separate config file layer, no custom abstraction, and no manual dependency injection.
+
+```
+modules/options.nix          # Single source of truth for all option declarations + defaults
+hosts/<n>/default.nix        # Per-host overrides using the module system
+```
+
+## Why this approach?
+
+The previous approach imported a plain Nix attrset (`settings/config.nix`) and threaded it through a custom `cfgLib` helper. This had several downsides:
+
+- No type checking — typos and wrong types silently produced bad configs
+- No documentation — `nix-option` couldn't introspect the values
+- Manual wiring — every module had to receive the config as an argument
+- Duplication — defaults lived in `settings/config/` *and* had to be mirrored in `modules/options.nix` definitions
+
+Using the NixOS module system directly gives type checking, proper `mkDefault`/`mkForce` priority, and means every module gets `config.myConfig` automatically — no wiring needed.
+
+## Directory layout
 
 ```
 settings/
-├── config.nix          # 3 lines — just imports config/
-└── config/
-    ├── default.nix     # Combines all modules into one attrset
-    ├── user.nix        # Username, email, shell
-    ├── system.nix      # Timezone, locale, boot, kernel
-    ├── nix.nix         # Flakes, store optimisation, GC
-    ├── packages.nix    # Package lists per context
-    ├── git.nix         # Branch, editor, signing, aliases
-    ├── shell.nix       # Aliases, history
-    ├── desktop.nix     # Theme, fonts, KDE Plasma settings
-    ├── ssh.nix         # Key file, agent
-    ├── audio.nix       # Backend (pipewire / pulseaudio)
-    ├── gaming.nix      # Enable flag, Steam
-    ├── server.nix      # sshd, fail2ban, firewall
-    ├── darwin.nix      # Homebrew, nixpkgs packages, keyboard, security
-    ├── secrets.nix     # Age key path, secret file list
-    ├── development.nix # Languages, VS Code
-    ├── maintenance.nix # Auto-upgrade, backup
-    └── paths.nix       # Config repo and home-manager paths
+├── darwin/             # macOS system.defaults — a plain NixOS module
+│   └── default.nix    # Dock, Finder, NSGlobalDomain, trackpad, etc.
+└── plasma/             # KDE Plasma declarative settings (plasma-manager)
+    └── default.nix
 ```
 
-## Usage
-
-The API is unchanged from a flat file — everything is accessed via `cfg.<domain>.<key>`:
-
-```nix
-let
-  cfg = import ../settings/config.nix;
-in {
-  home.username            = cfg.user.username;
-  programs.git.userEmail   = cfg.user.email;
-  home.packages            = map (p: pkgs.${p}) cfg.packages.common;
-  time.timeZone            = cfg.system.timeZone;
-}
-```
+Both remaining directories in `settings/` are standard NixOS modules imported by their respective platform modules (`modules/darwin/system.nix` and `home/programs/kde.nix`). They are **not** part of any custom abstraction — they're just modules.
 
 ## Edit frequency guide
 
-| File | Edit frequency |
-|---|---|
-| `user.nix` | 🔴 Rare |
-| `system.nix` | 🔴 Rare |
-| `nix.nix` | 🔴 Rare |
-| `ssh.nix` | 🔴 Rare |
-| `audio.nix` | 🔴 Rare |
-| `paths.nix` | 🔴 Rare |
-| `secrets.nix` | 🔴 Per-secret |
-| `server.nix` | 🔴 Per-host |
-| `gaming.nix` | 🔴 Per-host |
-| `packages.nix` | 🟡 Occasional |
-| `git.nix` | 🟡 Occasional |
-| `desktop.nix` | 🟡 Occasional |
-| `darwin.nix` | 🟡 Occasional |
-| `development.nix` | 🟡 Occasional |
-| `maintenance.nix` | 🟡 Occasional |
-| `shell.nix` | 🟢 Frequent |
+| File | Edit frequency | When |
+|---|---|---|
+| `modules/options.nix` | 🟡 Occasional | Adding/changing global defaults |
+| `hosts/laptop/default.nix` | 🔴 Rare | Laptop-specific overrides |
+| `hosts/server/default.nix` | 🔴 Rare | Service toggles, server-specific config |
+| `hosts/macmini/default.nix` | 🔴 Rare | macOS-specific overrides |
+| `settings/darwin/default.nix` | 🟡 Occasional | macOS UI defaults (Dock, Finder, etc.) |
+| `settings/plasma/default.nix` | 🟡 Occasional | KDE Plasma layout and behaviour |
+| `home/programs/kde.nix` | 🟡 Occasional | KDE fonts, theme, Konsole |
 
-## Adding a new category
+## Adding a new option
 
-```bash
-# 1. Create the file
-cat > settings/config/monitoring.nix << 'EOF'
-{
-  prometheus = { enable = false; port = 9090; };
-  grafana    = { enable = false; port = 3000; };
+```nix
+# 1. Declare it in modules/options.nix
+myNewThing = {
+  enable = mkOption {
+    type = bool;
+    default = false;
+    description = "Enable the new thing.";
+  };
+  port = mkOption {
+    type = int;
+    default = 9000;
+  };
+};
+
+# 2. Use it in a module
+lib.mkIf config.myConfig.myNewThing.enable {
+  # ...
 }
-EOF
 
-# 2. Register in default.nix
-#    monitoring = import ./monitoring.nix;
-
-# 3. Use anywhere
-#    cfg.monitoring.prometheus.enable
+# 3. Override per-host if needed
+# hosts/server/default.nix
+myConfig.myNewThing.enable = true;
 ```
+
+## Further reading
+
+- [settings.md](settings.md) — practical how-to guide
+- [settings-config.md](settings-config.md) — full option reference

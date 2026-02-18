@@ -16,10 +16,12 @@ result-*
 # 1. Ignore everything in the secrets directory by default
 /secrets/*
 
-# 2. Whitelist specific Ragenix/Config files that MUST be in Git
-!/secrets/age/
-!/secrets/age/*.age
-!/secrets/secrets.nix
+# 2. Whitelist sops-encrypted secret files and the sops config itself
+!.sops.yaml
+!/secrets/*.env
+!/secrets/*.json
+!/secrets/*.yaml
+!/secrets/*.tar.gz
 !/secrets/setup.sh
 
 # 3. Explicitly block sensitive patterns everywhere just in case
