@@ -68,7 +68,9 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.extraSpecialArgs = { isDarwin = false; };
+          home-manager.extraSpecialArgs = {
+            isDarwin = false;
+          };
           home-manager.sharedModules = sharedHMModules ++ [
             plasma-manager.homeModules.plasma-manager
           ];
@@ -90,7 +92,9 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.extraSpecialArgs = { isDarwin = true; };
+          home-manager.extraSpecialArgs = {
+            isDarwin = true;
+          };
           home-manager.sharedModules = sharedHMModules ++ [
             mac-app-util.homeManagerModules.default
           ];
@@ -109,7 +113,10 @@
       nixosConfigurations = {
         laptop = nixpkgs.lib.nixosSystem {
           specialArgs = { inherit self; };
-          modules = nixosModules ++ [ ./hosts/laptop ];
+          modules = nixosModules ++ [
+            ./hosts/laptop
+            { nixpkgs.hostPlatform = "x86_64-linux"; }
+          ];
         };
 
         server = nixpkgs.lib.nixosSystem {
@@ -132,7 +139,10 @@
       darwinConfigurations = {
         macmini = nix-darwin.lib.darwinSystem {
           specialArgs = { inherit self; };
-          modules = darwinModules ++ [ ./hosts/macmini ];
+          modules = darwinModules ++ [
+            ./hosts/macmini
+            { nixpkgs.hostPlatform = "aarch64-darwin"; }
+          ];
         };
       };
     };
