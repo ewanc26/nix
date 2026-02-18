@@ -1,5 +1,7 @@
 # Nix Configuration
 
+v0.3.0
+
 Personal NixOS and nix-darwin configurations for managing multiple machines with a unified, centralized setup.
 
 > **Note:** This is a personal configuration repository. While you're welcome to use it as reference, it's specifically tailored to my needs and setup.
@@ -95,6 +97,7 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 All options are declared with typed defaults in `modules/options.nix`. Every system module reads values via `config.myConfig.*`; home-manager modules use `osConfig.myConfig.*`. No custom abstraction layer — it's plain NixOS module system.
 
 **To change a value for all hosts:**
+
 ```nix
 # modules/options.nix
 timeZone = mkOption {
@@ -104,6 +107,7 @@ timeZone = mkOption {
 ```
 
 **To override for one host:**
+
 ```nix
 # hosts/laptop/default.nix
 myConfig.gaming.enable = true;
@@ -131,17 +135,20 @@ cd ~/.config/nix-config
 ### Building
 
 **NixOS:**
+
 ```bash
 sudo nixos-rebuild switch --flake .#laptop
 sudo nixos-rebuild switch --flake .#server
 ```
 
 **macOS (first time):**
+
 ```bash
 sudo nix run nix-darwin -- switch --flake .#macmini
 ```
 
 **macOS (subsequent):**
+
 ```bash
 sudo darwin-rebuild switch --flake .#macmini
 ```
@@ -218,38 +225,42 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 
 ## Inputs
 
-| Input | Version |
-|---|---|
-| [nixpkgs](https://github.com/NixOS/nixpkgs) | nixos-25.11 |
-| [home-manager](https://github.com/nix-community/home-manager) | release-25.11 |
-| [nix-darwin](https://github.com/LnL7/nix-darwin) | nix-darwin-25.11 |
-| [sops-nix](https://github.com/Mic92/sops-nix) | latest |
-| [plasma-manager](https://github.com/nix-community/plasma-manager) | latest |
+| Input                                                             | Version          |
+| ----------------------------------------------------------------- | ---------------- |
+| [nixpkgs](https://github.com/NixOS/nixpkgs)                       | nixos-25.11      |
+| [home-manager](https://github.com/nix-community/home-manager)     | release-25.11    |
+| [nix-darwin](https://github.com/LnL7/nix-darwin)                  | nix-darwin-25.11 |
+| [sops-nix](https://github.com/Mic92/sops-nix)                     | latest           |
+| [plasma-manager](https://github.com/nix-community/plasma-manager) | latest           |
 
 ## Unified Configuration Benefits
 
 ### Same Shell Everywhere
+
 - **zsh** with identical aliases, history, and key bindings on all systems
 - **SSH** client configuration unified (connection multiplexing, agent integration)
 - **Git** settings consistent across NixOS and macOS
 - **Starship** prompt looks the same everywhere
 
 ### Platform-Specific When Needed
+
 - **macOS**: SSH keys loaded at login via LaunchAgent (`ssh-add --apple-load-keychain`)
 - **Linux desktop**: SSH keys loaded at login via systemd + ksshaskpass/KWallet
-- **Server**: No agent needed — SSH connections go *into* it, not out
+- **Server**: No agent needed — SSH connections go _into_ it, not out
 - **KDE Plasma** settings only apply on Linux desktop
 - **Homebrew** only on macOS
 
 ## Documentation
 
 ### Core Documentation
+
 - [`lib/USAGE.md`](lib/USAGE.md) — module patterns for developers
-- [`docs/settings.md`](docs/settings.md) — how configuration works *(start here)*
+- [`docs/settings.md`](docs/settings.md) — how configuration works _(start here)_
 - [`docs/settings-config.md`](docs/settings-config.md) — full option reference
 - [`docs/REFERENCE.md`](docs/REFERENCE.md) — quick-reference command card
 
 ### Host Management
+
 - [`docs/hosts.md`](docs/hosts.md) — hosts documentation index
 - [`docs/hosts-overview.md`](docs/hosts-overview.md) — complete comparison of all three hosts
 - [`docs/hosts-modification.md`](docs/hosts-modification.md) — how to modify and add hosts
@@ -259,6 +270,7 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 - [`docs/TAILSCALE-SSH.md`](docs/TAILSCALE-SSH.md) — inter-host SSH over Tailscale
 
 ### Settings Management
+
 - [`docs/settings.md`](docs/settings.md) — settings overview
 - [`docs/settings-structure.md`](docs/settings-structure.md) — why the config is modular
 - [`docs/secrets.md`](docs/secrets.md) — secrets management
