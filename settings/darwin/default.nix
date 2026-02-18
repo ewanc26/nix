@@ -51,10 +51,9 @@
       "/Applications/Nix Apps/Obsidian.app"
       "/Applications/Nix Apps/Visual Studio Code.app"
       "/Applications/Claude.app"
-      # ── Media & Gaming ─────────────────────────────────────────────
+      # ── Media ─────────────────────────────────────────────
       "/Applications/Nix Apps/Spotify.app"
       "/Applications/Firefox.app"
-      "/Applications/Steam.app"
       # ── System ─────────────────────────────────────────────────────
       "/System/Applications/Utilities/Terminal.app"
     ];
