@@ -17,10 +17,16 @@ in
     ../../profiles/server-hardened.nix
   ];
 
-  # Service toggles — all services run on the server.
-  myConfig.services.forgejo.enable = true;
+  # Service toggles
+  myConfig.services.forgejo.enable = false;
   myConfig.services.pds.enable = true;
   myConfig.services.cloudflare.enable = true;
+
+  # Time Machine backup target
+  myConfig.server.timemachine = {
+    enable = true;
+    validUsers = [ "ewan" ];
+  };
 
   networking.hostName = "server";
 
