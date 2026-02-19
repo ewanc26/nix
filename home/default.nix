@@ -97,7 +97,7 @@ in
   fonts.fontconfig.enable = true;
 
   # ── Linux-only theming ────────────────────────────────────────────────────
-  gtk = lib.mkIf (!isDarwin) {
+  gtk = lib.mkIf (!isDarwin && cfg.isDesktop) {
     enable = true;
     theme = {
       name = cfg.desktop.theme;
@@ -109,13 +109,13 @@ in
     iconTheme.name = cfg.desktop.iconTheme;
   };
 
-  qt = lib.mkIf (!isDarwin) {
+  qt = lib.mkIf (!isDarwin && cfg.isDesktop) {
     enable = true;
     platformTheme.name = "kvantum";
     style.name = "kvantum";
   };
 
-  catppuccin = lib.mkIf (!isDarwin) {
+  catppuccin = lib.mkIf (!isDarwin && cfg.isDesktop) {
     enable = true;
     flavor = "mocha";
     accent = "green";
