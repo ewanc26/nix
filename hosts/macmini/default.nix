@@ -30,11 +30,15 @@ in
   myConfig.darwin.externalDisk.timeMachineVolumeUUID = "9217DB34-722B-4596-8ADD-20C8060FC257";
 
   # AltServer is a menu bar app (LSUIElement = true) so macOS intentionally
-  # hides it from Spotlight. Register it as a login item instead so it
-  # launches automatically at login without needing Spotlight.
-  system.loginItems = [
-    { path = "/Applications/AltServer.app"; }
-  ];
+  # hides it from Spotlight — this is by design and cannot be changed.
+  # Launch it automatically at login via a launchd user agent instead.
+  launchd.user.agents.AltServer = {
+    serviceConfig = {
+      Label = "com.rileytestut.AltServer";
+      ProgramArguments = [ "/usr/bin/open" "-a" "/Applications/AltServer.app" ];
+      RunAtLoad = true;
+    };
+  };
 
   # Timezone — driven from myConfig.timeZone
   time.timeZone = cfg.timeZone;
