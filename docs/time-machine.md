@@ -1,19 +1,24 @@
 # Time Machine Setup
 
 Backups go to a dedicated APFS volume on the external CT2000X9SSD9 (USB, `disk4`/`disk5`).
-The `nrs` activation script handles registration and mounting automatically on every rebuild —
-this doc covers the one-time volume creation only.
+
+## Why this isn't automated
+
+`tmutil setdestination` requires root **and** Full Disk Access (TCC). macOS does not allow
+FDA to be granted to scripts or launchd daemons without MDM — so it fundamentally cannot
+be run from a `nrs` activation script. The destination only needs to be set **once manually**;
+it then persists across reboots and `nrs` runs indefinitely.
 
 ## First-time setup
 
-### 1. Create the Time Machine APFS volume
+### 1. Create the Time Machine APFS volume (if not already done)
 
 ```bash
 sudo diskutil apfs addVolume disk5 APFS "Time Machine"
 ```
 
-> `disk5` is the APFS container that lives on `disk4s2`. Run `diskutil list` to confirm
-> it's still the right identifier before running this.
+> `disk5` is the APFS container on `disk4s2`. Run `diskutil list` to confirm the right
+> identifier before running this.
 
 ### 2. Get the volume UUID
 
@@ -29,27 +34,24 @@ In `hosts/macmini/default.nix`:
 myConfig.darwin.externalDisk.timeMachineVolumeUUID = "<uuid from step 2>";
 ```
 
-### 4. Rebuild
+This is used only for documentation/reference — `nrs` no longer runs any TM automation.
+
+### 4. Register the destination (once, manually)
 
 ```bash
-nrs
+sudo tmutil setdestination "/Volumes/Time Machine"
 ```
 
-The activation script will mount the volume if needed and register it as a Time Machine
-destination. Backups run on a weekly interval (configured via `tmutil setbackupinterval`).
+This requires your terminal to have Full Disk Access granted in
+**System Settings → Privacy & Security → Full Disk Access**.
 
-## How it works
+### 5. Verify
 
-`modules/darwin/system.nix` runs a `system.activationScripts.timeMachineDestination` on
-every `nrs`. It:
+```bash
+tmutil destinationinfo
+```
 
-1. Looks up the volume by UUID via `diskutil info`
-2. Mounts it if it exists but isn't mounted
-3. Registers it with `tmutil setdestination -a` if not already registered
-4. Skips silently if the disk isn't plugged in
-
-Setting `myConfig.darwin.externalDisk.timeMachineVolumeUUID = null` disables the script
-entirely.
+You should see the volume listed. Time Machine will now back up to it automatically.
 
 ## Server Time Machine (not configured)
 

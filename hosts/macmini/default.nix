@@ -32,11 +32,11 @@ in
   # AltServer is a menu bar app (LSUIElement = true) so macOS intentionally
   # hides it from Spotlight — this is by design and cannot be changed.
   # Launch it automatically at login via a launchd user agent instead.
-  launchd.user.agents.AltServer = {
+  launchd.user.agents."com.rileytestut.AltServer-launcher" = {
     serviceConfig = {
-      Label = "com.rileytestut.AltServer";
       ProgramArguments = [ "/usr/bin/open" "-a" "/Applications/AltServer.app" ];
       RunAtLoad = true;
+      KeepAlive = false;  # one-shot: open the app then exit
     };
   };
 
