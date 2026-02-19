@@ -42,17 +42,17 @@
       "/System/Applications/FaceTime.app"
       "/System/Applications/Phone.app"
       "/System/Applications/iPhone Mirroring.app"
-      "/Applications/Nix Apps/Signal.app"
+      "/Applications/Signal.app"
       "/Applications/Element.app"
-      "/Applications/Nix Apps/Discord.app"
+      "/Applications/Discord.app"
       # ── Productivity ───────────────────────────────────────────────
       "/System/Applications/Calendar.app"
       "/System/Applications/Reminders.app"
-      "/Applications/Nix Apps/Obsidian.app"
-      "/Applications/Nix Apps/Visual Studio Code.app"
+      "/Applications/Obsidian.app"
+      "/Applications/Visual Studio Code.app"
       "/Applications/Claude.app"
       # ── Media ─────────────────────────────────────────────
-      "/Applications/Nix Apps/Spotify.app"
+      "/Applications/Spotify.app"
       "/Applications/Firefox.app"
       # ── System ─────────────────────────────────────────────────────
       "/System/Applications/Utilities/Terminal.app"
