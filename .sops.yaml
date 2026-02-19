@@ -26,7 +26,7 @@ keys:
 
 creation_rules:
   # ── Secrets available on all machines ──────────────────────────────────────
-  - path_regex: secrets/(wifi-home|ssh-passphrase|docker-config\.json|claude\.json|duckdns\.tar\.gz)$
+  - path_regex: secrets/(wifi-home|ssh-passphrase|docker-config\.json|claude\.json)$
     key_groups:
       - age:
           - *ewan

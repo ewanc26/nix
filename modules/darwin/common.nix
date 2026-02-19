@@ -35,6 +35,19 @@ in
         "root"
         cfg.user.username
       ];
+
+      # Storage pressure management — keep the Nix store from ballooning on
+      # a 256 GB disk. Nix will trigger GC automatically when free space on
+      # the store volume drops below min-free, stopping once max-free is reached.
+      # Values are in bytes: 5 GiB min-free, 10 GiB max-free.
+      min-free = 5368709120;   # 5 GiB
+      max-free = 10737418240;  # 10 GiB
+
+      # Do not retain build-time inputs or derivations after a successful build.
+      # These are only needed for `nix develop` / `nix-shell` workflows; keeping
+      # them on a space-constrained machine is not worth it.
+      keep-outputs = false;
+      keep-derivations = false;
     };
 
     # Automatic garbage collection (macOS launchd schedule)
@@ -45,7 +58,9 @@ in
         Hour = 2;
         Minute = 0;
       }; # Every Sunday at 02:00
-      options = "--delete-older-than 30d";
+      # Keep only the last 14 days of generations on the space-constrained
+      # 256 GB Mac. Linux hosts retain 30 days (set in modules/common.nix).
+      options = "--delete-older-than 14d";
     };
   };
 

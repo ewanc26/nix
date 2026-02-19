@@ -225,22 +225,24 @@ in
       darwin = mkOption {
         type = listStr;
         default = [
+          # GNU/POSIX replacements — macOS ships older BSD versions
           "coreutils"
           "parallel"
           "stow"
           "netcat"
+          # Build / link libraries expected by many CLI tools
           "openssl"
           "readline"
           "ncurses"
           "pcre"
           "pcre2"
           "libffi"
-          "discord"
-          "signal-desktop-bin"
-          "obsidian"
-          "vscode"
-          "spotify"
-          "transmission_4"
+          # NOTE: GUI apps (discord, signal, obsidian, vscode, spotify,
+          # transmission) are intentionally absent here. On a 256 GB Mac
+          # they are better installed as Homebrew casks: Homebrew stores
+          # only one copy of the .app and Spotlight / Launch Services work
+          # natively, whereas Nix would keep every old version in the store.
+          # See myConfig.darwin.homebrew.casks below.
         ];
       };
     };
@@ -394,10 +396,6 @@ in
         type = bool;
         default = false;
       };
-      duckdns.enable = mkOption {
-        type = bool;
-        default = false;
-      };
     };
 
     # ── Server service toggles ────────────────────────────────────────────────
@@ -507,7 +505,7 @@ in
     cloudflare = {
       tunnelId = mkOption {
         type = str;
-        default = "63ec1b18-1358-4ee2-9093-713b4e7d9325";
+        default = "2c3ef2e9-fd2d-4e03-8f3f-6fc87954272f";
         description = "Cloudflare Tunnel UUID from `cloudflared tunnel create`.";
       };
     };
@@ -740,32 +738,50 @@ in
         casks = mkOption {
           type = listStr;
           default = [
+            # Communication / social
+            "discord"
+            "signal"
             "element"
+            # Productivity / notes
+            "obsidian"
+            "netnewswire"
+            # Development
+            "visual-studio-code"
             "github"
-            "claude"
-            "firefox"
+            # Media
+            "spotify"
             "obs"
             "handbrake-app"
+            "transmission"
+            # AI
+            "claude"
+            # Browsers
+            "firefox"
+            # Gaming
             "steam"
             "epic-games"
             "prismlauncher"
+            "roblox"
+            "ea"
+            # Virtualisation
             "utm"
+            # Networking / remote
             "cloudflare-warp"
             "tailscale-app"
             "parsec"
+            # System utilities
             "onyx"
             "mos"
+            "altserver"
+            # Logitech peripherals
+            "logitune"
+            "logi-options+"
+            # Microsoft Office
             "microsoft-excel"
             "microsoft-powerpoint"
             "microsoft-teams"
             "microsoft-word"
             "libreoffice"
-            "logitune"
-            "logi-options+"
-            "roblox"
-            "ea"
-            "netnewswire"
-            "altserver"
           ];
         };
         masApps = mkOption {

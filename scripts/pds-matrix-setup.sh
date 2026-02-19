@@ -2,13 +2,17 @@
 ################################################################################
 # pds-matrix-setup.sh — PDS + Matrix + Cloudflare tunnel initial setup
 #
-# Encrypts secrets with sops (age backend), creates the Cloudflare tunnel,
-# configures DNS, and pushes the Matrix .well-known delegation files.
+# NOTE: Secret generation has moved to secrets/setup.sh, which handles all
+# seven encrypted secrets (pds.env, matrix.env, forgejo.env, cf-tunnel.json,
+# docker-config.json, claude.json, duckdns.tar.gz) in one place.
+#
+# This script now focuses on the post-secret steps: Cloudflare DNS records
+# and Matrix .well-known delegation. Run secrets/setup.sh first.
 #
 # Prerequisites:
 #   - age key at ~/.config/age/keys.txt  (run: age-keygen -o ~/.config/age/keys.txt)
-#   - .sops.yaml at repo root with your age pubkey already set
-#   - cloudflared, pwgen, openssl, jq, curl in PATH (or installable via nix run)
+#   - secrets/setup.sh already run (all secrets encrypted)
+#   - cloudflared, jq, curl in PATH (or installable via nix run)
 #
 # Usage:
 #   ./scripts/pds-matrix-setup.sh             # full run
@@ -65,11 +69,13 @@ sops_encrypt_binary() {
     # Encrypt a plaintext file as a sops binary secret.
     # Usage: sops_encrypt_binary <plaintext-tmpfile> <output-secrets-path>
     local src="$1" dst="$2"
-    # sops resolves key groups from .sops.yaml based on the output path.
-    # We pass --output so sops writes directly and uses the path for rule matching.
+    # sops matches creation rules against the *input* file path, not --output.
+    # So we copy the plaintext to the destination path and encrypt in-place,
+    # ensuring the path matches a creation_rule in .sops.yaml.
     cd "$ROOT"
+    cp "$src" "$dst"
     run_cmd sops --encrypt --input-type binary --output-type binary \
-        --output "$dst" "$src"
+        --in-place "$dst"
     ok "Encrypted → $dst"
 }
 
@@ -168,13 +174,20 @@ step_tunnel() {
     # Update tunnelId default in modules/options.nix
     local opts="$ROOT/modules/options.nix"
     if [[ -f "$opts" ]]; then
-        if [[ "$(uname -s)" == Darwin ]]; then
-            sed -i '' "s|default = \"[0-9a-f-]*\"; *# *tunnelId\|tunnelId.*default = \"[0-9a-f-]*\"|default = \"$uuid\"|g" "$opts" 2>/dev/null || true
-            # More targeted: find the tunnelId mkOption block and update its default
-            sed -i '' "/tunnelId/,/};/{s/default = \"[^\"]*\";/default = \"$uuid\";/}" "$opts"
-        else
-            sed -i "/tunnelId/,/};/{s/default = \"[^\"]*\";/default = \"$uuid\";/}" "$opts"
-        fi
+        # Use Python for cross-platform DOTALL regex — BSD sed can't handle '}' in
+        # range-end addresses, and the tunnelId block spans multiple lines.
+        python3 - "$opts" "$uuid" <<'PYEOF'
+import re, sys
+path, uuid = sys.argv[1], sys.argv[2]
+text = open(path).read()
+text = re.sub(
+    r'(tunnelId[^}]*?default\s*=\s*")[^"]*(")',
+    lambda m: m.group(1) + uuid + m.group(2),
+    text,
+    flags=re.DOTALL
+)
+open(path, 'w').write(text)
+PYEOF
         ok "Updated tunnelId in modules/options.nix → $uuid"
     fi
 
@@ -184,18 +197,41 @@ step_tunnel() {
 
 # ── Step 4: DNS records ────────────────────────────────────────────────────────
 step_dns() {
-    log "Step 4: Cloudflare DNS CNAME records"
+    log "Step 4: Cloudflare DNS CNAME records (upsert)"
+    local target="$TUNNEL_UUID.cfargotunnel.com"
     for sub in git matrix pds; do
-        echo "  Setting $sub.$DOMAIN → $TUNNEL_UUID.cfargotunnel.com"
-        local result
-        result=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/dns_records" \
+        echo "  Upserting $sub.$DOMAIN → $target"
+        local payload result record_id
+        payload="{\"type\":\"CNAME\",\"name\":\"$sub\",\"content\":\"$target\",\"proxied\":true}"
+
+        # Look up existing record ID
+        record_id=$(curl -s \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/dns_records?type=CNAME&name=$sub.$DOMAIN" \
             -H "Authorization: Bearer $CF_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{\"type\":\"CNAME\",\"name\":\"$sub\",\"content\":\"$TUNNEL_UUID.cfargotunnel.com\",\"proxied\":true}" 2>&1)
-        if echo "$result" | grep -q '"success":true'; then
-            ok "  $sub.$DOMAIN created"
+            | python3 -c "import sys,json; recs=json.load(sys.stdin)['result']; print(recs[0]['id'] if recs else '')")
+
+        if [[ -n "$record_id" ]]; then
+            result=$(curl -s -X PUT \
+                "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/dns_records/$record_id" \
+                -H "Authorization: Bearer $CF_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "$payload")
+            if echo "$result" | grep -q '"success":true'; then
+                ok "  $sub.$DOMAIN updated"
+            else
+                warn "  $sub.$DOMAIN update failed: $(echo "$result" | python3 -c "import sys,json; e=json.load(sys.stdin)['errors']; print(e[0]['message'] if e else 'unknown')")" 
+            fi
         else
-            warn "  $sub.$DOMAIN may already exist or failed: $(echo "$result" | grep -o '"message":"[^"]*"' | head -1)"
+            result=$(curl -s -X POST \
+                "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/dns_records" \
+                -H "Authorization: Bearer $CF_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "$payload")
+            if echo "$result" | grep -q '"success":true'; then
+                ok "  $sub.$DOMAIN created"
+            else
+                warn "  $sub.$DOMAIN create failed: $(echo "$result" | python3 -c "import sys,json; e=json.load(sys.stdin)['errors']; print(e[0]['message'] if e else 'unknown')")"
+            fi
         fi
     done
 }

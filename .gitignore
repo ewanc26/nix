@@ -23,6 +23,7 @@ result-*
 !/secrets/*.yaml
 !/secrets/*.tar.gz
 !/secrets/setup.sh
+!/secrets/cloudflare.token
 
 # 3. Explicitly block sensitive patterns everywhere just in case
 *.txt

@@ -149,21 +149,5 @@ in
       };
     })
 
-    (lib.mkIf cfg.secrets.duckdns.enable {
-      "duckdns" = {
-        sopsFile = ../secrets/duckdns.tar.gz;
-      };
-    })
   ];
-
-  # Extract DuckDNS tarball on activation.
-  home.activation.setupDuckDNS = lib.mkIf cfg.secrets.duckdns.enable (
-    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      if [ -f "${config.sops.secrets.duckdns.path}" ]; then
-        $DRY_RUN_CMD mkdir -p "${config.home.homeDirectory}/.duckdns"
-        $DRY_RUN_CMD tar -xzf "${config.sops.secrets.duckdns.path}" \
-          -C "${config.home.homeDirectory}"
-      fi
-    ''
-  );
 }

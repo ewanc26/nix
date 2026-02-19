@@ -1,6 +1,6 @@
 # Nix Configuration
 
-v0.3.0
+v0.3.1
 
 Personal NixOS and nix-darwin configurations for managing multiple machines with a unified, centralized setup.
 
