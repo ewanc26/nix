@@ -663,16 +663,13 @@ in
     darwin = {
 
       # ── External storage ──────────────────────────────────────────────────────
-      externalDisk = {
-        timeMachineVolumeUUID = mkOption {
-          type = nullStr;
-          default = null;
-          description = ''Volume UUID of the APFS volume to use for local Time Machine backups.
-            Obtain after running:
-              sudo diskutil apfs addVolume disk5 APFS "Time Machine"
-              diskutil info "/Volumes/Time Machine" | grep "Volume UUID"
-          '';
-        };
+      externalDisk.timeMachineVolumeUUID = mkOption {
+        type = nullStr;
+        default = null;
+        description = ''
+          Volume UUID of the APFS volume to use for local Time Machine backups.
+          Set to null to disable. See docs/time-machine.md for setup instructions.
+        '';
       };
 
       keyboard = {
