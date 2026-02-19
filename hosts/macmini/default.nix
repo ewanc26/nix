@@ -24,8 +24,6 @@ in
     computerName = "MacMini";
   };
 
-  # SMB/NetBIOS hostname (used by network discovery and file sharing)
-  system.defaults.smb.NetBIOSName = "macmini";
 
   # ── External disk (CT2000X9SSD9, APFS container on disk4s2) ───────────────
   # See docs/time-machine.md for first-time setup instructions.
