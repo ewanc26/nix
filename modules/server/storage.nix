@@ -62,8 +62,10 @@ in
 
   # ── 2. /srv mount ──────────────────────────────────────────────────────────
   fileSystems."/srv" = {
-    inherit (srv) device fsType options;
-    # Require the autoformat service to run first
+    inherit (srv) device fsType;
+    # nofail: boot succeeds even if the drive is absent.
+    # noatime: reduce unnecessary writes.
+    options = srv.options ++ [ "nofail" "x-systemd.device-timeout=5" ];
     depends = [ "srv-autoformat.service" ];
     neededForBoot = false;
   };

@@ -139,6 +139,16 @@ lib.mkIf tm.enable {
     ];
   };
 
+  # ── Samba depends on /srv being mounted ─────────────────────────────────────
+  systemd.services.smbd = {
+    after = [ "srv.mount" ];
+    wants = [ "srv.mount" ];
+  };
+  systemd.services.nmbd = {
+    after = [ "srv.mount" ];
+    wants = [ "srv.mount" ];
+  };
+
   # ── Storage directory ──────────────────────────────────────────────────────
   systemd.tmpfiles.rules = [
     "d ${tm.path} 0750 root sambashare -"

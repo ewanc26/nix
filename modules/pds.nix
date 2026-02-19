@@ -75,6 +75,11 @@ lib.mkIf cfg.services.pds.enable {
   };
 
   systemd.services.bluesky-pds = {
+    # Wait for /srv to be mounted — but don't fail if it isn't yet.
+    # When the drive is plugged in and srv.mount starts, this service
+    # will start automatically via the wantedBy relationship.
+    after = [ "srv.mount" ];
+    wants = [ "srv.mount" ];
     serviceConfig = {
       Restart = "always";
       RestartSec = cfg.server.servicePolicy.restartSec;

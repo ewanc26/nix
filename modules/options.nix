@@ -608,7 +608,7 @@ in
       storage.srv = {
         device = mkOption {
           type = str;
-          default = "/dev/sdb";
+          default = "/dev/disk/by-uuid/1811845c-15ab-49c3-8d33-411aad84bce3";
         };
         fsType = mkOption {
           type = str;
