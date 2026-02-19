@@ -29,6 +29,13 @@ in
   # See docs/time-machine.md for first-time setup instructions.
   myConfig.darwin.externalDisk.timeMachineVolumeUUID = "9217DB34-722B-4596-8ADD-20C8060FC257";
 
+  # AltServer is a menu bar app (LSUIElement = true) so macOS intentionally
+  # hides it from Spotlight. Register it as a login item instead so it
+  # launches automatically at login without needing Spotlight.
+  system.loginItems = [
+    { path = "/Applications/AltServer.app"; }
+  ];
+
   # Timezone — driven from myConfig.timeZone
   time.timeZone = cfg.timeZone;
 
