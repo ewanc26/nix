@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ################################################################################
-# pds-matrix-setup.sh — PDS + Matrix + Cloudflare tunnel initial setup
+# pds-setup.sh — PDS + Cloudflare tunnel initial setup
 #
 # NOTE: Secret generation has moved to secrets/setup.sh, which handles all
-# seven encrypted secrets (pds.env, matrix.env, forgejo.env, cf-tunnel.json,
-# docker-config.json, claude.json, duckdns.tar.gz) in one place.
+# encrypted secrets (pds.env, forgejo.env, cf-tunnel.json,
+# docker-config.json, claude.json) in one place.
 #
-# This script now focuses on the post-secret steps: Cloudflare DNS records
-# and Matrix .well-known delegation. Run secrets/setup.sh first.
+# This script now focuses on the post-secret steps: Cloudflare DNS records.
+# Run secrets/setup.sh first.
 #
 # Prerequisites:
 #   - age key at ~/.config/age/keys.txt  (run: age-keygen -o ~/.config/age/keys.txt)
@@ -15,9 +15,9 @@
 #   - cloudflared, jq, curl in PATH (or installable via nix run)
 #
 # Usage:
-#   ./scripts/pds-matrix-setup.sh             # full run
-#   ./scripts/pds-matrix-setup.sh --resume    # skip steps whose output files exist
-#   ./scripts/pds-matrix-setup.sh --force-tunnel  # delete + recreate CF tunnel
+#   ./scripts/pds-setup.sh             # full run
+#   ./scripts/pds-setup.sh --resume    # skip steps whose output files exist
+#   ./scripts/pds-setup.sh --force-tunnel  # delete + recreate CF tunnel
 ################################################################################
 set -euo pipefail
 
@@ -35,7 +35,6 @@ fail() { echo "${RED}  ✗${RESET} $*" >&2; exit 1; }
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$HOME/.config/nix-config")"
 SECRETS_DIR="$ROOT/secrets"
 AGE_KEY="$HOME/.config/age/keys.txt"
-WEBSITE_DIR="$HOME/Developer/Git/GitHub/ewanc26/website"
 DOMAIN="ewancroft.uk"
 
 # sops needs to find the age private key for decryption.
@@ -125,25 +124,7 @@ step_pds_secrets() {
     ok "PDS secrets encrypted.  Admin password: ${BOLD}${admin}${RESET}  (save this!)"
 }
 
-# ── Step 2: Matrix secrets ─────────────────────────────────────────────────────
-step_matrix_secrets() {
-    log "Step 2: Matrix secrets (secrets/matrix.env)"
-    local dst="$SECRETS_DIR/matrix.env"
-    if [[ -f "$dst" ]] && [[ "$RESUME" == true ]]; then ok "Skipping (exists)"; return 0; fi
-
-    local reg mac tmp
-    reg=$(run_cmd pwgen -s 64 1)
-    mac=$(run_cmd pwgen -s 64 1)
-
-    tmp=$(mktemp)
-    printf "REGISTRATION_SHARED_SECRET=%s\nMACAROON_SECRET_KEY=%s\n" "$reg" "$mac" > "$tmp"
-    sops_encrypt_binary "$tmp" "$dst"
-    rm "$tmp"
-
-    ok "Matrix secrets encrypted."
-}
-
-# ── Step 3: Cloudflare tunnel ──────────────────────────────────────────────────
+# ── Step 2: Cloudflare tunnel ──────────────────────────────────────────────────
 step_tunnel() {
     log "Step 3: Cloudflare tunnel (shared for all services)"
     local dst="$SECRETS_DIR/cf-tunnel.json"
@@ -199,7 +180,7 @@ PYEOF
 step_dns() {
     log "Step 4: Cloudflare DNS CNAME records (upsert)"
     local target="$TUNNEL_UUID.cfargotunnel.com"
-    for sub in git matrix pds; do
+    for sub in git pds; do
         echo "  Upserting $sub.$DOMAIN → $target"
         local payload result record_id
         payload="{\"type\":\"CNAME\",\"name\":\"$sub\",\"content\":\"$target\",\"proxied\":true}"
@@ -236,24 +217,6 @@ step_dns() {
     done
 }
 
-# ── Step 5: Matrix .well-known delegation ──────────────────────────────────────
-step_wellknown() {
-    log "Step 5: Matrix .well-known delegation files"
-    if [[ ! -d "$WEBSITE_DIR" ]]; then
-        warn "Website directory not found ($WEBSITE_DIR) — skipping."
-        return 0
-    fi
-
-    local wk="$WEBSITE_DIR/static/.well-known/matrix"
-    mkdir -p "$wk"
-    echo '{"m.server":"matrix.ewancroft.uk:443"}' > "$wk/server"
-    echo '{"m.homeserver":{"base_url":"https://matrix.ewancroft.uk"}}' > "$wk/client"
-
-    cd "$WEBSITE_DIR"
-    git add . && git commit -m "docs: add Matrix .well-known delegation" && git push || true
-    ok "Well-known files pushed."
-}
-
 # ── Forgejo secrets (optional, run separately if needed) ─────────────────────
 step_forgejo_secrets() {
     log "Forgejo secrets (secrets/forgejo.env)"
@@ -275,7 +238,7 @@ step_forgejo_secrets() {
 main() {
     echo "${BOLD}${CYAN}"
     echo "  ┌────────────────────────────────────────┐"
-    echo "  │   PDS + Matrix + Cloudflare Setup      │"
+    echo "  │   PDS + Cloudflare Setup               │"
     echo "  └────────────────────────────────────────┘"
     echo "${RESET}"
 
@@ -283,10 +246,8 @@ main() {
 
     load_cf_creds
     step_pds_secrets
-    step_matrix_secrets
     step_tunnel
     step_dns
-    step_wellknown
 
     echo
     echo "${BOLD}${GREEN}✨  Setup complete!${RESET}"
@@ -296,7 +257,7 @@ main() {
     echo "  2. Commit and push: git add -A && git commit -m 'chore: initial server secrets setup'"
     echo "  3. On server: sudo nixos-rebuild switch --flake .#server"
     echo
-    echo "To also set up Forgejo secrets:"
+    echo "To set up Forgejo secrets:"
     echo "  source this script and call: step_forgejo_secrets"
 }
 

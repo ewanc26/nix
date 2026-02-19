@@ -13,7 +13,6 @@ in
     ../../modules/cockpit.nix
     ../../modules/cloudflare-tunnel.nix
     ../../modules/pds.nix
-    ../../modules/matrix.nix
     ../../modules/forgejo.nix
     ../../profiles/server-hardened.nix
   ];
@@ -21,7 +20,6 @@ in
   # Service toggles — all services run on the server.
   myConfig.services.forgejo.enable = true;
   myConfig.services.pds.enable = true;
-  myConfig.services.matrix.enable = true;
   myConfig.services.cloudflare.enable = true;
 
   networking.hostName = "server";

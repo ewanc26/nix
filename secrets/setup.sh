@@ -136,23 +136,7 @@ secret_forgejo() {
     ok "Forgejo secrets generated."
 }
 
-# ── 2. matrix.env ──────────────────────────────────────────────────────────────
-secret_matrix() {
-    log "matrix.env  (Synapse REGISTRATION_SHARED_SECRET + MACAROON_SECRET_KEY)"
-    local dst="$SECRETS_DIR/matrix.env"
-    if [[ "$FORCE" == false ]] && is_encrypted "$dst"; then
-        ok "Already encrypted — skipping"; return
-    fi
-    local reg mac
-    reg=$(run_openssl rand -hex 32)
-    mac=$(run_openssl rand -hex 32)
-    encrypt_content "$(printf \
-        'REGISTRATION_SHARED_SECRET: %s\nMACARROON_SECRET_KEY: %s\n' \
-        "$reg" "$mac")" "$dst"
-    ok "Matrix secrets generated."
-}
-
-# ── 3. pds.env ─────────────────────────────────────────────────────────────────
+# ── 2. pds.env ─────────────────────────────────────────────────────────────────
 secret_pds() {
     log "pds.env  (Bluesky PDS JWT secret, admin password, PLC rotation key)"
     local dst="$SECRETS_DIR/pds.env"
@@ -356,7 +340,6 @@ main() {
     mkdir -p "$SECRETS_DIR"
 
     secret_forgejo
-    secret_matrix
     secret_pds
     secret_cf_tunnel
     secret_docker

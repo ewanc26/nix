@@ -2,11 +2,11 @@
 #  Cloudflare Tunnel module — Shared tunnel for all services.
 #
 #  Architecture:
-#    All services (PDS, Matrix, etc.) → Caddy (internal ports) → Single CF Tunnel
+#    All services (PDS, Forgejo, etc.) → Caddy (internal ports) → Single CF Tunnel
 #
 #  This module provides a single Cloudflare tunnel that routes traffic to
 #  multiple internal services based on hostname. Individual service modules
-#  (pds.nix, matrix.nix, etc.) configure their Caddy reverse proxies, and
+#  (pds.nix, forgejo.nix, etc.) configure their Caddy reverse proxies, and
 #  this module routes external traffic to them.
 #
 #  Cloudflare tunnel setup (one-time, outside Nix):
@@ -17,9 +17,8 @@
 #    4. Set myConfig.cloudflare.tunnelId to that UUID (modules/options.nix default
 #       or a per-host override).
 #    5. Add CNAME records in Cloudflare DNS for each service:
-#         pds.ewancroft.uk → <UUID>.cfargotunnel.com
-#         matrix.ewancroft.uk → <UUID>.cfargotunnel.com
-#         git.ewancroft.uk → <UUID>.cfargotunnel.com
+#         pds.ewancroft.uk  → <UUID>.cfargotunnel.com
+#         git.ewancroft.uk  → <UUID>.cfargotunnel.com
 ##############################################################################
 {
   config,
@@ -34,9 +33,6 @@ let
     lib.optionalAttrs cfg.services.pds.enable {
       ${cfg.pds.hostname} = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
       "*.${cfg.pds.hostname}" = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
-    }
-    // lib.optionalAttrs cfg.services.matrix.enable {
-      ${cfg.matrix.hostname} = "http://127.0.0.1:${toString cfg.matrix.caddyPort}";
     }
     // lib.optionalAttrs cfg.services.forgejo.enable {
       ${cfg.forgejo.hostname} = "http://127.0.0.1:${toString cfg.forgejo.caddyPort}";

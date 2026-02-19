@@ -27,7 +27,7 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 ### Linux (NixOS) - SECONDARY
 
 - **laptop** - Dell Inspiron 3501 with KDE Plasma 6 — Secondary workstation
-- **server** - Minimal headless server — Bluesky PDS, Matrix, Forgejo, Cloudflare tunnel + hardened security
+- **server** - Minimal headless server — Bluesky PDS, Forgejo, Cloudflare tunnel + hardened security
 
 ## Repository Structure
 
@@ -51,7 +51,6 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 │   ├── users.nix             # User account configuration
 │   ├── caddy.nix             # Caddy web server
 │   ├── pds.nix               # Bluesky ATProto PDS
-│   ├── matrix.nix            # Matrix Synapse
 │   ├── forgejo.nix           # Forgejo git forge
 │   ├── cloudflare-tunnel.nix # Cloudflare tunnel (outbound-only)
 │   ├── cockpit.nix           # Cockpit web console

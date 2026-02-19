@@ -408,10 +408,6 @@ in
         type = bool;
         default = false;
       };
-      matrix.enable = mkOption {
-        type = bool;
-        default = false;
-      };
       cloudflare.enable = mkOption {
         type = bool;
         default = false;
@@ -478,26 +474,6 @@ in
           "https://relay.feeds.blue"
           "https://atproto.africa"
         ];
-      };
-    };
-
-    # ── Matrix ────────────────────────────────────────────────────────────────
-    matrix = {
-      hostname = mkOption {
-        type = str;
-        default = "matrix.ewancroft.uk";
-      };
-      serverName = mkOption {
-        type = str;
-        default = "ewancroft.uk";
-      };
-      port = mkOption {
-        type = int;
-        default = 8008;
-      };
-      caddyPort = mkOption {
-        type = int;
-        default = 8448;
       };
     };
 
