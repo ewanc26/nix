@@ -27,6 +27,10 @@ let
   pdsPort = toString pds.port;
   caddyPort = toString pds.caddyPort;
 
+  # Static landing page served by Caddy at the PDS root URL.
+  landingPage = pkgs.writeTextDir "index.html"
+    (builtins.readFile ./pds-landing/index.html);
+
   # UK Online Safety Act age-assurance static responses.
   ageAssuranceBlocks = ''
     handle /xrpc/app.bsky.unspecced.getAgeAssuranceState {
@@ -95,6 +99,16 @@ lib.mkIf cfg.services.pds.enable {
     # was 127.0.0.1
     extraConfig = ''
       ${ageAssuranceBlocks}
+
+      # Landing page — served at / only; redirect the raw /index.html away.
+      handle /index.html {
+        redir / permanent
+      }
+      handle / {
+        root * ${landingPage}
+        file_server
+      }
+
       handle {
         reverse_proxy http://127.0.0.1:${pdsPort}
       }
