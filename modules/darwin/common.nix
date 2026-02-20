@@ -1,6 +1,7 @@
 # Common Darwin (macOS) settings shared across all hosts.
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -40,8 +41,8 @@ in
       # a 256 GB disk. Nix will trigger GC automatically when free space on
       # the store volume drops below min-free, stopping once max-free is reached.
       # Values are in bytes: 5 GiB min-free, 10 GiB max-free.
-      min-free = 5368709120;   # 5 GiB
-      max-free = 10737418240;  # 10 GiB
+      min-free = 5368709120; # 5 GiB
+      max-free = 10737418240; # 10 GiB
 
       # Do not retain build-time inputs or derivations after a successful build.
       # These are only needed for `nix develop` / `nix-shell` workflows; keeping
@@ -66,4 +67,15 @@ in
 
   # NOTE: system.autoUpgrade does not exist in nix-darwin.
   # Run manually: darwin-rebuild switch --flake ~/.config/nix-config#macmini
+
+  # Symlink tracked hooks into .git/hooks so they're always up to date.
+  # nix-darwin only executes hardcoded script names, so we append to postActivation
+  # rather than using a custom name (which would be silently ignored).
+  system.activationScripts.postActivation.text = lib.mkAfter ''
+    REPO="/Users/${cfg.user.username}/.config/nix-config"
+    if [ -d "$REPO/.git" ]; then
+      ln -sf "$REPO/hooks/pre-commit" "$REPO/.git/hooks/pre-commit"
+      chmod +x "$REPO/hooks/pre-commit"
+    fi
+  '';
 }

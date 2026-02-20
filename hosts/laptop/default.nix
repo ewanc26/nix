@@ -53,5 +53,26 @@ in
     }
   ];
 
+  # After auto-upgrade commits the updated flake.lock, run any pre-commit hooks
+  # then push. Runs as the user so SSH keys are available.
+  systemd.services.nixos-upgrade-push = {
+    description = "Push flake.lock commit after nixos-upgrade";
+    after = [ "nixos-upgrade.service" ];
+    requires = [ "nixos-upgrade.service" ];
+    wantedBy = [ "nixos-upgrade.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = cfg.user.username;
+      WorkingDirectory = "/home/${cfg.user.username}/.config/nix-config";
+    };
+    path = with pkgs; [ git nix ];
+    script = ''
+      if [ -x .git/hooks/pre-commit ]; then
+        .git/hooks/pre-commit || exit 1
+      fi
+      git push
+    '';
+  };
+
   system.stateVersion = cfg.stateVersion;
 }

@@ -24,6 +24,15 @@ in
 
   programs.zsh.enable = true;
 
+  # Symlink tracked hooks into .git/hooks so they're always up to date.
+  system.activationScripts.installGitHooks = ''
+    REPO="/home/${cfg.user.username}/.config/nix-config"
+    if [ -d "$REPO/.git" ]; then
+      ln -sf "$REPO/hooks/pre-commit" "$REPO/.git/hooks/pre-commit"
+      chmod +x "$REPO/hooks/pre-commit"
+    fi
+  '';
+
   # Symlink config repo into /etc/nixos for convenience.
   system.activationScripts.linkConfigs = ''
     mkdir -p /etc/nixos

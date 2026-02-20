@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# Pre-commit hook — runs automatically before every commit and as part of
+# the nixos-upgrade-push systemd service after auto-upgrades.
+#
+# Checks staged files only, so it's fast and non-intrusive.
+# Tools used (all present in myConfig.packages.development):
+#   nixfmt-rfc-style  — Nix formatter
+#   shfmt + shellcheck — Shell formatter and linter
+#   rustfmt + clippy  — Rust formatter and linter (via rustup/cargo)
+#   taplo             — TOML formatter
+#   markdownlint-cli  — Markdown linter
+#   prettier          — JSON, JSONC, YAML, CSS, JS, HTML formatter
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Read staged files into arrays by extension
+mapfile -t NIX_FILES < <(git diff --cached --name-only --diff-filter=ACM | grep '\.nix$' || true)
+mapfile -t SH_FILES < <(git diff --cached --name-only --diff-filter=ACM | grep '\.sh$' || true)
+mapfile -t RS_FILES < <(git diff --cached --name-only --diff-filter=ACM | grep '\.rs$' || true)
+mapfile -t TOML_FILES < <(git diff --cached --name-only --diff-filter=ACM | grep '\.toml$' || true)
+mapfile -t MD_FILES < <(git diff --cached --name-only --diff-filter=ACM | grep '\.md$' || true)
+mapfile -t PRETTIER_FILES < <(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(json|jsonc|yaml|yml|css|js|html)$' || true)
+
+FAILED=0
+
+# ── Nix formatting ────────────────────────────────────────────────────────────
+if [ "${#NIX_FILES[@]}" -gt 0 ]; then
+  echo "→ nixfmt: checking staged .nix files..."
+  for file in "${NIX_FILES[@]}"; do
+    if ! diff -q <(nixfmt < "$file") "$file" > /dev/null 2>&1; then
+      echo "  ✗ $file (run: nixfmt $file)"
+      FAILED=1
+    fi
+  done
+  [ "$FAILED" -eq 0 ] && echo "  ✓ all .nix files formatted"
+fi
+
+# ── Shell formatting ──────────────────────────────────────────────────────────
+if [ "${#SH_FILES[@]}" -gt 0 ]; then
+  echo "→ shfmt: checking staged .sh files..."
+  for file in "${SH_FILES[@]}"; do
+    if [ -n "$(shfmt -d "$file")" ]; then
+      echo "  ✗ $file (run: shfmt -w $file)"
+      FAILED=1
+    fi
+  done
+  [ "$FAILED" -eq 0 ] && echo "  ✓ all .sh files formatted"
+fi
+
+# ── Shell linting ─────────────────────────────────────────────────────────────
+if [ "${#SH_FILES[@]}" -gt 0 ]; then
+  echo "→ shellcheck: linting staged .sh files..."
+  for file in "${SH_FILES[@]}"; do
+    if ! shellcheck "$file"; then
+      FAILED=1
+    fi
+  done
+  [ "$FAILED" -eq 0 ] && echo "  ✓ shellcheck passed"
+fi
+
+# ── Rust formatting + linting ─────────────────────────────────────────────────
+if [ "${#RS_FILES[@]}" -gt 0 ]; then
+  # Find unique Cargo.toml roots containing the staged files
+  declare -A seen_roots
+  for file in "${RS_FILES[@]}"; do
+    dir="$(dirname "$file")"
+    while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+      if [ -f "$dir/Cargo.toml" ]; then
+        seen_roots["$dir"]=1
+        break
+      fi
+      dir="$(dirname "$dir")"
+    done
+  done
+
+  for root in "${!seen_roots[@]}"; do
+    echo "→ rustfmt: checking $root..."
+    if ! cargo fmt --manifest-path "$root/Cargo.toml" -- --check 2>/dev/null; then
+      echo "  ✗ $root (run: cargo fmt --manifest-path $root/Cargo.toml)"
+      FAILED=1
+    else
+      echo "  ✓ rustfmt passed"
+    fi
+
+    echo "→ clippy: linting $root..."
+    if ! cargo clippy --manifest-path "$root/Cargo.toml" -- -D warnings 2>/dev/null; then
+      FAILED=1
+    else
+      echo "  ✓ clippy passed"
+    fi
+  done
+fi
+
+# ── TOML formatting ───────────────────────────────────────────────────────────
+if [ "${#TOML_FILES[@]}" -gt 0 ]; then
+  echo "→ taplo: checking staged .toml files..."
+  for file in "${TOML_FILES[@]}"; do
+    if ! taplo fmt --check "$file" 2>/dev/null; then
+      echo "  ✗ $file (run: taplo fmt $file)"
+      FAILED=1
+    fi
+  done
+  [ "$FAILED" -eq 0 ] && echo "  ✓ all .toml files formatted"
+fi
+
+# ── Markdown linting ──────────────────────────────────────────────────────────
+if [ "${#MD_FILES[@]}" -gt 0 ]; then
+  echo "→ markdownlint: checking staged .md files..."
+  if ! markdownlint "${MD_FILES[@]}"; then
+    FAILED=1
+  else
+    echo "  ✓ markdownlint passed"
+  fi
+fi
+
+# ── Prettier (JSON, JSONC, YAML, CSS, JS, HTML) ───────────────────────────────
+if [ "${#PRETTIER_FILES[@]}" -gt 0 ]; then
+  echo "→ prettier: checking staged files..."
+  if ! prettier --check "${PRETTIER_FILES[@]}"; then
+    echo "  (run: prettier --write <file>)"
+    FAILED=1
+  else
+    echo "  ✓ prettier passed"
+  fi
+fi
+
+if [ "$FAILED" -ne 0 ]; then
+  echo ""
+  echo "✗ pre-commit checks failed — commit blocked"
+  exit 1
+fi
+
+exit 0

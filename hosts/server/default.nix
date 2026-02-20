@@ -41,5 +41,12 @@ in
     wheelNeedsPassword = true;
   };
 
+  # Don't commit flake.lock on the server — it never pushes, so local commits
+  # would just diverge from the laptop's pushed updates.
+  system.autoUpgrade.flags = [
+    "--update-input"
+    "nixpkgs"
+  ];
+
   system.stateVersion = cfg.stateVersion;
 }
