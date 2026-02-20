@@ -30,7 +30,7 @@ lib.mkIf cfg.services.forgejo.enable {
 
   sops.secrets."forgejo.env" = {
     sopsFile = ../secrets/forgejo.env;
-    format = "binary";
+    format = "dotenv";
     owner = "forgejo";
     group = "forgejo";
     mode = "0400";
@@ -66,7 +66,8 @@ lib.mkIf cfg.services.forgejo.enable {
     };
   };
 
-  services.caddy.virtualHosts."http://127.0.0.1:${caddyPort}" = {
+  services.caddy.virtualHosts."http://${forgejo.hostname}:${caddyPort}" = {
+    # was 127.0.0.1
     extraConfig = ''
       handle {
         reverse_proxy http://127.0.0.1:${forgejoPort}

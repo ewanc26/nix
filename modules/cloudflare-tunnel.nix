@@ -64,6 +64,12 @@ lib.mkIf cfg.services.cloudflare.enable {
     mode = "0400";
   };
 
+  sops.secrets."cloudflare.token" = {
+    sopsFile = ../secrets/cloudflare.token;
+    format = "binary";
+    owner = "root";
+  };
+
   # ── Cloudflare tunnel ──────────────────────────────────────────────────────
   # cloudflared dials outbound to Cloudflare's edge — zero inbound ports needed.
   # Single tunnel serves all configured services via hostname-based routing.
