@@ -410,9 +410,43 @@ in
         type = bool;
         default = false;
       };
+      nextcloud.enable = mkOption {
+        type = bool;
+        default = false;
+      };
       cloudflare.enable = mkOption {
         type = bool;
         default = false;
+      };
+    };
+
+    # ── Nextcloud ─────────────────────────────────────────────────────────────
+    nextcloud = {
+      hostname = mkOption {
+        type = str;
+        default = "cloud.ewancroft.uk";
+      };
+      port = mkOption {
+        type = int;
+        default = 8085;
+        description = "Internal nginx port — not exposed, Caddy proxies to this.";
+      };
+      adminUser = mkOption {
+        type = str;
+        default = "admin";
+      };
+      dataDir = mkOption {
+        type = str;
+        default = "/srv/nextcloud";
+        description = "Root directory for all Nextcloud state (config, apps, data).";
+      };
+      defaultPhoneRegion = mkOption {
+        type = str;
+        default = "GB";
+      };
+      maxUploadSize = mkOption {
+        type = str;
+        default = "16G";
       };
     };
 

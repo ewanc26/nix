@@ -13,11 +13,13 @@ in
     ../../modules/cloudflare-tunnel.nix
     ../../modules/pds.nix
     ../../modules/forgejo.nix
+    ../../modules/nextcloud.nix
     ../../profiles/server-hardened.nix
   ];
 
   # Service toggles
   myConfig.services.forgejo.enable = false;
+  myConfig.services.nextcloud.enable = true;
   myConfig.services.pds.enable = true;
   myConfig.services.cloudflare.enable = true;
 
