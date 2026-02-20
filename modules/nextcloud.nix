@@ -74,13 +74,14 @@ lib.mkIf cfg.services.nextcloud.enable {
       adminuser = nc.adminUser;
       adminpassFile = config.sops.secrets."nextcloud-admin-pass".path;
 
-      # Tell Nextcloud its public URL uses HTTPS even though nginx is plain HTTP.
-      overwriteProtocol = "https";
-
-      defaultPhoneRegion = nc.defaultPhoneRegion;
     };
 
     settings = {
+      # Tell Nextcloud its public URL uses HTTPS even though nginx is plain HTTP.
+      overwriteprotocol = "https";
+
+      default_phone_region = nc.defaultPhoneRegion;
+
       # Raise upload limit for large files.
       "upload_max_filesize" = nc.maxUploadSize;
       "post_max_size" = nc.maxUploadSize;
@@ -112,10 +113,12 @@ lib.mkIf cfg.services.nextcloud.enable {
     };
   };
 
-  # Serve on the Tailscale interface only — not routed through Cloudflare tunnel.
+  # Allow port 80 on the Tailscale interface only — blocks all non-tailnet access
+  # without needing to bind Caddy to a specific IP.
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 80 ];
+
   services.caddy.virtualHosts."http://${nc.hostname}" = {
     extraConfig = ''
-      bind tailscale0
       handle {
         reverse_proxy http://127.0.0.1:${ncPort}
       }
