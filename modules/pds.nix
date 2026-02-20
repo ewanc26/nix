@@ -28,8 +28,13 @@ let
   caddyPort = toString pds.caddyPort;
 
   # Static landing page served by Caddy at the PDS root URL.
-  landingPage = pkgs.writeTextDir "index.html"
-    (builtins.readFile ./pds-landing/index.html);
+  # Built from modular source files in ./pds-landing/.
+  landingPage = pkgs.runCommand "pds-landing" { } ''
+    mkdir $out
+    cp ${./pds-landing/index.html} $out/index.html
+    cp ${./pds-landing/style.css}  $out/style.css
+    cp ${./pds-landing/script.js}  $out/script.js
+  '';
 
   # UK Online Safety Act age-assurance static responses.
   ageAssuranceBlocks = ''
