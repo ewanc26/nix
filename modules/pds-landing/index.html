@@ -4,28 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pds.ewancroft.uk</title>
-    <link
-      rel="preconnect"
-      href="https://fonts.googleapis.com"
-      crossorigin
-    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
-        --base:    #1e1e2e;
-        --mantle:  #181825;
-        --crust:   #11111b;
-        --surface0:#313244;
-        --surface1:#45475a;
-        --overlay0:#6c7086;
+        --crust:   #0d1210;
+        --mantle:  #141c19;
+        --base:    #1a2420;
+        --surface0:#243028;
+        --surface1:#2e3d34;
+        --overlay0:#4d6b58;
         --text:    #cdd6f4;
-        --subtext1:#bac2de;
-        --subtext0:#a6adc8;
+        --subtext0:#93b09a;
         --green:   #a6e3a1;
-        --teal:    #94e2d5;
         --red:     #f38ba8;
         --yellow:  #f9e2af;
       }
@@ -36,7 +30,7 @@
         background: var(--crust);
         color: var(--text);
         font-family: 'JetBrains Mono', monospace;
-        font-size: clamp(13px, 1.4vw, 15px);
+        font-size: clamp(13px, 3.5vw, 15px);
         min-height: 100dvh;
         line-height: 1.6;
       }
@@ -45,8 +39,8 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 4rem 1.5rem 3rem;
-        gap: 2.5rem;
+        padding: clamp(1.5rem, 6vw, 4rem) clamp(1rem, 4vw, 1.5rem) clamp(1.5rem, 6vw, 3rem);
+        gap: 2rem;
       }
 
       /* ─── terminal card ─────────────────────────────────── */
@@ -54,9 +48,10 @@
         width: 100%;
         max-width: 680px;
         background: var(--mantle);
-        border: 1px solid var(--surface0);
+        border: 1px solid var(--surface1);
         border-radius: 8px;
         overflow: hidden;
+        box-shadow: 0 0 0 1px rgba(166,227,161,0.06), 0 8px 32px rgba(0,0,0,0.5);
       }
 
       .card-titlebar {
@@ -66,14 +61,25 @@
         background: var(--surface0);
         padding: 0.55rem 1rem;
         font-size: 0.75em;
-        color: var(--subtext0);
+        color: var(--green);
+        min-width: 0;
+        border-bottom: 1px solid rgba(166,227,161,0.15);
+      }
+
+      .card-titlebar span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
       }
 
       .dot {
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: var(--surface1);
+        flex-shrink: 0;
+        background: rgba(166,227,161,0.25);
+        border: 1px solid rgba(166,227,161,0.4);
       }
 
       .card-body {
@@ -98,8 +104,9 @@
       .hostname {
         color: var(--green);
         font-weight: 700;
-        font-size: 1.15em;
+        font-size: clamp(0.95em, 4vw, 1.15em);
         letter-spacing: -0.01em;
+        word-break: break-all;
       }
 
       .cursor {
@@ -118,10 +125,11 @@
       }
 
       .tagline {
-        color: var(--subtext0);
+        color: var(--overlay0);
         font-size: 0.82em;
         margin-top: 0.2rem;
         margin-bottom: 1.4rem;
+        line-height: 1.5;
       }
 
       /* ─── key-value rows ────────────────────────────────── */
@@ -133,11 +141,11 @@
         margin-bottom: 1.4rem;
       }
 
-      .kv-key   { color: var(--overlay0); }
-      .kv-val   { color: var(--text); word-break: break-all; }
-      .kv-val.ok    { color: var(--green);  }
-      .kv-val.warn  { color: var(--yellow); }
-      .kv-val.err   { color: var(--red);    }
+      .kv-key { color: var(--green); opacity: 0.6; white-space: nowrap; }
+      .kv-val { color: var(--text); word-break: break-all; min-width: 0; }
+      .kv-val.ok   { color: var(--green);  }
+      .kv-val.warn { color: var(--yellow); }
+      .kv-val.err  { color: var(--red);    }
 
       .loading {
         color: var(--surface1);
@@ -151,7 +159,7 @@
       /* ─── divider ───────────────────────────────────────── */
       .divider {
         border: none;
-        border-top: 1px solid var(--surface0);
+        border-top: 1px solid rgba(166,227,161,0.12);
         margin: 1.2rem 0;
       }
 
@@ -180,40 +188,50 @@
       }
 
       .link-list a {
-        color: var(--teal);
+        color: var(--green);
         text-decoration: none;
-        transition: color 0.15s;
+        opacity: 0.85;
+        transition: opacity 0.15s;
       }
 
-      .link-list a:hover { color: var(--green); }
+      .link-list a:hover { opacity: 1; }
 
       /* ─── footer ────────────────────────────────────────── */
       footer {
-        color: var(--overlay0);
+        color: rgba(166,227,161,0.35);
         font-size: 0.75em;
         text-align: center;
       }
 
-      footer a { color: var(--overlay0); text-decoration: underline; }
-      footer a:hover { color: var(--subtext0); }
+      footer a { color: rgba(166,227,161,0.35); text-decoration: underline; }
+      footer a:hover { color: var(--green); }
 
-      @media (max-width: 480px) {
-        body { padding: 2rem 1rem 2rem; }
-        .kv-grid { grid-template-columns: 1fr; gap: 0.1rem; }
-        .kv-key { color: var(--green); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.06em; }
-        .kv-key::after { content: ''; }
-        .kv-val { margin-bottom: 0.5rem; }
+      /* ─── responsive ────────────────────────────────────── */
+      @media (max-width: 440px) {
+        .card-body { padding: 1.1rem; }
+        .kv-grid {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .kv-key {
+          font-size: 0.7em;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          opacity: 1;
+          margin-top: 0.7rem;
+        }
+        .kv-key:first-child { margin-top: 0; }
       }
     </style>
   </head>
   <body>
 
-    <div class="card" id="main-card">
+    <div class="card">
       <div class="card-titlebar">
         <span class="dot"></span>
         <span class="dot"></span>
         <span class="dot"></span>
-        <span style="margin-left:0.4rem">pds.ewancroft.uk — ATProto Personal Data Server</span>
+        <span style="margin-left:0.4rem">ewan's pds</span>
       </div>
       <div class="card-body">
         <div class="prompt-line">
@@ -224,7 +242,7 @@
         <p class="tagline">Bluesky-compatible ATProto PDS · personal instance</p>
 
         <div class="section-label">status</div>
-        <div class="kv-grid" id="status-grid">
+        <div class="kv-grid">
           <span class="kv-key">reachable</span>
           <span class="kv-val loading" id="val-reachable">…</span>
 
@@ -245,39 +263,30 @@
 
         <div class="section-label">links</div>
         <ul class="link-list">
-          <li><a href="https://bsky.app" target="_blank" rel="noopener">Bluesky Web Client</a></li>
+          <li><a href="https://witchsky.app" target="_blank" rel="noopener">Witchsky Web Client</a></li>
           <li><a href="https://atproto.com" target="_blank" rel="noopener">ATProto Documentation</a></li>
-          <li>
-            <a href="#" id="link-privacy" style="display:none">Privacy Policy</a>
-            <span id="link-privacy-placeholder" style="color:var(--surface1);font-size:0.88em">Privacy Policy (loading…)</span>
-          </li>
-          <li>
-            <a href="#" id="link-tos" style="display:none">Terms of Service</a>
-            <span id="link-tos-placeholder" style="color:var(--surface1);font-size:0.88em">Terms of Service (loading…)</span>
-          </li>
         </ul>
 
         <hr class="divider" />
 
         <div class="section-label">contact</div>
-        <p style="font-size:0.88em">
-          <span class="kv-key">email&nbsp;</span>
-          <a id="val-email" href="mailto:" style="color:var(--teal);text-decoration:none" class="loading">…</a>
+        <p style="font-size:0.88em; color:var(--subtext0)">
+          Send a mention on Bluesky to
+          <a href="https://witchsky.app/profile/ewancroft.uk" target="_blank" rel="noopener"
+             style="color:var(--green);text-decoration:none">@ewancroft.uk</a>
         </p>
       </div>
     </div>
 
     <footer>
-      powered by <a href="https://github.com/bluesky-social/pds" target="_blank" rel="noopener">bluesky-social/pds</a>
+      powered by <a href="https://search.nixos.org/packages?show=bluesky-pds" target="_blank" rel="noopener">nixpkgs#bluesky-pds</a>
       &nbsp;·&nbsp;
       <a href="https://atproto.com" target="_blank" rel="noopener">atproto.com</a>
     </footer>
 
     <script>
-      const PDS = '';  // relative — served from the same origin
-
       async function fetchJSON(path) {
-        const r = await fetch(PDS + path);
+        const r = await fetch(path);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       }
@@ -292,7 +301,7 @@
       async function loadStatus() {
         // health
         try {
-          const h = await fetchJSON('/_health');
+          const h = await fetchJSON('/xrpc/_health');
           set('val-reachable', '✓ online', 'ok');
           set('val-version', h.version ?? 'unknown');
         } catch {
@@ -306,29 +315,8 @@
           set('val-did', d.did ?? '—');
           set('val-invite', d.inviteCodeRequired ? 'yes' : 'no',
             d.inviteCodeRequired ? 'warn' : 'ok');
-
-          // links
-          const pp = d.links?.privacyPolicy;
-          const tos = d.links?.termsOfService;
-          if (pp) {
-            const a = document.getElementById('link-privacy');
-            a.href = pp; a.style.display = '';
-            document.getElementById('link-privacy-placeholder').style.display = 'none';
-          }
-          if (tos) {
-            const a = document.getElementById('link-tos');
-            a.href = tos; a.style.display = '';
-            document.getElementById('link-tos-placeholder').style.display = 'none';
-          }
-
-          // contact
-          const email = d.contact?.email ?? 'pds@ewancroft.uk';
-          const el = document.getElementById('val-email');
-          el.textContent = email;
-          el.href = 'mailto:' + email;
-          el.className = '';
         } catch {
-          set('val-did', 'unavailable', 'err');
+          set('val-did', '—');
           set('val-invite', '—');
         }
 
