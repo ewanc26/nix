@@ -96,7 +96,7 @@ in
 
     initContent = ''
       # Display system info on new shell
-      fastfetch
+      ${lib.optionalString (cfg.isDesktop) "fastfetch"}
 
       # Initialize SSH agent (Linux only)
       ${lib.optionalString (!isDarwin) ''
@@ -106,7 +106,7 @@ in
       ''}
 
       # Initialize Starship prompt
-      eval "$(starship init zsh)"
+      ${lib.optionalString (cfg.isDesktop) ''eval "$(starship init zsh)"''}
 
       # Initialize fzf
       eval "$(fzf --zsh)"

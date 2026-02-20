@@ -103,7 +103,6 @@ in
       common = mkOption {
         type = listStr;
         default = [
-          "fastfetch"
           "btop"
           "eza"
           "bat"
