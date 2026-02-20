@@ -30,10 +30,11 @@ let
   # Static landing page served by Caddy at the PDS root URL.
   # Built from modular source files in ./pds-landing/.
   landingPage = pkgs.runCommand "pds-landing" { } ''
-    mkdir $out
-    cp ${./pds-landing/index.html} $out/index.html
-    cp ${./pds-landing/style.css}  $out/style.css
-    cp ${./pds-landing/script.js}  $out/script.js
+    mkdir -p $out/assets
+    cp ${./pds-landing/index.html}        $out/index.html
+    cp ${./pds-landing/style.css}         $out/style.css
+    cp ${./pds-landing/script.js}         $out/script.js
+    cp ${./pds-landing/assets/thumb.png}  $out/assets/thumb.png
   '';
 
   # UK Online Safety Act age-assurance static responses.
@@ -109,7 +110,7 @@ lib.mkIf cfg.services.pds.enable {
       handle /index.html {
         redir / permanent
       }
-      @landing path / /style.css /script.js
+      @landing path / /style.css /script.js /assets/*
       handle @landing {
         root * ${landingPage}
         file_server
