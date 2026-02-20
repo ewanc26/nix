@@ -96,7 +96,7 @@ in
 
     initContent = ''
       # Display system info on new shell
-      ${lib.optionalString (cfg.isDesktop) "fastfetch"}
+      ${lib.optionalString cfg.isDesktop "fastfetch"}
 
       # Initialize SSH agent (Linux only)
       ${lib.optionalString (!isDarwin) ''

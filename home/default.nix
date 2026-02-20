@@ -42,7 +42,7 @@ in
   ++ lib.optionals (cfg.isDesktop) [
     ./programs/starship.nix
   ]
-  ++ lib.optionals (!isDarwin) [
+  ++ [
     ./programs/fastfetch.nix
   ];
 
