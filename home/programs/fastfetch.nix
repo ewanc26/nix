@@ -1,6 +1,12 @@
-{ config, pkgs, lib, ... }:
-
+{ osConfig, lib, ... }:
+let
+  cfg = osConfig.myConfig;
+  configFile =
+    if cfg.isDesktop
+    then ../configs/fastfetch.jsonc
+    else ../configs/fastfetch-server.jsonc;
+in
 {
-  # Fastfetch configuration - source from configs directory
-  xdg.configFile."fastfetch/config.jsonc".source = ../configs/fastfetch.jsonc;
+  programs.fastfetch.enable = true;
+  xdg.configFile."fastfetch/config.jsonc".source = configFile;
 }
