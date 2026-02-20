@@ -22,11 +22,14 @@ in
   myConfig.services.pds.enable = true;
   myConfig.services.cloudflare.enable = true;
 
-  # Time Machine backup target
-  myConfig.server.timemachine = {
-    enable = true;
-    validUsers = [ "ewan" ];
-  };
+  # Ignore laptop lid — treat as headless, never suspend
+  services.logind.lidSwitch = "ignore";
+  services.logind.lidSwitchExternalPower = "ignore";
+  services.logind.lidSwitchDocked = "ignore";
+  systemd.targets.sleep.enable = false;
+  systemd.targets.suspend.enable = false;
+  systemd.targets.hibernate.enable = false;
+  systemd.targets.hybrid-sleep.enable = false;
 
   networking.hostName = "server";
 

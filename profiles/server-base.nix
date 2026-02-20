@@ -7,6 +7,5 @@
     ../modules/server/maintenance.nix
     ../modules/server/hardware-health.nix
     ../modules/server/disable-noise.nix
-    ../modules/server/timemachine.nix
   ];
 }
