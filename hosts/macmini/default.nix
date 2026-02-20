@@ -19,6 +19,8 @@ in
   # Primary user for homebrew and user-specific options
   system.primaryUser = cfg.user.username;
 
+  myConfig.isDesktop = true;
+
   networking = {
     hostName = "macmini";
     computerName = "MacMini";

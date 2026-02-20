@@ -105,9 +105,6 @@ in
         fi
       ''}
 
-      # Initialize Starship prompt
-      ${lib.optionalString (cfg.isDesktop) ''eval "$(starship init zsh)"''}
-
       # Initialize fzf
       eval "$(fzf --zsh)"
 
