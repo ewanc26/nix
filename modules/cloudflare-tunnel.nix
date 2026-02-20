@@ -23,6 +23,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -74,8 +75,13 @@ lib.mkIf cfg.services.cloudflare.enable {
   # cloudflared dials outbound to Cloudflare's edge — zero inbound ports needed.
   # Single tunnel serves all configured services via hostname-based routing.
   systemd.services."cloudflared-tunnel-${cfg.cloudflare.tunnelId}" = {
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
+    after = [ "network-online.target" "nss-lookup.target" ];
+    wants = [ "network-online.target" "nss-lookup.target" ];
+    serviceConfig.ExecStartPre = [
+      # Wait until DNS is actually responsive before starting the tunnel.
+      # cloudflared fails fast at boot if DNS isn't ready yet.
+      "+${pkgs.bash}/bin/bash -c 'until ${pkgs.dnsutils}/bin/dig +short _v2-origintunneld._tcp.argotunnel.com SRV &>/dev/null; do sleep 1; done'"
+    ];
   };
 
   services.cloudflared = {
