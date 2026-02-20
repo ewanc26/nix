@@ -83,6 +83,7 @@ lib.mkIf cfg.services.pds.enable {
     serviceConfig = {
       Restart = "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
+      ReadWritePaths = [ "/srv/bluesky-pds" ];
     };
     unitConfig = {
       StartLimitIntervalSec = cfg.server.servicePolicy.startLimitIntervalSec;
