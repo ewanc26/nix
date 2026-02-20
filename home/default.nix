@@ -27,42 +27,40 @@ let
   allKeys = import ../modules/ssh-keys.nix;
 in
 {
-  imports =
-    [
-      ./programs/git.nix
-      ./programs/zsh.nix
-      ./programs/ssh.nix
-      ./programs/starship.nix
-      ./programs/fastfetch.nix
-      ./programs/vscode.nix
-    ]
-    ++ lib.optionals (!isDarwin) [
-      ./programs/terminal.nix # Konsole profile — all non-Darwin hosts
-    ]
-    ++ lib.optionals (cfg.isDesktop && !isDarwin) [
-      ./programs/kde.nix # KDE Plasma settings — Linux desktop only
-    ];
+  imports = [
+    ./programs/git.nix
+    ./programs/zsh.nix
+    ./programs/ssh.nix
+  ]
+  ++ lib.optionals (!isDarwin) [
+    ./programs/terminal.nix # Konsole profile — all non-Darwin hosts
+  ]
+  ++ lib.optionals (cfg.isDesktop && !isDarwin) [
+    ./programs/kde.nix # KDE Plasma settings — Linux desktop only
+    ./programs/vscode.nix # VSCode — desktop only
+  ]
+  ++ lib.optionals (cfg.isDesktop) [
+    ./programs/starship.nix
+    ./programs/fastfetch.nix
+  ];
 
   home = {
     username = cfg.user.username;
     homeDirectory = if isDarwin then "/Users/${cfg.user.username}" else "/home/${cfg.user.username}";
     stateVersion = cfg.stateVersion;
 
-    packages =
-      [ myScripts ]
-      ++ map (font: pkgs.nerd-fonts.${font}) cfg.packages.fonts
-      ++ lib.optionals (!isDarwin) (
-        map (pkg: pkgs.${pkg}) cfg.packages.linux
-      );
+    packages = [
+      myScripts
+    ]
+    ++ map (font: pkgs.nerd-fonts.${font}) cfg.packages.fonts
+    ++ lib.optionals (!isDarwin) (map (pkg: pkgs.${pkg}) cfg.packages.linux);
 
     # SSH authorised keys — all machines except this one.
     # Filter by hostname so each host does not authorise its own key.
     file.".ssh/authorized_keys".text =
       let
         hostName = osConfig.networking.hostName;
-        filteredKeys = lib.attrValues (
-          lib.filterAttrs (name: _: name != hostName) allKeys
-        );
+        filteredKeys = lib.attrValues (lib.filterAttrs (name: _: name != hostName) allKeys);
       in
       builtins.concatStringsSep "\n" filteredKeys;
 
