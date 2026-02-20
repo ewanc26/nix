@@ -36,6 +36,9 @@ in
   # Boot – clean /tmp on every boot
   boot.tmp.cleanOnBoot = true;
 
+  # Temporary: verbose boot logging to diagnose hang
+  boot.kernelParams = [ "systemd.log_level=info" "systemd.log_target=console" ];
+
   # sudo requires password
   security.sudo = {
     enable = true;

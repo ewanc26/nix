@@ -8,8 +8,10 @@
   ];
 
   # Headless — no display manager, no getty on tty1.
-  # All interaction is via SSH.
+  # All interaction is via SSH, with tty2 as emergency fallback.
   services.getty.autologinUser = null;
   systemd.services."getty@tty1".enable = false;
-  systemd.services."autovt@".enable = false;
+
+  # Don't block boot waiting for network
+  systemd.services.NetworkManager-wait-online.enable = false;
 }
