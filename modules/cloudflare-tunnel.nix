@@ -56,7 +56,7 @@ lib.mkIf cfg.services.cloudflare.enable {
   # Encrypt with: sops --encrypt --age <age-pubkey> cf-tunnel.json > secrets/cf-tunnel.json
   sops.secrets."cf-tunnel.json" = {
     sopsFile = ../secrets/cf-tunnel.json;
-    format = "binary";
+    format = "json";
     owner = "cloudflared";
     group = "cloudflared"; # set explicitly — cloudflared uses DynamicUser so the
                            # user isn't in config.users.users without the block above

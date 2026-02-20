@@ -450,7 +450,7 @@ in
       };
       caddyPort = mkOption {
         type = int;
-        default = 2020;
+        default = 2099;
       };
       adminEmail = mkOption {
         type = str;
