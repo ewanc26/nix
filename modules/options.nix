@@ -472,6 +472,9 @@ in
           "https://relay.upcloud.world"
           "https://relay.feeds.blue"
           "https://atproto.africa"
+          "https://northamerica.firehose.network"
+          "https://europe.firehose.network"
+          "https://asia.firehose.network"
         ];
       };
     };
