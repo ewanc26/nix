@@ -1,14 +1,33 @@
-{ ... }:
+{ config, lib, modulesPath, ... }:
 
 {
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+  ];
+
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "uas" "sd_mod" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "kvm-intel" ];
+  boot.extraModulePackages = [ ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
   fileSystems."/" = {
-    device = "/dev/disk/by-label/nixos";
+    device = "/dev/disk/by-uuid/53c1ca4d-fdb9-47f0-ab81-ae871dacb11d";
     fsType = "ext4";
   };
 
-  # /srv mount is declared by modules/server/storage.nix
-  # Device: /dev/sda1 on laptop, labelled 'srv'
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/CF37-9198";
+    fsType = "vfat";
+    options = [ "fmask=0077" "dmask=0077" ];
+  };
 
-  boot.loader.grub.enable = false;
-  boot.loader.systemd-boot.enable = false;
+  swapDevices = [
+    { device = "/dev/disk/by-uuid/914a24e1-c0cc-453d-bbf7-599c6e741fcd"; }
+  ];
+
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
