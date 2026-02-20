@@ -6,11 +6,11 @@ Guide for AI assistants working in this repository.
 
 A unified NixOS + nix-darwin (macOS) configuration managed as a single Nix flake. It targets three hosts:
 
-| Host | Platform | Role |
-|---|---|---|
-| `macmini` | nix-darwin (aarch64-darwin) | Primary daily driver (Apple M2) |
-| `laptop` | NixOS (x86_64-linux) | Secondary desktop — KDE Plasma 6 |
-| `server` | NixOS (x86_64-linux / aarch64-linux) | Headless — Bluesky PDS, Forgejo, Caddy |
+| Host      | Platform                             | Role                                   |
+| --------- | ------------------------------------ | -------------------------------------- |
+| `macmini` | nix-darwin (aarch64-darwin)          | Primary daily driver (Apple M2)        |
+| `laptop`  | NixOS (x86_64-linux)                 | Secondary desktop — KDE Plasma 6       |
+| `server`  | NixOS (x86_64-linux / aarch64-linux) | Headless — Bluesky PDS, Forgejo, Caddy |
 
 ## Key Concepts
 
@@ -88,6 +88,7 @@ sudo darwin-rebuild switch --flake .#macmini
 ```
 
 Shell aliases (set up by `home/programs/zsh.nix`):
+
 - `nrs` — nixos-rebuild switch
 - `cleanup` — nix-collect-garbage -d
 
@@ -122,16 +123,16 @@ See `docs/secrets.md` for full details.
 
 ## Flake Inputs
 
-| Input | Pinned version |
-|---|---|
-| nixpkgs | nixos-25.11 |
-| home-manager | release-25.11 |
-| nix-darwin | nix-darwin-25.11 |
-| sops-nix | latest |
-| plasma-manager | latest |
-| catppuccin | latest |
-| nix-vscode-extensions | latest |
-| mac-app-util | latest |
+| Input                 | Pinned version   |
+| --------------------- | ---------------- |
+| nixpkgs               | nixos-25.11      |
+| home-manager          | release-25.11    |
+| nix-darwin            | nix-darwin-25.11 |
+| sops-nix              | latest           |
+| plasma-manager        | latest           |
+| catppuccin            | latest           |
+| nix-vscode-extensions | latest           |
+| mac-app-util          | latest           |
 
 Run `nix flake update` to update all inputs, or `flake-bump --update <input>` to bump selectively.
 
@@ -163,17 +164,20 @@ The maintenance tools (`health-check`, `flake-bump`, `gen-diff`) are the excepti
 ## Common Tasks
 
 **Add a new system option:**
+
 1. Declare it in `modules/options.nix` with a type and default
 2. Use `config.myConfig.yourOption` in the relevant module
 3. Override per-host in `hosts/<hostname>/default.nix` if needed
 
 **Add a new host:**
+
 1. Create `hosts/<hostname>/default.nix`
 2. Add hardware config (NixOS: `nixos-generate-config`)
 3. Add entry in `flake.nix` under `nixosConfigurations` or `darwinConfigurations`
 4. See `docs/hosts.md` for the full guide
 
 **Add a new home-manager program:**
+
 1. Create `home/programs/<name>.nix`
 2. Import it from `home/default.nix`
 3. Access host config via `osConfig.myConfig.*`

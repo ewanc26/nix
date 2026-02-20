@@ -8,7 +8,8 @@ let
 in
 {
   services.openssh = {
-    enable = lib.mkDefault cfg.server.sshd.enable;
+    # mkForce: SSH is the only remote access path. Nothing should override this.
+    enable = lib.mkForce cfg.server.sshd.enable;
     ports = [ cfg.server.sshd.port ];
 
     settings = {

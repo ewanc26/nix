@@ -29,6 +29,15 @@ in
   # See docs/time-machine.md for first-time setup instructions.
   myConfig.darwin.externalDisk.timeMachineVolumeUUID = "9217DB34-722B-4596-8ADD-20C8060FC257";
 
+  # Tailscale — auto-start at login so SSH ProxyCommand never fails on boot.
+  launchd.user.agents."com.tailscale.tailscaled-launcher" = {
+    serviceConfig = {
+      ProgramArguments = [ "/usr/bin/open" "-a" "/Applications/Tailscale.app" ];
+      RunAtLoad = true;
+      KeepAlive = false;
+    };
+  };
+
   # AltServer is a menu bar app (LSUIElement = true) so macOS intentionally
   # hides it from Spotlight — this is by design and cannot be changed.
   # Launch it automatically at login via a launchd user agent instead.
