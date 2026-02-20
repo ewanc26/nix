@@ -53,7 +53,7 @@ lib.mkIf cfg.services.pds.enable {
 
   sops.secrets."pds.env" = {
     sopsFile = ../secrets/pds.env;
-    format = "binary";
+    format = "dotenv";
     owner = "pds";
     group = "pds";
     mode = "0400";
