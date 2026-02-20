@@ -73,6 +73,11 @@ lib.mkIf cfg.services.cloudflare.enable {
   # ── Cloudflare tunnel ──────────────────────────────────────────────────────
   # cloudflared dials outbound to Cloudflare's edge — zero inbound ports needed.
   # Single tunnel serves all configured services via hostname-based routing.
+  systemd.services."cloudflared-tunnel-${cfg.cloudflare.tunnelId}" = {
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+  };
+
   services.cloudflared = {
     enable = true;
     tunnels.${cfg.cloudflare.tunnelId} = {
