@@ -105,11 +105,12 @@ lib.mkIf cfg.services.pds.enable {
     extraConfig = ''
       ${ageAssuranceBlocks}
 
-      # Landing page — served at / only; redirect the raw /index.html away.
+      # Landing page — serve static assets; redirect bare /index.html to /.
       handle /index.html {
         redir / permanent
       }
-      handle / {
+      @landing path / /style.css /script.js
+      handle @landing {
         root * ${landingPage}
         file_server
       }
