@@ -52,8 +52,16 @@ let
     cp ${./pds-landing/assets/thumb.png} $out/assets/thumb.png
   '';
 
-  # Mutable directory for the rolling 31-day repo-count cache.
+  # Mutable state directory shared by the landing page features.
+  stateDir = "/var/lib/pds-landing";
   cacheDir = "/var/lib/pds-landing/cache";
+
+  # Writes the PDS service start epoch to stateDir/start-time on every start.
+  # Runs privileged (+) so it can write regardless of the service user.
+  writeStartTime = pkgs.writeShellScript "pds-write-start-time" ''
+    printf '%s' "$(date +%s)" > ${stateDir}/start-time
+    chmod 644 ${stateDir}/start-time
+  '';
 
   # Daily script that appends today's total repo count to the JSON cache.
   # Uses com.atproto.sync.listRepos (same endpoint as the landing page JS)
@@ -114,6 +122,7 @@ lib.mkIf cfg.services.pds.enable {
   # ── Landing-page cache ──────────────────────────────────────────────────────
 
   systemd.tmpfiles.rules = [
+    "d ${stateDir} 0755 caddy caddy -"
     "d ${cacheDir} 0755 caddy caddy -"
   ];
 
@@ -154,6 +163,9 @@ lib.mkIf cfg.services.pds.enable {
       Restart = "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
       ReadWritePaths = [ "/srv/bluesky-pds" ];
+      # Write start epoch for the landing page uptime counter.
+      # + prefix runs this command as root so it can always write stateDir.
+      ExecStartPost = "+${writeStartTime}";
     };
     unitConfig = {
       StartLimitIntervalSec = cfg.server.servicePolicy.startLimitIntervalSec;
@@ -175,8 +187,9 @@ lib.mkIf cfg.services.pds.enable {
         file_server
       }
 
-      # Mutable daily-cache served from the writable state directory.
-      handle /cache/* {
+      # Mutable state files (daily cache + service start-time).
+      @mutable path /cache/* /start-time
+      handle @mutable {
         root * /var/lib/pds-landing
         file_server
       }
