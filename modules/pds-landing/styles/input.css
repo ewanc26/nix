@@ -1,11 +1,12 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ─── design tokens ─────────────────────────────────────────────────────────
    Single source of truth for every colour and font used across CSS and JS.
-   Tailwind v4 emits these as :root custom properties, so JS can read them
-   via getComputedStyle without any duplication.
+   JS can read these via getComputedStyle without any duplication.
    ───────────────────────────────────────────────────────────────────────── */
-@theme {
+:root {
   --font-mono: 'JetBrains Mono', monospace;
 
   --color-crust:     #0d1210;

@@ -30,7 +30,7 @@ let
   # Static landing page served by Caddy at the PDS root URL.
   # Built from modular source files in ./pds-landing/.
   landingPage = pkgs.runCommand "pds-landing" {
-    nativeBuildInputs = [ pkgs.tailwindcss ];  # must be Tailwind v4
+    nativeBuildInputs = [ pkgs.tailwindcss_3 ];
   } ''
     # Lay out source so Tailwind's content scanner finds all class names.
     mkdir -p src/styles $out/assets
@@ -41,8 +41,11 @@ let
     cp ${./pds-landing/script.js}               src/script.js
     cp ${./pds-landing/styles/input.css}        src/styles/input.css
 
-    # Build — Tailwind v4 auto-detects content from adjacent files.
-    tailwindcss --input src/styles/input.css --output $out/style.css --minify
+    # Build — scan src/ for used utility classes then emit minified CSS.
+    cat > tailwind.config.js << 'EOF'
+module.exports = { content: ['./src/**/*.{html,js}'], theme: { extend: {} } }
+EOF
+    tailwindcss --config tailwind.config.js --input src/styles/input.css --output $out/style.css --minify
 
     cp src/index.html   $out/index.html
     cp src/utils.js     $out/utils.js
