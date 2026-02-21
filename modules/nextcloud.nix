@@ -183,4 +183,24 @@ lib.mkIf cfg.services.nextcloud.enable {
   services.phpfpm.pools.nextcloud.settings = {
     "request_terminate_timeout" = "3600";
   };
+
+  # Periodically scan the data directory so files added directly to /srv
+  # (e.g. large archives copied via rsync) are picked up by Nextcloud.
+  systemd.services.nextcloud-files-scan = {
+    description = "Nextcloud periodic file scan";
+    after = [ "nextcloud-setup.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "nextcloud";
+      ExecStart = "${config.services.nextcloud.occ}/bin/nextcloud-occ files:scan --all";
+    };
+  };
+
+  systemd.timers.nextcloud-files-scan = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+    };
+  };
 }
