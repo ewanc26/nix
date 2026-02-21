@@ -40,6 +40,14 @@ let
 in
 lib.mkIf cfg.services.nextcloud.enable {
 
+  sops.secrets."nextcloud-smtp-pass" = {
+    sopsFile = ../secrets/nextcloud-smtp-pass;
+    format = "binary";
+    owner = "nextcloud";
+    group = "nextcloud";
+    mode = "0400";
+  };
+
   sops.secrets."nextcloud-admin-pass" = {
     sopsFile = ../secrets/nextcloud-admin-pass;
     format = "binary";
@@ -65,6 +73,13 @@ lib.mkIf cfg.services.nextcloud.enable {
     # Auto-update Nextcloud apps on rebuild.
     autoUpdateApps.enable = true;
 
+    extraAppsEnable = true;
+    extraApps = with config.services.nextcloud.package.packages.apps; {
+      # TOTP-based two-factor authentication.
+      # Enforcement must be configured in the admin panel under Security.
+      inherit twofactor_totp;
+    };
+
     # Local PostgreSQL database — NixOS creates the DB and user automatically.
     database.createLocally = true;
 
@@ -76,6 +91,15 @@ lib.mkIf cfg.services.nextcloud.enable {
       adminuser = nc.adminUser;
       adminpassFile = config.sops.secrets."nextcloud-admin-pass".path;
 
+      # SMTP via Resend
+      smtpHost = "smtp.resend.com";
+      smtpPort = 465;
+      smtpSecurity = "ssl";
+      smtpAuthType = "LOGIN";
+      smtpName = "resend";
+      smtpPasswordFile = config.sops.secrets."nextcloud-smtp-pass".path;
+      smtpFrom = nc.smtp.fromAddress;
+      smtpFromDomain = nc.smtp.fromDomain;
     };
 
     settings = {
@@ -98,6 +122,9 @@ lib.mkIf cfg.services.nextcloud.enable {
       # Run heavy background jobs (cleanup, preview generation etc.) at 2am.
       # Fixes the "no maintenance window start time configured" warning.
       maintenance_window_start = 2;
+
+      # Use file logging so the Logreader app works in the admin panel.
+      log_type = "file";
 
     };
 

@@ -453,6 +453,16 @@ in
         type = str;
         default = "16G";
       };
+      smtp = {
+        fromAddress = mkOption {
+          type = str;
+          default = "nextcloud@server.ewancroft.uk";
+        };
+        fromDomain = mkOption {
+          type = str;
+          default = "server.ewancroft.uk";
+        };
+      };
     };
 
     # ── Forgejo ───────────────────────────────────────────────────────────────
@@ -495,7 +505,7 @@ in
       };
       adminEmail = mkOption {
         type = str;
-        default = "pds@ewancroft.uk";
+        default = "contact@ewancroft.uk";
       };
       serviceHandleDomains = mkOption {
         type = listStr;
