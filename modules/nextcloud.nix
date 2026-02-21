@@ -159,8 +159,28 @@ lib.mkIf cfg.services.nextcloud.enable {
   services.caddy.virtualHosts."http://${nc.hostname}:${caddyPort}" = {
     extraConfig = ''
       handle {
-        reverse_proxy http://127.0.0.1:${ncPort}
+        reverse_proxy http://127.0.0.1:${ncPort} {
+          transport http {
+            read_timeout  3600s
+            write_timeout 3600s
+          }
+        }
+      }
+      request_body {
+        max_size 50GB
+      }
+      timeouts {
+        read_body   3600s
+        read_header 30s
+        write       3600s
+        idle        3600s
       }
     '';
+  };
+
+  # Increase PHP-FPM request timeout to match Caddy — prevents large uploads
+  # from being killed mid-transfer.
+  services.phpfpm.pools.nextcloud.settings = {
+    "request_terminate_timeout" = "3600";
   };
 }
