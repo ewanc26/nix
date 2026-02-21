@@ -86,10 +86,33 @@ lib.mkIf cfg.services.nextcloud.enable {
       # Raise upload limit for large files.
       "upload_max_filesize" = nc.maxUploadSize;
       "post_max_size" = nc.maxUploadSize;
+
+      # Trust localhost (nginx) and Cloudflare tunnel as reverse proxies.
+      # Fixes the "reverse proxy header configuration is incorrect" warning.
+      trusted_proxies = [
+        "127.0.0.1"
+        "::1"
+      ];
+
+      # Run heavy background jobs (cleanup, preview generation etc.) at 2am.
+      # Fixes the "no maintenance window start time configured" warning.
+      maintenance_window_start = 2;
+
+      # HSTS — Caddy/Cloudflare handle the actual TLS but Nextcloud still sets
+      # this header in its nginx config when https = true. We set it here via
+      # the nginx HSTS option instead (see services.nextcloud.nginx below).
     };
+
+    # Enable HSTS header from nginx (fixes the Strict-Transport-Security warning).
+    nginx.hstsMaxAge = 15552000; # 180 days
 
     maxUploadSize = nc.maxUploadSize;
   };
+
+  # Increase PHP opcache interned strings buffer (fixes the opcache warning).
+  services.phpfpm.pools.nextcloud.phpOptions = ''
+    opcache.interned_strings_buffer = 16
+  '';
 
   # Pin nginx to localhost so Caddy is the sole external entry point.
   services.nginx.virtualHosts."${nc.hostname}".listen = [
