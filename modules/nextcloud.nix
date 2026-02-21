@@ -40,8 +40,8 @@ let
 in
 lib.mkIf cfg.services.nextcloud.enable {
 
-  sops.secrets."nextcloud-smtp-pass" = {
-    sopsFile = ../secrets/nextcloud-smtp-pass;
+  sops.secrets."nextcloud-secrets.json" = {
+    sopsFile = ../secrets/nextcloud-secrets.json;
     format = "binary";
     owner = "nextcloud";
     group = "nextcloud";
@@ -91,15 +91,6 @@ lib.mkIf cfg.services.nextcloud.enable {
       adminuser = nc.adminUser;
       adminpassFile = config.sops.secrets."nextcloud-admin-pass".path;
 
-      # SMTP via Resend
-      smtpHost = "smtp.resend.com";
-      smtpPort = 465;
-      smtpSecurity = "ssl";
-      smtpAuthType = "LOGIN";
-      smtpName = "resend";
-      smtpPasswordFile = config.sops.secrets."nextcloud-smtp-pass".path;
-      smtpFrom = nc.smtp.fromAddress;
-      smtpFromDomain = nc.smtp.fromDomain;
     };
 
     settings = {
@@ -122,7 +113,21 @@ lib.mkIf cfg.services.nextcloud.enable {
       # Use file logging so the Logreader app works in the admin panel.
       log_type = "file";
 
+      # SMTP via Resend. Password is in secretFile to keep it out of the Nix store.
+      mail_smtpmode = "smtp";
+      mail_smtphost = "smtp.resend.com";
+      mail_smtpport = 465;
+      mail_smtpsecure = "ssl";
+      mail_smtpauth = true;
+      mail_smtpauthtype = "LOGIN";
+      mail_smtpname = "resend";
+      mail_from_address = lib.head (lib.splitString "@" nc.smtp.fromAddress);
+      mail_domain = nc.smtp.fromDomain;
     };
+
+    # SMTP password lives here — secretFile is appended to config.php but never
+    # copied into the Nix store, unlike settings.
+    secretFile = config.sops.secrets."nextcloud-secrets.json".path;
 
     maxUploadSize = nc.maxUploadSize;
 

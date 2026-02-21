@@ -35,7 +35,7 @@ creation_rules:
           - *server
 
   # ── Server-only secrets ─────────────────────────────────────────────────────
-  - path_regex: secrets/(pds\.env|cloudflare\.token|cf-tunnel\.json|forgejo\.env|nextcloud-admin-pass|nextcloud-smtp-pass)$
+  - path_regex: secrets/(pds\.env|cloudflare\.token|cf-tunnel\.json|forgejo\.env|nextcloud-admin-pass|nextcloud-secrets\.json)$
     key_groups:
       - age:
           - *ewan
