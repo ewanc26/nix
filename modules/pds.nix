@@ -37,7 +37,6 @@ let
     cp ${./pds-landing/index.html}              src/index.html
     cp ${./pds-landing/utils.js}                src/utils.js
     cp ${./pds-landing/status.js}               src/status.js
-    cp ${./pds-landing/chart.js}                src/chart.js
     cp ${./pds-landing/script.js}               src/script.js
     cp ${./pds-landing/styles/input.css}        src/styles/input.css
 
@@ -50,30 +49,9 @@ EOF
     cp src/index.html   $out/index.html
     cp src/utils.js     $out/utils.js
     cp src/status.js    $out/status.js
-    cp src/chart.js     $out/chart.js
     cp src/script.js    $out/script.js
     cp ${./pds-landing/assets/thumb.png} $out/assets/thumb.png
   '';
-
-  # Mutable state directory shared by the landing page features.
-  stateDir = "/var/lib/pds-landing";
-  cacheDir = "/var/lib/pds-landing/cache";
-
-  # Writes the PDS service start epoch to stateDir/start-time on every start.
-  # Runs privileged (+) so it can write regardless of the service user.
-  writeStartTime = pkgs.writeShellScript "pds-write-start-time" ''
-    printf '%s' "$(date +%s)" > ${stateDir}/start-time
-    chmod 644 ${stateDir}/start-time
-  '';
-
-  # Daily script that appends today's total repo count to the JSON cache.
-  # Uses com.atproto.sync.listRepos (same endpoint as the landing page JS)
-  # so no extra auth is needed — it's a public XRPC method.
-  updateCacheScript = pkgs.writeShellApplication {
-    name = "pds-landing-update-cache";
-    runtimeInputs = with pkgs; [ curl jq ];
-    text = builtins.readFile ./pds-landing/update-cache.sh;
-  };
 
   # UK Online Safety Act age-assurance static responses.
   ageAssuranceBlocks = ''
@@ -122,40 +100,6 @@ lib.mkIf cfg.services.pds.enable {
     };
   };
 
-  # ── Landing-page cache ──────────────────────────────────────────────────────
-
-  systemd.tmpfiles.rules = [
-    "d ${stateDir} 0755 caddy caddy -"
-    "d ${cacheDir} 0755 caddy caddy -"
-  ];
-
-  systemd.services.pds-landing-update-cache = {
-    description = "Update PDS landing page repo-count cache";
-    after       = [ "network.target" "bluesky-pds.service" ];
-    wants       = [ "bluesky-pds.service" ];
-    serviceConfig = {
-      Type            = "oneshot";
-      User            = "caddy";
-      Group           = "caddy";
-      ExecStart       = "${updateCacheScript}/bin/pds-landing-update-cache";
-      Environment     = [
-        "PDS_URL=http://127.0.0.1:${pdsPort}"
-        "CACHE_DIR=${cacheDir}"
-      ];
-      ReadWritePaths  = [ cacheDir ];
-    };
-  };
-
-  systemd.timers.pds-landing-update-cache = {
-    description  = "Daily PDS landing page repo-count cache refresh";
-    wantedBy     = [ "timers.target" ];
-    timerConfig  = {
-      OnCalendar         = "daily";
-      Persistent         = true;   # run immediately if last run was missed
-      RandomizedDelaySec = "5m";   # spread load after midnight
-    };
-  };
-
   systemd.services.bluesky-pds = {
     # Wait for /srv to be mounted — but don't fail if it isn't yet.
     # When the drive is plugged in and srv.mount starts, this service
@@ -166,9 +110,6 @@ lib.mkIf cfg.services.pds.enable {
       Restart = "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
       ReadWritePaths = [ "/srv/bluesky-pds" ];
-      # Write start epoch for the landing page uptime counter.
-      # + prefix runs this command as root so it can always write stateDir.
-      ExecStartPost = "+${writeStartTime}";
     };
     unitConfig = {
       StartLimitIntervalSec = cfg.server.servicePolicy.startLimitIntervalSec;
@@ -184,16 +125,9 @@ lib.mkIf cfg.services.pds.enable {
       handle /index.html {
         redir / permanent
       }
-      @landing path / /style.css /utils.js /status.js /chart.js /script.js /assets/*
+      @landing path / /style.css /utils.js /status.js /script.js /assets/*
       handle @landing {
         root * ${landingPage}
-        file_server
-      }
-
-      # Mutable state files (daily cache + service start-time).
-      @mutable path /cache/* /start-time
-      handle @mutable {
-        root * /var/lib/pds-landing
         file_server
       }
 

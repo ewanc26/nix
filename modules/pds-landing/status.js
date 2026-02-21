@@ -7,33 +7,6 @@ function set(id, text, cls) {
   el.className = 'kv-val' + (cls ? ' ' + cls : '');
 }
 
-// Format elapsed seconds as locale-aware h mm ss.
-function formatUptime(totalSeconds) {
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
-  const pad = new Intl.NumberFormat(undefined, { minimumIntegerDigits: 2 });
-  return `${h}h ${pad.format(m)}m ${pad.format(s)}s`;
-}
-
-export async function loadUptime() {
-  try {
-    const r = await fetch('/start-time');
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const startEpoch = parseInt(await r.text(), 10);
-    if (!Number.isFinite(startEpoch)) throw new Error('bad epoch');
-
-    const tick = () => {
-      const elapsed = Math.floor(Date.now() / 1000) - startEpoch;
-      set('val-uptime', formatUptime(Math.max(0, elapsed)));
-    };
-    tick();
-    setInterval(tick, 1000);
-  } catch {
-    set('val-uptime', '—');
-  }
-}
-
 export async function loadStatus() {
   // health
   try {
