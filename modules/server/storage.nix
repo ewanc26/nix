@@ -65,7 +65,10 @@ in
     inherit (srv) device fsType;
     # nofail: boot succeeds even if the drive is absent.
     # noatime: reduce unnecessary writes.
-    options = srv.options ++ [ "nofail" "x-systemd.device-timeout=5" ];
+    options = srv.options ++ [
+      "nofail"
+      "x-systemd.device-timeout=5"
+    ];
     depends = [ "srv-autoformat.service" ];
     neededForBoot = false;
   };
@@ -83,5 +86,9 @@ in
     # Web root — owned by root, readable by caddy/nginx
     "d /srv/www             0755 root            root           -"
     "d /srv/www/default     0755 root            root           -"
+
+    # Nextcloud PHP upload temp dir — must be on the same filesystem as
+    # /srv/nextcloud/data so chunk assembly is an atomic rename.
+    "d /srv/nextcloud/tmp   0750 nextcloud       nextcloud      -"
   ];
 }

@@ -125,6 +125,12 @@ lib.mkIf cfg.services.nextcloud.enable {
 
     # Increase PHP opcache interned strings buffer (fixes the opcache warning).
     phpOptions."opcache.interned_strings_buffer" = "16";
+
+    # Keep PHP temp uploads on the same filesystem as the data dir so that
+    # chunk assembly is an atomic rename rather than a cross-device copy.
+    # Without this, large uploads silently fail to assemble and leave ghost
+    # entries in the database.
+    phpOptions."upload_tmp_dir" = "${nc.dataDir}/tmp";
   };
 
   # Pin nginx to localhost so Caddy is the sole external entry point.
