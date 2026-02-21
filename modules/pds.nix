@@ -50,7 +50,7 @@ EOF
     cp src/utils.js     $out/utils.js
     cp src/status.js    $out/status.js
     cp src/script.js    $out/script.js
-    cp ${./pds-landing/assets/thumb.png} $out/assets/thumb.png
+    cp ${./pds-landing/assets/thumb.svg} $out/assets/thumb.svg
   '';
 
   # UK Online Safety Act age-assurance static responses.
