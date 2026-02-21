@@ -108,10 +108,6 @@ lib.mkIf cfg.services.nextcloud.enable {
 
       default_phone_region = nc.defaultPhoneRegion;
 
-      # Raise upload limit for large files.
-      "upload_max_filesize" = nc.maxUploadSize;
-      "post_max_size" = nc.maxUploadSize;
-
       # Trust localhost (nginx) and Cloudflare tunnel as reverse proxies.
       # Fixes the "reverse proxy header configuration is incorrect" warning.
       trusted_proxies = [

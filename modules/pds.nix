@@ -102,7 +102,6 @@ lib.mkIf cfg.services.pds.enable {
   };
 
   services.caddy.virtualHosts."http://${pds.hostname}:${caddyPort}" = {
-    # was 127.0.0.1
     extraConfig = ''
       ${ageAssuranceBlocks}
 

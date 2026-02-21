@@ -55,6 +55,8 @@ lib.mkIf cfg.services.forgejo.enable {
   };
 
   systemd.services.forgejo = {
+    after = [ "srv.mount" ];
+    wants = [ "srv.mount" ];
     serviceConfig = {
       Restart = lib.mkForce "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
@@ -67,7 +69,6 @@ lib.mkIf cfg.services.forgejo.enable {
   };
 
   services.caddy.virtualHosts."http://${forgejo.hostname}:${caddyPort}" = {
-    # was 127.0.0.1
     extraConfig = ''
       handle {
         reverse_proxy http://127.0.0.1:${forgejoPort}
