@@ -40,8 +40,8 @@ let
 in
 lib.mkIf cfg.services.nextcloud.enable {
 
-  sops.secrets."nextcloud-secrets.json" = {
-    sopsFile = ../secrets/nextcloud-secrets.json;
+  sops.secrets."nextcloud-smtp-pass" = {
+    sopsFile = ../secrets/nextcloud-smtp-pass;
     format = "binary";
     owner = "nextcloud";
     group = "nextcloud";
@@ -72,13 +72,6 @@ lib.mkIf cfg.services.nextcloud.enable {
 
     # Auto-update Nextcloud apps on rebuild.
     autoUpdateApps.enable = true;
-
-    extraAppsEnable = true;
-    extraApps = with config.services.nextcloud.package.packages.apps; {
-      # TOTP-based two-factor authentication.
-      # Enforcement must be configured in the admin panel under Security.
-      inherit twofactor_totp;
-    };
 
     # Local PostgreSQL database — NixOS creates the DB and user automatically.
     database.createLocally = true;
@@ -125,9 +118,8 @@ lib.mkIf cfg.services.nextcloud.enable {
       mail_domain = nc.smtp.fromDomain;
     };
 
-    # SMTP password lives here — secretFile is appended to config.php but never
-    # copied into the Nix store, unlike settings.
-    secretFile = config.sops.secrets."nextcloud-secrets.json".path;
+    # SMTP password — file contains the raw API key, never ends up in the Nix store.
+    secrets.mail_smtppassword = config.sops.secrets."nextcloud-smtp-pass".path;
 
     maxUploadSize = nc.maxUploadSize;
 

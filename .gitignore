@@ -25,7 +25,7 @@ result-*
 !/secrets/setup.sh
 !/secrets/cloudflare.token
 !/secrets/nextcloud-admin-pass
-!/secrets/nextcloud-secrets.json
+!/secrets/nextcloud-smtp-pass
 
 # 3. Explicitly block sensitive patterns everywhere just in case
 *.txt
