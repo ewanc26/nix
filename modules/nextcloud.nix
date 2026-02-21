@@ -169,12 +169,6 @@ lib.mkIf cfg.services.nextcloud.enable {
       request_body {
         max_size 50GB
       }
-      timeouts {
-        read_body   3600s
-        read_header 30s
-        write       3600s
-        idle        3600s
-      }
     '';
   };
 
