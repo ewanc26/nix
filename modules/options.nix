@@ -194,6 +194,7 @@ in
       desktop = mkOption {
         type = listStr;
         default = [
+          "nextcloud-client"
           "papirus-icon-theme"
           "discord"
           "signal-desktop"
@@ -823,6 +824,7 @@ in
             "microsoft-teams"
             "microsoft-word"
             "libreoffice"
+            "nextcloud"
           ];
         };
         masApps = mkOption {
