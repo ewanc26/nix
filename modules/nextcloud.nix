@@ -4,7 +4,8 @@
 #  Architecture:
 #    Nextcloud / PHP-FPM (via nginx on 127.0.0.1:cfg.nextcloud.port)
 #      ↑ reverse proxy
-#    Caddy (bound to tailscale0 interface, port 80 — Tailscale-only, no Cloudflare tunnel)
+#    Caddy (127.0.0.1:cfg.nextcloud.caddyPort — internal only, no TLS here)
+#      ↑ Cloudflare tunnel (outbound only, no firewall ports needed)
 #
 #  Storage:
 #    All Nextcloud state (config, apps, data) lives under /srv/nextcloud.
@@ -98,29 +99,27 @@ lib.mkIf cfg.services.nextcloud.enable {
       # Fixes the "no maintenance window start time configured" warning.
       maintenance_window_start = 2;
 
-      # HSTS — Caddy/Cloudflare handle the actual TLS but Nextcloud still sets
-      # this header in its nginx config when https = true. We set it here via
-      # the nginx HSTS option instead (see services.nextcloud.nginx below).
     };
 
-    # Enable HSTS header from nginx (fixes the Strict-Transport-Security warning).
-    nginx.hstsMaxAge = 15552000; # 180 days
-
     maxUploadSize = nc.maxUploadSize;
+
+    # Increase PHP opcache interned strings buffer (fixes the opcache warning).
+    phpOptions."opcache.interned_strings_buffer" = "16";
   };
 
-  # Increase PHP opcache interned strings buffer (fixes the opcache warning).
-  services.phpfpm.pools.nextcloud.phpOptions = ''
-    opcache.interned_strings_buffer = 16
-  '';
-
   # Pin nginx to localhost so Caddy is the sole external entry point.
-  services.nginx.virtualHosts."${nc.hostname}".listen = [
-    {
-      addr = "127.0.0.1";
-      port = nc.port;
-    }
-  ];
+  # Also inject the HSTS header manually since https = false disables nginx.hstsMaxAge.
+  services.nginx.virtualHosts."${nc.hostname}" = {
+    listen = [
+      {
+        addr = "127.0.0.1";
+        port = nc.port;
+      }
+    ];
+    extraConfig = ''
+      add_header Strict-Transport-Security "max-age=15552000; includeSubDomains" always;
+    '';
+  };
 
   # Wait for /srv to be mounted before starting Nextcloud.
   systemd.services.nextcloud-setup = {
