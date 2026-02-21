@@ -18,7 +18,7 @@ in
   ];
 
   # Service toggles
-  myConfig.services.forgejo.enable = false;
+  myConfig.services.forgejo.enable = true;
   myConfig.services.nextcloud.enable = true;
   myConfig.services.pds.enable = true;
   myConfig.services.cloudflare.enable = true;
