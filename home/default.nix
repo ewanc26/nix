@@ -94,6 +94,22 @@ in
 
   programs.home-manager.enable = true;
 
+  # ── Nextcloud desktop client: allow syncing files of any size ────────────
+  # The client defaults to blocking files over ~500 MB. This activation script
+  # patches the setting in-place so credentials/tokens in the file are preserved.
+  home.activation.nextcloudMaxSize = lib.mkIf cfg.isDesktop (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      cfg_file="$HOME/.config/Nextcloud/nextcloud.cfg"
+      if [ -f "$cfg_file" ]; then
+        if grep -q "maxSizeEnabled" "$cfg_file"; then
+          $DRY_RUN_CMD ${pkgs.gnused}/bin/sed -i 's/^maxSizeEnabled=.*/maxSizeEnabled=false/' "$cfg_file"
+        else
+          $DRY_RUN_CMD ${pkgs.gnused}/bin/sed -i '/\[General\]/a maxSizeEnabled=false' "$cfg_file"
+        fi
+      fi
+    ''
+  );
+
   fonts.fontconfig.enable = true;
 
   # ── Linux-only theming ────────────────────────────────────────────────────
