@@ -147,6 +147,13 @@ lib.mkIf cfg.services.nextcloud.enable {
     '';
   };
 
+  # Ensure the PHP upload tmp dir exists with correct ownership before Nextcloud
+  # starts. Without this, PHP silently falls back to /tmp (a different filesystem),
+  # causing cross-device rename failures that leave large uploads as ghost entries.
+  systemd.tmpfiles.rules = [
+    "d ${nc.dataDir}/tmp 0750 nextcloud nextcloud -"
+  ];
+
   # Wait for /srv to be mounted before starting Nextcloud.
   systemd.services.nextcloud-setup = {
     after = [ "srv.mount" ];
