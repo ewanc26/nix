@@ -86,31 +86,25 @@ body {
 
 .prompt-char {
   @apply font-bold select-none;
-  color: var(--color-green);
-  font-size: 1.15em;
+  color: var(--color-subtext-0);
+  font-size: clamp(0.95em, 4vw, 1.15em);
 }
 
-.hostname {
+.prompt-path {
+  @apply font-bold select-none;
+  color: var(--color-subtext-0);
+  font-size: clamp(0.95em, 4vw, 1.15em);
+  opacity: 0.6;
+}
+
+.user-marker {
   @apply font-bold break-all;
   color: var(--color-green);
   font-size: clamp(0.95em, 4vw, 1.15em);
   letter-spacing: -0.01em;
 }
 
-.cursor {
-  @apply inline-block align-text-bottom;
-  font-size: clamp(0.95em, 4vw, 1.15em);
-  width: 0.55em;
-  height: 1.1em;
-  margin-left: 2px;
-  background-color: var(--color-green);
-  animation: blink 1.1s step-end infinite;
-}
 
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
 
 .tagline {
   color: var(--color-overlay-0);
