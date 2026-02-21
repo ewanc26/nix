@@ -65,6 +65,12 @@
 
           <span class="kv-key">invite required</span>
           <span class="kv-val loading" id="val-invite">…</span>
+
+          <span class="kv-key" id="key-phone" style="display:none">phone verify</span>
+          <span class="kv-val" id="val-phone" style="display:none"></span>
+
+          <span class="kv-key" id="key-domains" style="display:none">user domains</span>
+          <span class="kv-val" id="val-domains" style="display:none"></span>
         </div>
 
         <hr class="divider" />
@@ -80,7 +86,7 @@
         <hr class="divider" />
 
         <div class="section-label">links</div>
-        <ul class="link-list">
+        <ul class="link-list" id="links-list">
           <li><a href="https://witchsky.app" target="_blank" rel="noopener">Witchsky Web Client</a></li>
         </ul>
 
@@ -91,6 +97,7 @@
           Send a mention on Bluesky to
           <a href="https://witchsky.app/profile/ewancroft.uk" target="_blank" rel="noopener">@ewancroft.uk</a>
         </p>
+        <p class="contact-note" id="val-contact-email" style="display:none; margin-top:0.4rem"></p>
       </div>
     </div>
 
