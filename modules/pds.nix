@@ -29,13 +29,40 @@ let
 
   # Static landing page served by Caddy at the PDS root URL.
   # Built from modular source files in ./pds-landing/.
-  landingPage = pkgs.runCommand "pds-landing" { } ''
-    mkdir -p $out/assets
-    cp ${./pds-landing/index.html}        $out/index.html
-    cp ${./pds-landing/style.css}         $out/style.css
-    cp ${./pds-landing/script.js}         $out/script.js
-    cp ${./pds-landing/assets/thumb.png}  $out/assets/thumb.png
+  landingPage = pkgs.runCommand "pds-landing" {
+    nativeBuildInputs = [ pkgs.tailwindcss ];  # must be Tailwind v4
+  } ''
+    # Lay out source so Tailwind's content scanner finds all class names.
+    mkdir -p src/styles $out/assets
+    cp ${./pds-landing/index.html}              src/index.html
+    cp ${./pds-landing/utils.js}                src/utils.js
+    cp ${./pds-landing/status.js}               src/status.js
+    cp ${./pds-landing/chart.js}                src/chart.js
+    cp ${./pds-landing/script.js}               src/script.js
+    cp ${./pds-landing/styles/input.css}        src/styles/input.css
+
+    # Build — Tailwind v4 auto-detects content from adjacent files.
+    tailwindcss --input src/styles/input.css --output $out/style.css --minify
+
+    cp src/index.html   $out/index.html
+    cp src/utils.js     $out/utils.js
+    cp src/status.js    $out/status.js
+    cp src/chart.js     $out/chart.js
+    cp src/script.js    $out/script.js
+    cp ${./pds-landing/assets/thumb.png} $out/assets/thumb.png
   '';
+
+  # Mutable directory for the rolling 31-day repo-count cache.
+  cacheDir = "/var/lib/pds-landing/cache";
+
+  # Daily script that appends today's total repo count to the JSON cache.
+  # Uses com.atproto.sync.listRepos (same endpoint as the landing page JS)
+  # so no extra auth is needed — it's a public XRPC method.
+  updateCacheScript = pkgs.writeShellApplication {
+    name = "pds-landing-update-cache";
+    runtimeInputs = with pkgs; [ curl jq ];
+    text = builtins.readFile ./pds-landing/update-cache.sh;
+  };
 
   # UK Online Safety Act age-assurance static responses.
   ageAssuranceBlocks = ''
@@ -84,6 +111,39 @@ lib.mkIf cfg.services.pds.enable {
     };
   };
 
+  # ── Landing-page cache ──────────────────────────────────────────────────────
+
+  systemd.tmpfiles.rules = [
+    "d ${cacheDir} 0755 caddy caddy -"
+  ];
+
+  systemd.services.pds-landing-update-cache = {
+    description = "Update PDS landing page repo-count cache";
+    after       = [ "network.target" "bluesky-pds.service" ];
+    wants       = [ "bluesky-pds.service" ];
+    serviceConfig = {
+      Type            = "oneshot";
+      User            = "caddy";
+      Group           = "caddy";
+      ExecStart       = "${updateCacheScript}/bin/pds-landing-update-cache";
+      Environment     = [
+        "PDS_URL=http://127.0.0.1:${pdsPort}"
+        "CACHE_DIR=${cacheDir}"
+      ];
+      ReadWritePaths  = [ cacheDir ];
+    };
+  };
+
+  systemd.timers.pds-landing-update-cache = {
+    description  = "Daily PDS landing page repo-count cache refresh";
+    wantedBy     = [ "timers.target" ];
+    timerConfig  = {
+      OnCalendar         = "daily";
+      Persistent         = true;   # run immediately if last run was missed
+      RandomizedDelaySec = "5m";   # spread load after midnight
+    };
+  };
+
   systemd.services.bluesky-pds = {
     # Wait for /srv to be mounted — but don't fail if it isn't yet.
     # When the drive is plugged in and srv.mount starts, this service
@@ -109,9 +169,15 @@ lib.mkIf cfg.services.pds.enable {
       handle /index.html {
         redir / permanent
       }
-      @landing path / /style.css /script.js /assets/*
+      @landing path / /style.css /utils.js /status.js /chart.js /script.js /assets/*
       handle @landing {
         root * ${landingPage}
+        file_server
+      }
+
+      # Mutable daily-cache served from the writable state directory.
+      handle /cache/* {
+        root * /var/lib/pds-landing
         file_server
       }
 

@@ -69,6 +69,14 @@
 
         <hr class="divider" />
 
+        <div class="section-label">records · last 30 days</div>
+        <div id="chart-container" class="chart-container">
+          <svg id="records-chart" class="records-chart" aria-label="Repo count over the last 30 days"></svg>
+          <p class="chart-empty" id="chart-empty" hidden>no data yet — updates daily</p>
+        </div>
+
+        <hr class="divider" />
+
         <div class="section-label">endpoints</div>
         <p class="endpoints-note">Most API routes are under <span class="highlight">/xrpc/</span></p>
         <ul class="link-list">
@@ -100,6 +108,6 @@
       <a href="https://atproto.com" target="_blank" rel="noopener">atproto.com</a>
     </footer>
 
-    <script src="/script.js"></script>
+    <script type="module" src="/script.js"></script>
   </body>
 </html>
