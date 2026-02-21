@@ -452,7 +452,7 @@ in
       };
       maxUploadSize = mkOption {
         type = str;
-        default = "16G";
+        default = "50G";
       };
       smtp = {
         fromAddress = mkOption {
