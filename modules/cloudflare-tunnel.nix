@@ -37,6 +37,9 @@ let
     }
     // lib.optionalAttrs cfg.services.forgejo.enable {
       ${cfg.forgejo.hostname} = "http://127.0.0.1:${toString cfg.forgejo.caddyPort}";
+    }
+    // lib.optionalAttrs cfg.services.nextcloud.enable {
+      ${cfg.nextcloud.hostname} = "http://127.0.0.1:${toString cfg.nextcloud.caddyPort}";
     };
 in
 lib.mkIf cfg.services.cloudflare.enable {
@@ -75,8 +78,14 @@ lib.mkIf cfg.services.cloudflare.enable {
   # cloudflared dials outbound to Cloudflare's edge — zero inbound ports needed.
   # Single tunnel serves all configured services via hostname-based routing.
   systemd.services."cloudflared-tunnel-${cfg.cloudflare.tunnelId}" = {
-    after = [ "network-online.target" "nss-lookup.target" ];
-    wants = [ "network-online.target" "nss-lookup.target" ];
+    after = [
+      "network-online.target"
+      "nss-lookup.target"
+    ];
+    wants = [
+      "network-online.target"
+      "nss-lookup.target"
+    ];
     serviceConfig.ExecStartPre = [
       # Wait until DNS is actually responsive before starting the tunnel.
       # cloudflared fails fast at boot if DNS isn't ready yet.

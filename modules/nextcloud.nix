@@ -35,6 +35,7 @@ let
   cfg = config.myConfig;
   nc = cfg.nextcloud;
   ncPort = toString nc.port;
+  caddyPort = toString nc.caddyPort;
 in
 lib.mkIf cfg.services.nextcloud.enable {
 
@@ -113,11 +114,7 @@ lib.mkIf cfg.services.nextcloud.enable {
     };
   };
 
-  # Allow port 80 on the Tailscale interface only — blocks all non-tailnet access
-  # without needing to bind Caddy to a specific IP.
-  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 80 ];
-
-  services.caddy.virtualHosts."http://${nc.hostname}" = {
+  services.caddy.virtualHosts."http://${nc.hostname}:${caddyPort}" = {
     extraConfig = ''
       handle {
         reverse_proxy http://127.0.0.1:${ncPort}

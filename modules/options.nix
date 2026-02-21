@@ -431,6 +431,11 @@ in
         default = 8085;
         description = "Internal nginx port — not exposed, Caddy proxies to this.";
       };
+      caddyPort = mkOption {
+        type = int;
+        default = 3003;
+        description = "Caddy virtual host port — used by the Cloudflare tunnel.";
+      };
       adminUser = mkOption {
         type = str;
         default = "admin";
