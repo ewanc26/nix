@@ -3,6 +3,9 @@
 # the nixos-upgrade-push systemd service after auto-upgrades.
 #
 # Checks staged files only, so it's fast and non-intrusive.
+# Formatters (nixfmt, shfmt, rustfmt, taplo, prettier) auto-fix and re-stage.
+# Linters (shellcheck, clippy) still block on failure — they need human fixes.
+#
 # Tools used (all present in myConfig.packages.development):
 #   nixfmt-rfc-style  — Nix formatter
 #   shfmt + shellcheck — Shell formatter and linter
@@ -28,26 +31,22 @@ FAILED=0
 
 # ── Nix formatting ────────────────────────────────────────────────────────────
 if [ "${#NIX_FILES[@]}" -gt 0 ]; then
-  echo "→ nixfmt: checking staged .nix files..."
+  echo "→ nixfmt: formatting staged .nix files..."
   for file in "${NIX_FILES[@]}"; do
-    if ! diff -q <(nixfmt < "$file") "$file" > /dev/null 2>&1; then
-      echo "  ✗ $file (run: nixfmt $file)"
-      FAILED=1
-    fi
+    nixfmt "$file"
   done
-  [ "$FAILED" -eq 0 ] && echo "  ✓ all .nix files formatted"
+  git add "${NIX_FILES[@]}"
+  echo "  ✓ all .nix files formatted and re-staged"
 fi
 
 # ── Shell formatting ──────────────────────────────────────────────────────────
 if [ "${#SH_FILES[@]}" -gt 0 ]; then
-  echo "→ shfmt: checking staged .sh files..."
+  echo "→ shfmt: formatting staged .sh files..."
   for file in "${SH_FILES[@]}"; do
-    if [ -n "$(shfmt -d "$file")" ]; then
-      echo "  ✗ $file (run: shfmt -w $file)"
-      FAILED=1
-    fi
+    shfmt -w "$file"
   done
-  [ "$FAILED" -eq 0 ] && echo "  ✓ all .sh files formatted"
+  git add "${SH_FILES[@]}"
+  echo "  ✓ all .sh files formatted and re-staged"
 fi
 
 # ── Shell linting ─────────────────────────────────────────────────────────────
@@ -77,13 +76,12 @@ if [ "${#RS_FILES[@]}" -gt 0 ]; then
   done
 
   for root in "${!seen_roots[@]}"; do
-    echo "→ rustfmt: checking $root..."
-    if ! cargo fmt --manifest-path "$root/Cargo.toml" -- --check 2>/dev/null; then
-      echo "  ✗ $root (run: cargo fmt --manifest-path $root/Cargo.toml)"
-      FAILED=1
-    else
-      echo "  ✓ rustfmt passed"
-    fi
+    echo "→ rustfmt: formatting $root..."
+    cargo fmt --manifest-path "$root/Cargo.toml" 2>/dev/null
+    # Re-stage any .rs files under this root
+    mapfile -t ROOT_RS_FILES < <(printf '%s\n' "${RS_FILES[@]}" | grep "^$root/")
+    [ "${#ROOT_RS_FILES[@]}" -gt 0 ] && git add "${ROOT_RS_FILES[@]}"
+    echo "  ✓ rustfmt applied and re-staged"
 
     echo "→ clippy: linting $root..."
     if ! cargo clippy --manifest-path "$root/Cargo.toml" -- -D warnings 2>/dev/null; then
@@ -96,14 +94,12 @@ fi
 
 # ── TOML formatting ───────────────────────────────────────────────────────────
 if [ "${#TOML_FILES[@]}" -gt 0 ]; then
-  echo "→ taplo: checking staged .toml files..."
+  echo "→ taplo: formatting staged .toml files..."
   for file in "${TOML_FILES[@]}"; do
-    if ! taplo fmt --check "$file" 2>/dev/null; then
-      echo "  ✗ $file (run: taplo fmt $file)"
-      FAILED=1
-    fi
+    taplo fmt "$file" 2>/dev/null
   done
-  [ "$FAILED" -eq 0 ] && echo "  ✓ all .toml files formatted"
+  git add "${TOML_FILES[@]}"
+  echo "  ✓ all .toml files formatted and re-staged"
 fi
 
 # ── Markdown linting ──────────────────────────────────────────────────────────
@@ -118,13 +114,10 @@ fi
 
 # ── Prettier (JSON, JSONC, YAML, CSS, JS, HTML) ───────────────────────────────
 if [ "${#PRETTIER_FILES[@]}" -gt 0 ]; then
-  echo "→ prettier: checking staged files..."
-  if ! prettier --check "${PRETTIER_FILES[@]}"; then
-    echo "  (run: prettier --write <file>)"
-    FAILED=1
-  else
-    echo "  ✓ prettier passed"
-  fi
+  echo "→ prettier: formatting staged files..."
+  prettier --write "${PRETTIER_FILES[@]}"
+  git add "${PRETTIER_FILES[@]}"
+  echo "  ✓ prettier applied and re-staged"
 fi
 
 if [ "$FAILED" -ne 0 ]; then
