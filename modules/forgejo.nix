@@ -51,6 +51,15 @@ lib.mkIf cfg.services.forgejo.enable {
       };
 
       service.DISABLE_REGISTRATION = forgejo.disableRegistration;
+
+      mailer = {
+        ENABLED = true;
+        PROTOCOL = "smtps";
+        SMTP_ADDR = "smtp.resend.com";
+        SMTP_PORT = 465;
+        USER = "resend";
+        FROM = "forgejo@server.ewancroft.uk";
+      };
     };
   };
 
