@@ -101,20 +101,6 @@ in
   manual.html.enable = false;
   manual.json.enable = false;
 
-  # ── Developer directory scaffold ───────────────────────────────────────────
-  # ~/Developer/Git  — clones from github.com/ewanc26 (excl. nix) and any
-  #                    Forgejo repos not mirrored from GitHub.
-  # ~/Developer/Local — private repos synced to Forgejo only.
-  home.activation.developerDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    for dir in Git Local; do
-      target="$HOME/Developer/$dir"
-      if [ ! -d "$target" ]; then
-        $DRY_RUN_CMD mkdir -p "$target"
-        echo "developer: created $target"
-      fi
-    done
-  '';
-
   # ── nix-config git repo ────────────────────────────────────────────────────
   # Ensures ~/.config/nix-config is always a git repo with the correct remotes.
   # Server hosts only use origin (GitHub) — Tangled is for desktop hosts only.
