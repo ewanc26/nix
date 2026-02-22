@@ -32,8 +32,8 @@ in
     ./programs/zsh.nix
     ./programs/ssh.nix
   ]
-  ++ lib.optionals (!isDarwin) [
-    ./programs/terminal.nix # Konsole profile — all non-Darwin hosts
+  ++ lib.optionals (!isDarwin && !cfg.isDesktop) [
+    ./programs/terminal.nix # Konsole profile — Linux server hosts only
   ]
   ++ lib.optionals (cfg.isDesktop && !isDarwin) [
     ./programs/kde.nix # KDE Plasma settings — Linux desktop only

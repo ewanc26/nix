@@ -209,6 +209,12 @@ in
 
     configFile."plasmanotifyrc".Notifications.PopupPosition = "TopRight";
 
+    # ── Default terminal ──────────────────────────────────────────────────────
+    configFile."kdeglobals".General = {
+      TerminalApplication = "ghostty";
+      TerminalService = "com.mitchellh.ghostty.desktop";
+    };
+
     # ── Dolphin ───────────────────────────────────────────────────────────────
     configFile."dolphinrc" = {
       General = {
@@ -281,7 +287,7 @@ in
                 "applications:discord.desktop"
                 "applications:firefox.desktop"
                 "applications:code.desktop"
-                "applications:org.kde.konsole.desktop"
+                "applications:com.mitchellh.ghostty.desktop"
               ];
             };
           }
