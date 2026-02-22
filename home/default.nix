@@ -103,6 +103,7 @@ in
 
   # ── nix-config git repo ────────────────────────────────────────────────────
   # Ensures ~/.config/nix-config is always a git repo with the correct remotes.
+  # Server hosts only use origin (GitHub) — Tangled is for desktop hosts only.
   home.activation.nixConfigGitRepo = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     nix_config="${config.home.homeDirectory}/.config/nix-config"
     github_remote="git@github.com:ewanc26/nix"
@@ -128,13 +129,16 @@ in
         echo "nix-config: updated origin -> $github_remote"
       fi
 
-      current_tangled=$(${pkgs.git}/bin/git remote get-url tangled 2>/dev/null || echo "")
-      if [ -z "$current_tangled" ]; then
-        $DRY_RUN_CMD ${pkgs.git}/bin/git remote add tangled "$tangled_remote"
-        echo "nix-config: added tangled -> $tangled_remote"
-      elif [ "$current_tangled" != "$tangled_remote" ]; then
-        $DRY_RUN_CMD ${pkgs.git}/bin/git remote set-url tangled "$tangled_remote"
-        echo "nix-config: updated tangled -> $tangled_remote"
+      # Tangled remote — desktop hosts only
+      if ${lib.boolToString cfg.isDesktop}; then
+        current_tangled=$(${pkgs.git}/bin/git remote get-url tangled 2>/dev/null || echo "")
+        if [ -z "$current_tangled" ]; then
+          $DRY_RUN_CMD ${pkgs.git}/bin/git remote add tangled "$tangled_remote"
+          echo "nix-config: added tangled -> $tangled_remote"
+        elif [ "$current_tangled" != "$tangled_remote" ]; then
+          $DRY_RUN_CMD ${pkgs.git}/bin/git remote set-url tangled "$tangled_remote"
+          echo "nix-config: updated tangled -> $tangled_remote"
+        fi
       fi
     fi
   '';
