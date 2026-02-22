@@ -389,18 +389,6 @@ in
       };
     };
 
-    # ── Secrets ───────────────────────────────────────────────────────────────
-    secrets = {
-      docker.enable = mkOption {
-        type = bool;
-        default = false;
-      };
-      claude.enable = mkOption {
-        type = bool;
-        default = false;
-      };
-    };
-
     # ── Server service toggles ────────────────────────────────────────────────
     services = {
       forgejo.enable = mkOption {

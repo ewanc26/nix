@@ -213,22 +213,4 @@ in
   # Tell the home-manager sops module to decrypt using the host's SSH ed25519
   # key as an age key — same source as the system-level sops in common.nix.
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  sops.secrets = lib.mkMerge [
-    (lib.mkIf cfg.secrets.docker.enable {
-      "docker-config" = {
-        sopsFile = ../secrets/docker-config.json;
-        path = "${config.home.homeDirectory}/.docker/config.json";
-        mode = "0600";
-      };
-    })
-
-    (lib.mkIf cfg.secrets.claude.enable {
-      "claude-config" = {
-        sopsFile = ../secrets/claude.json;
-        path = "${config.home.homeDirectory}/.claude.json";
-        mode = "0600";
-      };
-    })
-
-  ];
 }
