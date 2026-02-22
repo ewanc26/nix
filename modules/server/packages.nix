@@ -28,6 +28,8 @@ in
     ++ resolvePackages cfg.packages.server
     # Server-specific tools not suited to the shared package lists
     ++ (with pkgs; [
+      # Ghostty terminfo — allows SSH sessions from Ghostty to work correctly
+      ghostty.terminfo
       # System inspection
       iotop
       iftop

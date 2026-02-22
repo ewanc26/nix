@@ -44,10 +44,6 @@ in
       # ── Misc ────────────────────────────────────────────────────────────
       confirm-close-surface = false;
       copy-on-select = false;
-
-      # Use xterm-256color over SSH — remote machines don't have the
-      # xterm-ghostty terminfo entry so fall back to a universal term type.
-      term = "xterm-256color";
     };
   };
 }
