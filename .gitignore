@@ -26,6 +26,7 @@ result-*
 !/secrets/cloudflare.token
 !/secrets/nextcloud-admin-pass
 !/secrets/nextcloud-smtp-pass
+!/secrets/forgejo-user-token
 
 # 3. Explicitly block sensitive patterns everywhere just in case
 *.txt
