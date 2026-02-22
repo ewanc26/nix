@@ -55,7 +55,7 @@
       "/Applications/Spotify.app"
       "/Applications/Firefox.app"
       # ── System ─────────────────────────────────────────────────────
-      "/System/Applications/Utilities/Terminal.app"
+      "/Users/ewan/Applications/Home Manager Apps/Ghostty.app"
     ];
   };
 

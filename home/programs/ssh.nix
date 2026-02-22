@@ -93,7 +93,9 @@ in
     config = {
       ProgramArguments = [
         "/usr/bin/ssh-add"
-        "--apple-load-keychain"
+        "-q"
+        "--apple-use-keychain"
+        "/Users/${cfg.user.username}/.ssh/id_ed25519"
       ];
       RunAtLoad = true;
       StandardOutPath = "/tmp/ssh-add-keychain.log";

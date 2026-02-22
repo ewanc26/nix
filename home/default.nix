@@ -41,6 +41,7 @@ in
   ]
   ++ lib.optionals (cfg.isDesktop) [
     ./programs/starship.nix
+    ./programs/ghostty.nix
   ]
   ++ [
     ./programs/fastfetch.nix
@@ -93,6 +94,50 @@ in
   };
 
   programs.home-manager.enable = true;
+
+  # Disable the home-manager manual — avoids a known upstream warning about
+  # options.json referencing store paths without proper context (HM issue #7935).
+  manual.manpages.enable = false;
+  manual.html.enable = false;
+  manual.json.enable = false;
+
+  # ── nix-config git repo ────────────────────────────────────────────────────
+  # Ensures ~/.config/nix-config is always a git repo with the correct remotes.
+  home.activation.nixConfigGitRepo = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    nix_config="${config.home.homeDirectory}/.config/nix-config"
+    github_remote="git@github.com:ewanc26/nix"
+    tangled_remote="git@tangled.org:ewancroft.uk/nix"
+
+    if [ ! -d "$nix_config" ]; then
+      echo "nix-config: directory not found, skipping git setup"
+    else
+      cd "$nix_config"
+
+      if [ ! -d ".git" ]; then
+        $DRY_RUN_CMD ${pkgs.git}/bin/git init
+        $DRY_RUN_CMD ${pkgs.git}/bin/git checkout -b main
+        echo "nix-config: initialised git repo"
+      fi
+
+      current_origin=$(${pkgs.git}/bin/git remote get-url origin 2>/dev/null || echo "")
+      if [ -z "$current_origin" ]; then
+        $DRY_RUN_CMD ${pkgs.git}/bin/git remote add origin "$github_remote"
+        echo "nix-config: added origin -> $github_remote"
+      elif [ "$current_origin" != "$github_remote" ]; then
+        $DRY_RUN_CMD ${pkgs.git}/bin/git remote set-url origin "$github_remote"
+        echo "nix-config: updated origin -> $github_remote"
+      fi
+
+      current_tangled=$(${pkgs.git}/bin/git remote get-url tangled 2>/dev/null || echo "")
+      if [ -z "$current_tangled" ]; then
+        $DRY_RUN_CMD ${pkgs.git}/bin/git remote add tangled "$tangled_remote"
+        echo "nix-config: added tangled -> $tangled_remote"
+      elif [ "$current_tangled" != "$tangled_remote" ]; then
+        $DRY_RUN_CMD ${pkgs.git}/bin/git remote set-url tangled "$tangled_remote"
+        echo "nix-config: updated tangled -> $tangled_remote"
+      fi
+    fi
+  '';
 
   # ── Nextcloud desktop client ─────────────────────────────────────────────
   # Both activation scripts below patch nextcloud.cfg in-place so that

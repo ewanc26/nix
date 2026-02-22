@@ -736,44 +736,11 @@ in
         brews = mkOption {
           type = listStr;
           default = [
+            # MediaInfo — standalone GUI/CLI media analyser
             "libmediainfo"
             "media-info"
             "libzen"
-            "aribb24"
-            "dav1d"
-            "rav1e"
-            "svt-av1"
-            "x264"
-            "x265"
-            "xvid"
-            "webp"
-            "aom"
-            "jpeg-xl"
-            "highway"
-            "flac"
-            "lame"
-            "opus"
-            "vorbis-tools"
-            "libsndfile"
-            "libsamplerate"
-            "rubberband"
-            "speex"
-            "theora"
-            "mpg123"
-            "little-cms2"
-            "leptonica"
-            "rtmpdump"
-            "srt"
-            "librist"
-            "libmms"
-            "lzo"
-            "snappy"
-            "xxhash"
-            "yyjson"
-            "freetds"
-            "unixodbc"
-            "summarize"
-            "goat"
+            # MAS helper — required for masApps below
             "mas"
           ];
         };
@@ -801,10 +768,7 @@ in
             "firefox"
             # Gaming
             "steam"
-            "epic-games"
             "prismlauncher"
-            "roblox"
-            "ea"
             # Virtualisation
             "utm"
             # Networking / remote
@@ -823,7 +787,6 @@ in
             "microsoft-powerpoint"
             "microsoft-teams"
             "microsoft-word"
-            "libreoffice"
             "nextcloud-vfs"
           ];
         };
@@ -832,8 +795,7 @@ in
           default = {
             "Amphetamine" = 937984704;
             "OneDrive" = 823766827;
-            "OP Auto Clicker" = 6754914118;
-            "Steam Link" = 1246969117;
+            # Steam Link removed — requires Rosetta 2, incompatible with Apple Silicon
             "TestFlight" = 899247664;
             "The Unarchiver" = 425424353;
             "WhatsApp" = 310633997;

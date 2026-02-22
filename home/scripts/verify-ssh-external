@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Check SSH connectivity to external services
+# Usage: verify-ssh-external
+
+set -uo pipefail
+
+PASS=0
+FAIL=0
+
+check() {
+    local label="$1"
+    local host="$2"
+    local user="$3"
+    local expected="$4"
+
+    echo -n "  $label... "
+    result=$(ssh -o ConnectTimeout=5 \
+                 -o BatchMode=yes \
+                 -o StrictHostKeyChecking=accept-new \
+                 "${user}@${host}" 2>&1) || true
+
+    if echo "$result" | grep -qi "$expected"; then
+        echo "✓"
+        ((PASS++))
+    else
+        echo "✗  ($result)"
+        ((FAIL++))
+    fi
+}
+
+echo
+echo "=== External SSH Verification ==="
+echo
+
+check "GitHub     (github.com)"         "github.com"       "git" "successfully authenticated"
+check "Forgejo    (git.ewancroft.uk)"   "git.ewancroft.uk" "git" "successfully authenticated\|welcome"
+check "Tangled    (tangled.sh)"         "tangled.sh"       "git" "successfully authenticated\|welcome"
+check "Tangled    (tangled.org)"        "tangled.org"      "git" "successfully authenticated\|welcome"
+
+echo
+if [ "$FAIL" -eq 0 ]; then
+    echo "  All $PASS connections OK"
+else
+    echo "  $PASS passed, $FAIL failed"
+    echo
+    echo "  Troubleshooting:"
+    echo "    - Check your key is loaded:  ssh-add -l"
+    echo "    - GitHub keys:               https://github.com/settings/keys"
+    echo "    - Forgejo keys:              https://git.ewancroft.uk/user/settings/keys"
+    echo "    - Tangled keys:              https://tangled.sh/settings/keys"
+fi
+echo

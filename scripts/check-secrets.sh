@@ -2,7 +2,8 @@
 # Audits all sops secrets in the nix-config repo.
 # Reports: format, recipient count, whether server key is present, and decryptability.
 
-cd "$(git rev-parse --show-toplevel)" || exit 1
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)"
+cd "$REPO_ROOT"
 
 SERVER_KEY="age1xvny7h8cahajamj4lz9cew5w0dqlge0yy6tys7szj42grcrl95jqsrutsu"
 PASS=0
@@ -13,16 +14,29 @@ check_secret() {
   local expected_format="$2"
   echo "── $file ──────────────────────────────"
 
-  if ! jq empty "$file" 2>/dev/null; then
-    echo "  ✗ Not valid JSON — may be corrupted"
-    ((FAIL++)); return
+  # sops metadata is always in a JSON sidecar regardless of file format.
+  # For dotenv/binary files, extract the sops block from the file directly.
+  local sops_json
+  if [[ "$expected_format" == "json" ]]; then
+    if ! jq empty "$file" 2>/dev/null; then
+      echo "  ✗ Not valid JSON — may be corrupted"
+      ((FAIL++)); return
+    fi
+    sops_json=$(jq '.sops' "$file" 2>/dev/null)
+  else
+    # dotenv/binary: sops appends a JSON block at the end after a blank line
+    sops_json=$(awk '/^sops:/{found=1} found{print}' "$file" 2>/dev/null || true)
+    if [ -z "$sops_json" ]; then
+      # fallback: try treating whole file as JSON anyway
+      sops_json=$(jq '.sops' "$file" 2>/dev/null || echo "{}")
+    fi
   fi
 
   local count
-  count=$(jq '.sops.age | length' "$file" 2>/dev/null)
+  count=$(echo "$sops_json" | jq '.age | length' 2>/dev/null || echo "0")
   echo "  Recipients: $count"
 
-  if jq -r '.sops.age[].recipient' "$file" 2>/dev/null | grep -q "$SERVER_KEY"; then
+  if echo "$sops_json" | jq -r '.age[].recipient' 2>/dev/null | grep -q "$SERVER_KEY"; then
     echo "  ✓ Server key present"
   else
     echo "  ✗ Server key MISSING"
@@ -30,7 +44,7 @@ check_secret() {
   fi
 
   local modified
-  modified=$(jq -r '.sops.lastmodified' "$file" 2>/dev/null)
+  modified=$(echo "$sops_json" | jq -r '.lastmodified' 2>/dev/null || echo "unknown")
   echo "  Last modified: $modified"
 
   local plaintext
