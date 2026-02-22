@@ -824,7 +824,7 @@ in
             "microsoft-teams"
             "microsoft-word"
             "libreoffice"
-            "nextcloud"
+            "nextcloud-vfs"
           ];
         };
         masApps = mkOption {

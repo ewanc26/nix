@@ -94,9 +94,25 @@ in
 
   programs.home-manager.enable = true;
 
-  # ── Nextcloud desktop client: allow syncing files of any size ────────────
-  # The client defaults to blocking files over ~500 MB. This activation script
-  # patches the setting in-place so credentials/tokens in the file are preserved.
+  # ── Nextcloud desktop client ─────────────────────────────────────────────
+  # Both activation scripts below patch nextcloud.cfg in-place so that
+  # credentials/tokens already written by the client are preserved.
+
+  # Enable VFS (virtual files) for all configured sync folders — files appear
+  # as lightweight placeholders locally and are only downloaded on access,
+  # keeping the primary copy on the server. Linux uses "suffix" mode (.nextcloud
+  # placeholder files); this is a no-op if VFS is already on or if the cfg
+  # file doesn't exist yet (new installs pick it up after first sync setup).
+  home.activation.nextcloudVFS = lib.mkIf (cfg.isDesktop && !isDarwin) (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      cfg_file="$HOME/.config/Nextcloud/nextcloud.cfg"
+      if [ -f "$cfg_file" ]; then
+        $DRY_RUN_CMD ${pkgs.gnused}/bin/sed -i 's/virtualFilesMode=off/virtualFilesMode=suffix/g' "$cfg_file"
+      fi
+    ''
+  );
+
+  # Allow syncing files of any size (client default blocks files over ~500 MB).
   home.activation.nextcloudMaxSize = lib.mkIf cfg.isDesktop (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       cfg_file="$HOME/.config/Nextcloud/nextcloud.cfg"
