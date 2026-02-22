@@ -27,9 +27,14 @@ in
   # Symlink tracked hooks into .git/hooks so they're always up to date.
   system.activationScripts.installGitHooks = ''
     REPO="/home/${cfg.user.username}/.config/nix-config"
+    HOOK="$REPO/.git/hooks/pre-commit"
+    TARGET="$REPO/hooks/pre-commit"
     if [ -d "$REPO/.git" ]; then
-      ln -sf "$REPO/hooks/pre-commit" "$REPO/.git/hooks/pre-commit"
-      chmod +x "$REPO/hooks/pre-commit"
+      # Only (re)create the symlink if it's missing or points somewhere else.
+      if [ "$(readlink "$HOOK" 2>/dev/null)" != "$TARGET" ]; then
+        ln -sf "$TARGET" "$HOOK"
+        chmod +x "$TARGET"
+      fi
     fi
   '';
 
