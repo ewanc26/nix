@@ -101,6 +101,20 @@ in
   manual.html.enable = false;
   manual.json.enable = false;
 
+  # ── Developer directory scaffold ───────────────────────────────────────────
+  # ~/Developer/Git  — clones from github.com/ewanc26 (excl. nix) and any
+  #                    Forgejo repos not mirrored from GitHub.
+  # ~/Developer/Local — private repos synced to Forgejo only.
+  home.activation.developerDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    for dir in Git Local; do
+      target="$HOME/Developer/$dir"
+      if [ ! -d "$target" ]; then
+        $DRY_RUN_CMD mkdir -p "$target"
+        echo "developer: created $target"
+      fi
+    done
+  '';
+
   # ── nix-config git repo ────────────────────────────────────────────────────
   # Ensures ~/.config/nix-config is always a git repo with the correct remotes.
   # Server hosts only use origin (GitHub) — Tangled is for desktop hosts only.
@@ -143,6 +157,83 @@ in
     fi
   '';
 
+  # ── Developer directories ──────────────────────────────────────────────────
+  # Creates ~/Developer/Git and ~/Developer/Local on all hosts.
+  # ~/Developer/Git  — GitHub repos (ewanc26, minus nix) + non-mirror Forgejo repos.
+  # ~/Developer/Local — private Forgejo repos (requires userApiTokenFile to be set).
+  # Repos are cloned via SSH on first activation; existing dirs are never touched.
+  home.activation.developerDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD mkdir -p "$HOME/Developer/Git"
+    $DRY_RUN_CMD mkdir -p "$HOME/Developer/Local"
+
+    # ── GitHub ────────────────────────────────────────────────────────────────
+    if ${pkgs.curl}/bin/curl --silent --max-time 5 --output /dev/null "https://github.com"; then
+      page=1
+      while true; do
+        repos=$(${pkgs.curl}/bin/curl --silent \
+          "https://api.github.com/users/${cfg.user.githubUsername}/repos?per_page=100&page=$page" \
+          | ${pkgs.jq}/bin/jq -r '.[].name // empty')
+        [ -z "$repos" ] && break
+        for repo in $repos; do
+          [ "$repo" = "nix" ] && continue
+          if [ ! -d "$HOME/Developer/Git/$repo" ]; then
+            echo "developer: cloning github:${cfg.user.githubUsername}/$repo"
+            $DRY_RUN_CMD ${pkgs.git}/bin/git clone \
+              "git@github.com:${cfg.user.githubUsername}/$repo.git" \
+              "$HOME/Developer/Git/$repo"
+          fi
+        done
+        page=$((page + 1))
+      done
+    else
+      echo "developer: github unreachable, skipping GitHub clones"
+    fi
+
+    # ── Forgejo ───────────────────────────────────────────────────────────────
+    if ${pkgs.curl}/bin/curl --silent --max-time 5 --output /dev/null "https://${cfg.forgejo.hostname}"; then
+      forgejo_token_arg=""
+      ${lib.optionalString (cfg.forgejo.userApiTokenFile != null) ''
+        forgejo_token_arg="&token=$(cat "${cfg.forgejo.userApiTokenFile}")"
+      ''}
+
+      page=1
+      while true; do
+        page_data=$(${pkgs.curl}/bin/curl --silent \
+          "https://${cfg.forgejo.hostname}/api/v1/repos/search?limit=50&page=$page$forgejo_token_arg")
+        count=$(echo "$page_data" | ${pkgs.jq}/bin/jq '.data | length')
+        [ "$count" = "0" ] && break
+
+        # Non-mirror public repos -> Developer/Git
+        while IFS= read -r name; do
+          if [ ! -d "$HOME/Developer/Git/$name" ]; then
+            echo "developer: cloning forgejo:${cfg.user.username}/$name"
+            $DRY_RUN_CMD ${pkgs.git}/bin/git clone \
+              "git@${cfg.forgejo.hostname}:${cfg.user.username}/$name.git" \
+              "$HOME/Developer/Git/$name"
+          fi
+        done < <(echo "$page_data" \
+          | ${pkgs.jq}/bin/jq -r '.data[] | select(.mirror == false and .private == false) | .name')
+
+        ${lib.optionalString (cfg.forgejo.userApiTokenFile != null) ''
+          # Non-mirror private repos -> Developer/Local (token required)
+          while IFS= read -r name; do
+            if [ ! -d "$HOME/Developer/Local/$name" ]; then
+              echo "developer: cloning forgejo:${cfg.user.username}/$name (private)"
+              $DRY_RUN_CMD ${pkgs.git}/bin/git clone \
+                "git@${cfg.forgejo.hostname}:${cfg.user.username}/$name.git" \
+                "$HOME/Developer/Local/$name"
+            fi
+          done < <(echo "$page_data" \
+            | ${pkgs.jq}/bin/jq -r '.data[] | select(.mirror == false and .private == true) | .name')
+        ''}
+
+        page=$((page + 1))
+      done
+    else
+      echo "developer: forgejo unreachable, skipping Forgejo clones"
+    fi
+  '';
+
   # ── Nextcloud desktop client ─────────────────────────────────────────────
   # Both activation scripts below patch nextcloud.cfg in-place so that
   # credentials/tokens already written by the client are preserved.
@@ -157,6 +248,35 @@ in
       cfg_file="$HOME/.config/Nextcloud/nextcloud.cfg"
       if [ -f "$cfg_file" ]; then
         $DRY_RUN_CMD ${pkgs.gnused}/bin/sed -i 's/virtualFilesMode=off/virtualFilesMode=suffix/g' "$cfg_file"
+      fi
+    ''
+  );
+
+  # Ensure Nextcloud-synced dirs exist directly at $HOME.
+  # On macOS, Pictures is excluded — Photos Library.photoslibrary is TCC-protected.
+  # Any legacy symlinks pointing to ~/Nextcloud/* are replaced with real dirs.
+  home.activation.nextcloudFolderLinks = lib.mkIf cfg.isDesktop (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      if ! ${pkgs.curl}/bin/curl --silent --max-time 5 --output /dev/null "https://${cfg.nextcloud.hostname}"; then
+        echo "nextcloud: server unreachable, skipping folder setup"
+      else
+        dirs="Desktop Downloads Documents Obsidian Archives Pictures"
+        ${lib.optionalString isDarwin ''dirs="Desktop Downloads Documents Obsidian Archives"''}
+
+        for dir in $dirs; do
+          target="$HOME/$dir"
+
+          # Replace legacy symlink (from old ~/Nextcloud/$dir setup) with a real dir.
+          if [ -L "$target" ]; then
+            echo "nextcloud: removing legacy symlink $target"
+            $DRY_RUN_CMD rm "$target"
+          fi
+
+          if [ ! -d "$target" ]; then
+            $DRY_RUN_CMD mkdir -p "$target"
+            echo "nextcloud: created $target"
+          fi
+        done
       fi
     ''
   );
@@ -213,4 +333,10 @@ in
   # Tell the home-manager sops module to decrypt using the host's SSH ed25519
   # key as an age key — same source as the system-level sops in common.nix.
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
+  sops.secrets."forgejo-user-token" = {
+    sopsFile = ../secrets/forgejo-user-token;
+    format = "binary";
+    path = "${config.home.homeDirectory}/.config/forgejo-user-token";
+  };
 }

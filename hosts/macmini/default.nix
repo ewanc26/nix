@@ -20,12 +20,12 @@ in
   system.primaryUser = cfg.user.username;
 
   myConfig.isDesktop = true;
+  myConfig.forgejo.userApiTokenFile = "/Users/${config.myConfig.user.username}/.config/forgejo-user-token";
 
   networking = {
     hostName = "macmini";
     computerName = "MacMini";
   };
-
 
   # ── External disk (CT2000X9SSD9, APFS container on disk4s2) ───────────────
   # See docs/time-machine.md for first-time setup instructions.
@@ -34,7 +34,11 @@ in
   # Tailscale — auto-start at login so SSH ProxyCommand never fails on boot.
   launchd.user.agents."com.tailscale.tailscaled-launcher" = {
     serviceConfig = {
-      ProgramArguments = [ "/usr/bin/open" "-a" "/Applications/Tailscale.app" ];
+      ProgramArguments = [
+        "/usr/bin/open"
+        "-a"
+        "/Applications/Tailscale.app"
+      ];
       RunAtLoad = true;
       KeepAlive = false;
     };
@@ -45,9 +49,13 @@ in
   # Launch it automatically at login via a launchd user agent instead.
   launchd.user.agents."com.rileytestut.AltServer-launcher" = {
     serviceConfig = {
-      ProgramArguments = [ "/usr/bin/open" "-a" "/Applications/AltServer.app" ];
+      ProgramArguments = [
+        "/usr/bin/open"
+        "-a"
+        "/Applications/AltServer.app"
+      ];
       RunAtLoad = true;
-      KeepAlive = false;  # one-shot: open the app then exit
+      KeepAlive = false; # one-shot: open the app then exit
     };
   };
 

@@ -31,6 +31,11 @@ in
         type = str;
         default = "ewan";
       };
+      githubUsername = mkOption {
+        type = str;
+        default = "ewanc26";
+        description = "GitHub username for cloning repos into ~/Developer/Git.";
+      };
       fullName = mkOption {
         type = str;
         default = "Ewan Croft";
@@ -475,6 +480,11 @@ in
       disableRegistration = mkOption {
         type = bool;
         default = true;
+      };
+      userApiTokenFile = mkOption {
+        type = nullStr;
+        default = null;
+        description = "Path to a file containing a Forgejo user API token. Used to list private repos for ~/Developer/Local.";
       };
     };
 

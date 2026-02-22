@@ -19,6 +19,7 @@ in
 
   myConfig.isDesktop = true;
   myConfig.gaming.enable = true;
+  myConfig.forgejo.userApiTokenFile = "/home/${config.myConfig.user.username}/.config/forgejo-user-token";
 
   networking.hostName = "laptop";
 
@@ -65,7 +66,10 @@ in
       User = cfg.user.username;
       WorkingDirectory = "/home/${cfg.user.username}/.config/nix-config";
     };
-    path = with pkgs; [ git nix ];
+    path = with pkgs; [
+      git
+      nix
+    ];
     script = ''
       if [ -x .git/hooks/pre-commit ]; then
         .git/hooks/pre-commit || exit 1
