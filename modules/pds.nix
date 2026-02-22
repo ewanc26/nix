@@ -19,6 +19,7 @@
   config,
   lib,
   pkgs,
+  pkgs-unstable,
   ...
 }:
 let
@@ -89,6 +90,7 @@ lib.mkIf cfg.services.pds.enable {
 
   services.bluesky-pds = {
     enable = true;
+    package = pkgs-unstable.bluesky-pds;
     environmentFiles = [ config.sops.secrets."pds.env".path ];
     settings = {
       PDS_DATA_DIRECTORY = "/srv/bluesky-pds";

@@ -32,6 +32,8 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+
     mac-app-util.url = "github:hraban/mac-app-util";
   };
 
@@ -39,6 +41,7 @@
     {
       self,
       nixpkgs,
+      nixpkgs-unstable,
       home-manager,
       nix-darwin,
       sops-nix,
@@ -120,7 +123,10 @@
         };
 
         server = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit self; };
+          specialArgs = {
+            inherit self;
+            pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; config.allowUnfree = true; };
+          };
           modules = nixosModules ++ [
             ./hosts/server
             { nixpkgs.hostPlatform = "x86_64-linux"; }
@@ -128,7 +134,10 @@
         };
 
         server-arm = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit self; };
+          specialArgs = {
+            inherit self;
+            pkgs-unstable = import nixpkgs-unstable { system = "aarch64-linux"; config.allowUnfree = true; };
+          };
           modules = nixosModules ++ [
             ./hosts/server
             { nixpkgs.hostPlatform = "aarch64-linux"; }
