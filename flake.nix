@@ -125,7 +125,10 @@
         server = nixpkgs.lib.nixosSystem {
           specialArgs = {
             inherit self;
-            pkgs-unstable = import nixpkgs-unstable { system = "x86_64-linux"; config.allowUnfree = true; };
+            pkgs-unstable = import nixpkgs-unstable {
+              system = "x86_64-linux";
+              config.allowUnfree = true;
+            };
           };
           modules = nixosModules ++ [
             ./hosts/server
@@ -136,7 +139,10 @@
         server-arm = nixpkgs.lib.nixosSystem {
           specialArgs = {
             inherit self;
-            pkgs-unstable = import nixpkgs-unstable { system = "aarch64-linux"; config.allowUnfree = true; };
+            pkgs-unstable = import nixpkgs-unstable {
+              system = "aarch64-linux";
+              config.allowUnfree = true;
+            };
           };
           modules = nixosModules ++ [
             ./hosts/server
@@ -147,7 +153,6 @@
 
       darwinConfigurations = {
         macmini = nix-darwin.lib.darwinSystem {
-          specialArgs = { inherit self; };
           modules = darwinModules ++ [
             ./hosts/macmini
             { nixpkgs.hostPlatform = "aarch64-darwin"; }

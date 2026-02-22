@@ -148,9 +148,12 @@ in
   # ~/Developer/Git  — GitHub repos (ewanc26, minus nix) + non-mirror Forgejo repos.
   # ~/Developer/Local — private Forgejo repos (requires userApiTokenFile to be set).
   # Repos are cloned via SSH on first activation; existing dirs are never touched.
-  home.activation.developerDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.developerDirs = lib.hm.dag.entryAfter [ "writeBoundary" "setupSecrets" ] ''
     $DRY_RUN_CMD mkdir -p "$HOME/Developer/Git"
     $DRY_RUN_CMD mkdir -p "$HOME/Developer/Local"
+
+    # Ensure ssh is visible to git during activation (PATH is stripped).
+    export GIT_SSH_COMMAND="/usr/bin/ssh"
 
     # ── GitHub ────────────────────────────────────────────────────────────────
     if ${pkgs.curl}/bin/curl --silent --max-time 5 --output /dev/null "https://github.com"; then
@@ -179,7 +182,22 @@ in
     if ${pkgs.curl}/bin/curl --silent --max-time 5 --output /dev/null "https://${cfg.forgejo.hostname}"; then
       forgejo_token_arg=""
       ${lib.optionalString (cfg.forgejo.userApiTokenFile != null) ''
-        forgejo_token_arg="&token=$(cat "${cfg.forgejo.userApiTokenFile}")"
+        _token_file="${cfg.forgejo.userApiTokenFile}"
+        # On Darwin, sops-nix decrypts via a launchd agent after activation,
+        # so the pre-decrypted file may not exist yet. Fall back to decrypting
+        # directly with the user age key if available.
+        if [ ! -f "$_token_file" ] && [ -f "$HOME/.config/age/keys.txt" ]; then
+          _raw="${builtins.toString ../secrets/forgejo-user-token}"
+          _token_file=$(mktemp)
+          SOPS_AGE_KEY_FILE="$HOME/.config/age/keys.txt" \
+            ${pkgs.sops}/bin/sops --decrypt --input-type binary --output-type binary \
+            "$_raw" > "$_token_file" 2>/dev/null || { rm -f "$_token_file"; _token_file=""; }
+        fi
+        if [ -n "$_token_file" ] && [ -f "$_token_file" ]; then
+          forgejo_token_arg="&token=$(cat "$_token_file")"
+        else
+          echo "developer: forgejo token unavailable, skipping private repos"
+        fi
       ''}
 
       page=1
