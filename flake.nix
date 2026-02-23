@@ -19,6 +19,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-topology = {
+      url = "github:oddlama/nix-topology";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-vscode-extensions = {
       url = "github:nix-community/nix-vscode-extensions";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -45,6 +50,7 @@
       home-manager,
       nix-darwin,
       sops-nix,
+      nix-topology,
       nix-vscode-extensions,
       catppuccin,
       mac-app-util,
@@ -63,6 +69,7 @@
         ./modules/options.nix
         ./modules/common.nix
         sops-nix.nixosModules.sops
+        nix-topology.nixosModules.default
         home-manager.nixosModules.home-manager
         {
           nixpkgs.config.allowUnfree = true;
@@ -109,9 +116,24 @@
 
       forAllSystems =
         f: nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ] (system: f system);
+
+      # Package set with the nix-topology overlay — required to build the topology output.
+      topologyPkgs = import nixpkgs {
+        system = "x86_64-linux";
+        overlays = [ nix-topology.overlays.default ];
+      };
     in
     {
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+
+      # Render infrastructure diagrams: nix build .#topology.x86_64-linux.config.output
+      topology.x86_64-linux = import nix-topology {
+        pkgs = topologyPkgs;
+        modules = [
+          ./topology.nix
+          { nixosConfigurations = self.nixosConfigurations; }
+        ];
+      };
 
       nixosConfigurations = {
         laptop = nixpkgs.lib.nixosSystem {

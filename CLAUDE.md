@@ -16,7 +16,8 @@ A unified NixOS + nix-darwin (macOS) configuration managed as a single Nix flake
 
 ### Single Source of Truth
 
-All configurable values — username, timezone, theme, packages, feature flags — are declared with typed defaults in **`modules/options.nix`**. Everything else reads from there.
+All configurable values — username, timezone, theme, packages, feature flags — are declared
+with typed defaults in **`modules/options.nix`**. Everything else reads from there.
 
 - System modules: `config.myConfig.*`
 - Home-manager modules: `osConfig.myConfig.*`
@@ -40,38 +41,8 @@ Use `lib.mkIf` for conditional config. Use `lib.mkOption` with explicit types wh
 
 ### No Custom Abstraction
 
-The old `cfgLib` helper was removed. Use the plain NixOS module system. See `lib/USAGE.md` for patterns including package resolution and authorized SSH keys.
-
-## Directory Layout
-
-```
-flake.nix             # Defines all hosts; entry point
-modules/
-  options.nix         # ⭐ All option declarations and defaults
-  common.nix          # Shared NixOS settings (GC, auto-upgrade)
-  desktop.nix         # KDE Plasma 6 + SDDM
-  gaming.nix          # Steam + Gamemode
-  packages.nix        # Desktop system packages
-  services.nix        # Printing, Bluetooth, etc.
-  users.nix           # User accounts
-  server/             # Headless server sub-modules
-  darwin/             # macOS-specific modules
-hosts/
-  laptop/             # Host-specific overrides
-  server/
-  macmini/
-home/
-  default.nix         # Home-manager entry point
-  programs/           # Per-program configs: git, zsh, ssh, vscode, kde, starship…
-settings/
-  darwin/             # macOS system.defaults (Dock, Finder, trackpad)
-  plasma/             # KDE Plasma declarative settings
-profiles/             # Reusable config profiles (server-base, server-hardened)
-secrets/              # sops-encrypted secrets (age)
-tools/                # Rust maintenance utilities (health-check, flake-bump, gen-diff)
-lib/USAGE.md          # Module patterns reference
-docs/                 # Extended documentation
-```
+The old `cfgLib` helper was removed. Use the plain NixOS module system.
+See `lib/USAGE.md` for patterns including package resolution and authorized SSH keys.
 
 ## Building
 
@@ -104,6 +75,18 @@ gen-diff              # diff packages between generations
 
 Run `health-check` before rebuilding to catch common issues early (daemon, lock file, git cleanliness, age key, disk space).
 
+## Infrastructure Diagrams (nix-topology)
+
+SVG diagrams are auto-generated from NixOS configs. Physical connections and networks are defined in `topology.nix`.
+
+```bash
+nix build .#topology.x86_64-linux.config.output
+# SVGs in ./result/
+```
+
+When adding a new host, add its interfaces and physical connections to `topology.nix`.
+Service/interface data is extracted automatically from the NixOS module.
+
 ## Secrets
 
 Uses [sops-nix](https://github.com/Mic92/sops-nix) with age encryption.
@@ -129,6 +112,7 @@ See `docs/secrets.md` for full details.
 | home-manager          | release-25.11    |
 | nix-darwin            | nix-darwin-25.11 |
 | sops-nix              | latest           |
+| nix-topology          | latest           |
 | plasma-manager        | latest           |
 | catppuccin            | latest           |
 | nix-vscode-extensions | latest           |
@@ -138,7 +122,8 @@ Run `nix flake update` to update all inputs, or `flake-bump --update <input>` to
 
 ## Running Tools
 
-Unless a tool is explicitly listed as a shell alias or known to be installed, always use `nix run` rather than assuming it's on `$PATH`:
+Unless a tool is explicitly listed as a shell alias or known to be installed,
+always use `nix run` rather than assuming it's on `$PATH`:
 
 ```bash
 nix run nixpkgs#<package> -- <args>
@@ -152,13 +137,15 @@ nix run nixpkgs#ssh-to-age -- --help
 nix run nixpkgs#nixfmt-rfc-style -- file.nix
 ```
 
-The maintenance tools (`health-check`, `flake-bump`, `gen-diff`) are the exception — they have shell aliases and are available after a rebuild.
+The maintenance tools (`health-check`, `flake-bump`, `gen-diff`) are the exception —
+they have shell aliases and are available after a rebuild.
 
 ## Code Style
 
 - Formatter: `nixfmt-rfc-style` (run `nix fmt`)
 - Follow existing patterns in the file you're editing
-- Keep options in `modules/options.nix` grouped by domain with `# ── Domain ──` headers
+- Keep options in `modules/options.nix` grouped by domain with
+  `# ── Domain ──` headers
 - Prefer `lib.mkIf` over `if/then/else` blocks at the top level
 
 ## Common Tasks
@@ -173,7 +160,8 @@ The maintenance tools (`health-check`, `flake-bump`, `gen-diff`) are the excepti
 
 1. Create `hosts/<hostname>/default.nix`
 2. Add hardware config (NixOS: `nixos-generate-config`)
-3. Add entry in `flake.nix` under `nixosConfigurations` or `darwinConfigurations`
+3. Add entry in `flake.nix` under `nixosConfigurations` or
+   `darwinConfigurations`
 4. See `docs/hosts.md` for the full guide
 
 **Add a new home-manager program:**

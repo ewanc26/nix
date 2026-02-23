@@ -1,0 +1,13 @@
+# markdownlint configuration
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# MD013: Line length
+# Tables and code blocks are exempt — long lines there are unavoidable.
+# Prose limit raised to 120 to allow natural sentence flow.
+MD013:
+  line_length: 120
+  tables: false
+  code_blocks: false
+
+# MD033: Inline HTML — allowed for badges and image floats in README
+MD033: false

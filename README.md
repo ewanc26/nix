@@ -1,6 +1,6 @@
 # Nix Configuration
 
-v0.4.0
+v0.5.0
 
 Personal NixOS and nix-darwin configurations for managing multiple
 machines with a unified, centralized setup.
@@ -16,93 +16,26 @@ machines with a unified, centralized setup.
 
 ## Key Features
 
-✨ **Centralized Configuration** - All option defaults in
-  `modules/options.nix` (single source of truth)
-🔄 **DRY Principles** - Zero duplication; the NixOS module system handles everything
-🎯 **Easy Customization** - Change any default in one file, applies everywhere
-📦 **Multi-System** - Unified config for NixOS and macOS
-🏠 **Unified Home Manager** - Same shell, git, SSH config across all systems
-🔐 **Secrets Management** - Encrypted secrets with sops-nix
-🛠️ **Rust Tools** - `health-check`, `flake-bump`, `gen-diff` maintenance utilities
+✨ **Centralized Configuration** — All option defaults in `modules/options.nix` (single source of truth)
+🔄 **DRY Principles** — Zero duplication; the NixOS module system handles everything
+🎯 **Easy Customization** — Change any default in one file, applies everywhere
+📦 **Multi-System** — Unified config for NixOS and macOS
+🏠 **Unified Home Manager** — Same shell, git, SSH config across all systems
+🔐 **Secrets Management** — Encrypted secrets with sops-nix
+🗺️ **Infrastructure Diagrams** — Auto-generated topology SVGs via nix-topology
+🛠️ **Rust Tools** — `health-check`, `flake-bump`, `gen-diff` maintenance utilities
 
 ## Managed Systems
 
-### macOS (nix-darwin) - PRIMARY
+### macOS (nix-darwin) — PRIMARY
 
-- **macmini** - Apple Silicon Mac Mini (M2, 16 GB) — Main daily driver
+- **macmini** — Apple Silicon Mac Mini (M2, 16 GB) — Main daily driver
 
-### Linux (NixOS) - SECONDARY
+### Linux (NixOS) — SECONDARY
 
-- **laptop** - Dell Inspiron 3501 with KDE Plasma 6 — Secondary workstation
-- **server** - Minimal headless server — Bluesky PDS, Forgejo,
-  Nextcloud, Cloudflare tunnel + hardened security
-
-## Repository Structure
-
-```text
-.
-├── flake.nix                 # Main flake — defines all hosts
-├── flake.lock                # Locked dependency versions
-│
-├── hosts/                    # Host-specific configurations
-│   ├── laptop/               # Dell Inspiron 3501 (NixOS + KDE Plasma 6)
-│   ├── server/               # Headless server (NixOS)
-│   └── macmini/              # Mac Mini M2 (nix-darwin)
-│
-├── modules/                  # Reusable system modules
-│   ├── options.nix           # ⭐ All option declarations + defaults
-│   ├── common.nix            # Base NixOS settings (gc, auto-upgrade, etc.)
-│   ├── desktop.nix           # KDE Plasma 6 + SDDM
-│   ├── gaming.nix            # Steam + Gamemode
-│   ├── packages.nix          # Desktop system packages
-│   ├── services.nix          # Printing, Bluetooth, etc.
-│   ├── users.nix             # User account configuration
-│   ├── caddy.nix             # Caddy web server
-│   ├── pds.nix               # Bluesky ATProto PDS
-│   ├── pds-landing/          # PDS landing page assets
-│   ├── forgejo.nix           # Forgejo git forge
-│   ├── nextcloud.nix         # Nextcloud instance
-│   ├── cloudflare-tunnel.nix # Cloudflare tunnel (outbound-only)
-│   ├── ssh-keys.nix          # Public key registry for all hosts
-│   ├── server/               # Headless server sub-modules
-│   │   ├── firewall.nix
-│   │   ├── intrusion.nix     # fail2ban
-│   │   ├── ssh.nix           # sshd hardening
-│   │   ├── hardware-health.nix
-│   │   ├── maintenance.nix
-│   │   ├── packages.nix
-│   │   ├── services.nix
-│   │   └── disable-noise.nix
-│   └── darwin/               # macOS-specific modules
-│       ├── common.nix
-│       ├── homebrew.nix
-│       ├── packages.nix
-│       └── system.nix
-│
-├── profiles/                 # Reusable configuration profiles
-│   ├── server-base.nix       # Base server config
-│   └── server-hardened.nix   # Security hardening
-│
-├── home/                     # Home Manager (unified across all hosts)
-│   ├── default.nix           # Main entry point
-│   ├── scripts/              # User scripts (update-all, verify-ssh-external, ...)
-│   └── programs/         # git, zsh, ssh, vscode, kde, ghostty, ...
-│
-├── settings/                 # Platform-specific declarative settings
-│   ├── darwin/               # macOS system.defaults (Dock, Finder, trackpad, etc.)
-│   └── plasma/               # KDE Plasma declarative settings
-│
-├── secrets/                  # sops-encrypted secrets (safe to commit)
-│   ├── setup.sh              # Key management helper
-│   └── *.env / *.json / ...  # Encrypted secret files
-│
-├── hooks/
-│   └── pre-commit        # auto-format: nix, sh, rust, toml, md
-│
-├── tools/                    # Rust maintenance tools
-│   └── src/bin/              # health-check, flake-bump, gen-diff, server-config
-└── wallpapers/
-```
+- **laptop** — Dell Inspiron 3501 with KDE Plasma 6 — Secondary workstation
+- **server** — Minimal headless server — Bluesky PDS, Forgejo, Nextcloud,
+  Immich, Jellyfin, Cloudflare tunnel + hardened security
 
 ## Configuration Architecture
 
@@ -170,17 +103,42 @@ sudo nix run nix-darwin -- switch --flake .#macmini
 sudo darwin-rebuild switch --flake .#macmini
 ```
 
+## Infrastructure Diagrams
+
+Uses [nix-topology](https://github.com/oddlama/nix-topology) to automatically
+generate SVG diagrams of the infrastructure from the NixOS configurations.
+Physical connections and networks that can't be inferred automatically are
+defined in `topology.nix`.
+
+**Render the diagrams:**
+
+```bash
+nix build .#topology.x86_64-linux.config.output
+# SVGs are in ./result/
+```
+
+This produces two diagrams:
+
+- `main.svg` — physical host/interface layout
+- `network.svg` — network-centric view showing which hosts share which networks
+
+**Updating topology:**
+
+Edit `topology.nix` to reflect physical changes (new cables, new networks, etc.).
+Service and interface information is extracted automatically from the NixOS configs.
+
 ## Customization
 
 **All defaults live in `modules/options.nix`** — one option block per domain.
 
 ```bash
 # Examples of what to edit
-nano modules/options.nix        # Username, timezone, packages, themes, etc.
-nano hosts/laptop/default.nix   # Enable gaming, desktop mode, etc.
-nano hosts/server/default.nix   # Enable server services
-nano settings/darwin/default.nix  # macOS Dock, Finder, trackpad
-nano settings/plasma/default.nix  # KDE Plasma layout and behaviour
+nano modules/options.nix           # Username, timezone, packages, themes, etc.
+nano hosts/laptop/default.nix      # Enable gaming, desktop mode, etc.
+nano hosts/server/default.nix      # Enable server services
+nano topology.nix                  # Physical network connections
+nano settings/darwin/default.nix   # macOS Dock, Finder, trackpad
+nano settings/plasma/default.nix   # KDE Plasma layout and behaviour
 ```
 
 See [`docs/settings.md`](docs/settings.md) for the full guide and
@@ -192,13 +150,6 @@ complete option reference.
 ### Health Check (Recommended Before Building)
 
 ```bash
-# Compile the tools (one-time)
-nix run .#tools -- --help
-
-# Run health check
-tools/target/release/health-check
-
-# Or use the shell alias
 health-check
 ```
 
@@ -206,19 +157,14 @@ health-check
 
 ```bash
 nix flake update
-# Then rebuild
-sudo nixos-rebuild switch --flake .#laptop
-# or
-nix run .#tools -- flake-bump
+# or selectively
+flake-bump
 ```
 
 ### Garbage Collection
 
 ```bash
-# Runs automatically weekly on NixOS (configured in modules/common.nix)
-sudo nix-collect-garbage -d
-
-# Or use the alias
+# Runs automatically weekly (configured in modules/common.nix)
 cleanup
 ```
 
@@ -240,7 +186,8 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 1. Create `hosts/YOUR-HOSTNAME/default.nix`
 2. Generate hardware config: `nixos-generate-config --show-hardware-config`
 3. Add entry to `flake.nix` → `nixosConfigurations`
-4. Build: `sudo nixos-rebuild switch --flake .#YOUR-HOSTNAME`
+4. Add the host's interfaces/connections to `topology.nix`
+5. Build: `sudo nixos-rebuild switch --flake .#YOUR-HOSTNAME`
 
 ## Inputs
 
@@ -250,13 +197,21 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 | [home-manager][home-manager] | release-25.11 |
 | [nix-darwin][nix-darwin] | nix-darwin-25.11 |
 | [sops-nix][sops-nix] | latest |
+| [nix-topology][nix-topology] | latest |
 | [plasma-manager][plasma-manager] | latest |
+| [catppuccin][catppuccin] | latest |
+| [nix-vscode-extensions][nix-vscode-extensions] | latest |
+| [mac-app-util][mac-app-util] | latest |
 
 [nixpkgs]: https://github.com/NixOS/nixpkgs
 [home-manager]: https://github.com/nix-community/home-manager
 [nix-darwin]: https://github.com/LnL7/nix-darwin
 [sops-nix]: https://github.com/Mic92/sops-nix
+[nix-topology]: https://github.com/oddlama/nix-topology
 [plasma-manager]: https://github.com/nix-community/plasma-manager
+[catppuccin]: https://github.com/catppuccin/nix
+[nix-vscode-extensions]: https://github.com/nix-community/nix-vscode-extensions
+[mac-app-util]: https://github.com/hraban/mac-app-util
 
 ## Unified Configuration Benefits
 
@@ -288,12 +243,9 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 ### Host Management
 
 - [`docs/hosts.md`](docs/hosts.md) — hosts documentation index
-- [`docs/hosts-overview.md`](docs/hosts-overview.md) — complete
-  comparison of all three hosts
-- [`docs/hosts-modification.md`](docs/hosts-modification.md) —
-  how to modify and add hosts
-- [`docs/hosts-laptop.md`](docs/hosts-laptop.md) — Dell Inspiron
-  3501 (NixOS + KDE Plasma 6)
+- [`docs/hosts-overview.md`](docs/hosts-overview.md) — complete comparison of all three hosts
+- [`docs/hosts-modification.md`](docs/hosts-modification.md) — how to modify and add hosts
+- [`docs/hosts-laptop.md`](docs/hosts-laptop.md) — Dell Inspiron 3501 (NixOS + KDE Plasma 6)
 - [`docs/hosts-server.md`](docs/hosts-server.md) — headless server setup
 - [`docs/hosts-macmini.md`](docs/hosts-macmini.md) — macOS with nix-darwin
 - [`docs/TAILSCALE-SSH.md`](docs/TAILSCALE-SSH.md) — inter-host SSH over Tailscale
@@ -301,6 +253,5 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 ### Settings Management
 
 - [`docs/settings.md`](docs/settings.md) — settings overview
-- [`docs/settings-structure.md`](docs/settings-structure.md) —
-  why the config is modular
+- [`docs/settings-structure.md`](docs/settings-structure.md) — why the config is modular
 - [`docs/secrets.md`](docs/secrets.md) — secrets management
