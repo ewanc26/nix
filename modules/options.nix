@@ -432,7 +432,7 @@ in
       };
       adminUser = mkOption {
         type = str;
-        default = "admin";
+        default = "ewan";
       };
       dataDir = mkOption {
         type = str;
