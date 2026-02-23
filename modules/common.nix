@@ -81,4 +81,13 @@ in
   # sops-nix: decrypt secrets using the host's SSH ed25519 key as an age key.
   # This key is generated on first boot and lives outside the Nix store.
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
+  # Forgejo user API token — decrypted at system level (root) so it lands at
+  # /run/secrets/forgejo-user-token with user ownership, readable by the
+  # home-manager activation script without requiring user-level sops access.
+  sops.secrets."forgejo-user-token" = {
+    sopsFile = ../secrets/forgejo-user-token;
+    format = "binary";
+    owner = cfg.user.username;
+  };
 }

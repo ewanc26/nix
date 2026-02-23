@@ -334,13 +334,8 @@ in
   };
 
   # ── Encrypted secrets (sops-nix) ─────────────────────────────────────────
-  # Tell the home-manager sops module to decrypt using the host's SSH ed25519
-  # key as an age key — same source as the system-level sops in common.nix.
-  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
-  sops.secrets."forgejo-user-token" = {
-    sopsFile = ../secrets/forgejo-user-token;
-    format = "binary";
-    path = "${config.home.homeDirectory}/.config/forgejo-user-token";
-  };
+  # The forgejo-user-token secret is decrypted at the system level (root) in
+  # modules/common.nix and placed at /run/secrets/forgejo-user-token.
+  # No home-manager sops config is needed — the HM sops service runs as the
+  # user and cannot read /etc/ssh/ssh_host_ed25519_key (600 root:root).
 }

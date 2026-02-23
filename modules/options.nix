@@ -553,8 +553,8 @@ in
       };
       userApiTokenFile = mkOption {
         type = nullStr;
-        default = null;
-        description = "Path to a file containing a Forgejo user API token. Used to list private repos for ~/Developer/Local.";
+        default = "/run/secrets/forgejo-user-token";
+        description = "Path to a file containing a Forgejo user API token. Used to list private repos for ~/Developer/Local. Defaults to the system sops-decrypted path from modules/common.nix.";
       };
     };
 
