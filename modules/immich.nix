@@ -4,15 +4,8 @@
 #  Architecture:
 #    Immich server (127.0.0.1:cfg.immich.port)
 #      ↑ reverse proxy
-#    Caddy (http://immich.ewancroft.uk:cfg.immich.caddyPort — Tailnet-only)
-#      ✗ NOT in Cloudflare Tunnel — Tailnet access only
-#
-#  Access model (Tailnet-only):
-#    Port cfg.immich.caddyPort is NOT in allowedTCPPorts, so it is blocked
-#    on all external interfaces. The firewall marks tailscale0 as a
-#    trustedInterface, meaning Tailnet peers bypass the firewall entirely.
-#    Point immich.ewancroft.uk at the server's Tailscale IP in Cloudflare DNS
-#    (A record, proxying disabled — grey cloud).
+#    Caddy (http://immich.ewancroft.uk:cfg.immich.caddyPort)
+#      ↑ Cloudflare Tunnel (outbound only, no firewall ports needed)
 #
 #  Storage — shared with Nextcloud:
 #    Media lives at cfg.immich.mediaDir, which defaults to
@@ -34,9 +27,9 @@
 #    from Nextcloud's — no conflicts).
 #
 #  First-run:
-#    Navigate to http://immich.ewancroft.uk:<caddyPort> (or the raw Tailscale
-#    IP) and complete the onboarding wizard to create your admin account.
-#    Then configure the library path to cfg.immich.mediaDir from the UI.
+#    Navigate to https://immich.ewancroft.uk and complete the onboarding
+#    wizard to create your admin account. Then configure the library path
+#    to cfg.immich.mediaDir from the UI.
 ##############################################################################
 {
   config,
@@ -96,9 +89,7 @@ lib.mkIf cfg.services.immich.enable {
     wants = [ "srv.mount" ];
   };
 
-  # ── Caddy reverse proxy (Tailnet-only) ────────────────────────────────────
-  # Port cfg.immich.caddyPort is NOT in allowedTCPPorts. Access is restricted
-  # to Tailnet peers via the trustedInterfaces firewall rule on tailscale0.
+  # ── Caddy reverse proxy ───────────────────────────────────────────────────
   services.caddy.virtualHosts."http://${im.hostname}:${toString im.caddyPort}" = {
     extraConfig = ''
       reverse_proxy http://127.0.0.1:${toString im.port}

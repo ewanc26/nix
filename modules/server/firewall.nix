@@ -13,9 +13,6 @@ in
     allowedTCPPorts = lib.unique (cfg.server.firewall.allowedTCPPorts ++ [ cfg.server.sshd.port ]);
     allowedUDPPorts = cfg.server.firewall.allowedUDPPorts;
 
-    # Trust Tailscale interface for inter-host communication
-    trustedInterfaces = [ "tailscale0" ];
-
     # Allow ICMP (ping) if configured
     allowPing = lib.mkDefault cfg.server.firewall.allowPing;
   };

@@ -4,15 +4,8 @@
 #  Architecture:
 #    Jellyfin server (127.0.0.1:cfg.jellyfin.port)
 #      ↑ reverse proxy
-#    Caddy (http://jellyfin.ewancroft.uk:cfg.jellyfin.caddyPort — Tailnet-only)
-#      ✗ NOT in Cloudflare Tunnel — Tailnet access only
-#
-#  Access model (Tailnet-only):
-#    Port cfg.jellyfin.caddyPort is NOT in allowedTCPPorts, so it is blocked
-#    on all external interfaces. The firewall marks tailscale0 as a
-#    trustedInterface, meaning Tailnet peers bypass the firewall entirely.
-#    Point jellyfin.ewancroft.uk at the server's Tailscale IP in Cloudflare
-#    DNS (A record, proxying disabled — grey cloud).
+#    Caddy (http://jellyfin.ewancroft.uk:cfg.jellyfin.caddyPort)
+#      ↑ Cloudflare Tunnel (outbound only, no firewall ports needed)
 #
 #  Storage — shared with Nextcloud:
 #    Media lives at cfg.jellyfin.mediaDir, which defaults to
@@ -41,9 +34,8 @@
 #    separate from the /srv volume.
 #
 #  First-run:
-#    Navigate to http://jellyfin.ewancroft.uk:<caddyPort> (or the raw
-#    Tailscale IP) and complete the setup wizard. Add media libraries pointing
-#    at subdirectories of cfg.jellyfin.mediaDir.
+#    Navigate to https://jellyfin.ewancroft.uk and complete the setup wizard.
+#    Add media libraries pointing at subdirectories of cfg.jellyfin.mediaDir.
 ##############################################################################
 {
   config,
@@ -83,7 +75,7 @@ lib.mkIf cfg.services.jellyfin.enable {
     dataDir = jf.dataDir;
 
     # Do NOT open Jellyfin's default ports (8096/8920) — Caddy is the sole
-    # entry point and only tailscale0 traffic can reach the Caddy port.
+    # entry point, proxied through the Cloudflare tunnel.
     openFirewall = false;
   };
 
@@ -101,9 +93,7 @@ lib.mkIf cfg.services.jellyfin.enable {
     };
   };
 
-  # ── Caddy reverse proxy (Tailnet-only) ────────────────────────────────────
-  # Port cfg.jellyfin.caddyPort is NOT in allowedTCPPorts. Access is restricted
-  # to Tailnet peers via the trustedInterfaces firewall rule on tailscale0.
+  # ── Caddy reverse proxy ───────────────────────────────────────────────────
   services.caddy.virtualHosts."http://${jf.hostname}:${toString jf.caddyPort}" = {
     extraConfig = ''
       reverse_proxy http://127.0.0.1:${toString jf.port}
