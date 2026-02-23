@@ -153,7 +153,7 @@ in
     $DRY_RUN_CMD mkdir -p "$HOME/Developer/Local"
 
     # Ensure ssh is visible to git during activation (PATH is stripped).
-    export GIT_SSH_COMMAND="/usr/bin/ssh"
+    export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh"
 
     # ── GitHub ────────────────────────────────────────────────────────────────
     if ${pkgs.curl}/bin/curl --silent --max-time 5 --output /dev/null "https://github.com"; then
