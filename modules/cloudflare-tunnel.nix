@@ -30,6 +30,12 @@ let
   cfg = config.myConfig;
 
   # Build ingress routes based on enabled services.
+  # NOTE: Nextcloud is intentionally excluded — it is gated to the Tailnet only.
+  # Its Caddy port is not in allowedTCPPorts, and tailscale0 is a trusted
+  # interface, so only Tailnet peers can reach it. Update the Cloudflare DNS
+  # record for ${cfg.nextcloud.hostname} to an A record pointing to the
+  # server's Tailscale IP (`tailscale ip -4`) so the hostname still resolves
+  # correctly for Tailnet clients.
   ingressRoutes =
     lib.optionalAttrs cfg.services.pds.enable {
       ${cfg.pds.hostname} = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
@@ -37,9 +43,6 @@ let
     }
     // lib.optionalAttrs cfg.services.forgejo.enable {
       ${cfg.forgejo.hostname} = "http://127.0.0.1:${toString cfg.forgejo.caddyPort}";
-    }
-    // lib.optionalAttrs cfg.services.nextcloud.enable {
-      ${cfg.nextcloud.hostname} = "http://127.0.0.1:${toString cfg.nextcloud.caddyPort}";
     };
 in
 lib.mkIf cfg.services.cloudflare.enable {

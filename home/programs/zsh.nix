@@ -91,8 +91,7 @@ in
             "sudo nix-collect-garbage -d"
           else
             "sudo nix-collect-garbage -d && nix-collect-garbage -d";
-      }
-    );
+      });
 
     initContent = ''
       # Display system info on new shell
@@ -137,15 +136,22 @@ in
       setopt PUSHD_MINUS
     '';
 
-    profileExtra =
-      ''
-        [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
-        export PATH="$PATH:$HOME/.local/bin"
-      ''
-      + lib.optionalString isDarwin ''
-        [ -f "$HOME/.deno/env" ] && . "$HOME/.deno/env"
-        [ -x "/opt/homebrew/bin/brew" ] && eval "$(/opt/homebrew/bin/brew shellenv)"
-        [ -f "$HOME/.orbstack/shell/init.zsh" ] && source "$HOME/.orbstack/shell/init.zsh"
-      '';
+    sessionVariables = {
+      # Nix uses the Boehm GC internally. The default 384 MiB initial heap is
+      # too small when evaluating large configs (e.g. `nix flake check
+      # --all-systems`), causing repeated GC expansion warnings. 1 GiB avoids
+      # that without meaningfully affecting smaller evaluations.
+      GC_INITIAL_HEAP_SIZE = toString (1 * 1024 * 1024 * 1024);
+    };
+
+    profileExtra = ''
+      [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+      export PATH="$PATH:$HOME/.local/bin"
+    ''
+    + lib.optionalString isDarwin ''
+      [ -f "$HOME/.deno/env" ] && . "$HOME/.deno/env"
+      [ -x "/opt/homebrew/bin/brew" ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+      [ -f "$HOME/.orbstack/shell/init.zsh" ] && source "$HOME/.orbstack/shell/init.zsh"
+    '';
   };
 }

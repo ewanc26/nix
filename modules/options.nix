@@ -408,6 +408,14 @@ in
         type = bool;
         default = false;
       };
+      immich.enable = mkOption {
+        type = bool;
+        default = false;
+      };
+      jellyfin.enable = mkOption {
+        type = bool;
+        default = false;
+      };
       cloudflare.enable = mkOption {
         type = bool;
         default = false;
@@ -456,6 +464,68 @@ in
           type = str;
           default = "server.ewancroft.uk";
         };
+      };
+    };
+
+    # ── Immich ────────────────────────────────────────────────────────────────
+    immich = {
+      hostname = mkOption {
+        type = str;
+        default = "immich.ewancroft.uk";
+        description = "Hostname used by Caddy for Immich — should resolve to the server's Tailscale IP via a Cloudflare A record.";
+      };
+      port = mkOption {
+        type = int;
+        default = 2283;
+        description = "Internal Immich server port — not exposed, Caddy proxies to this.";
+      };
+      caddyPort = mkOption {
+        type = int;
+        default = 3004;
+        description = "Caddy virtual host port — accessible only via Tailnet (not in allowedTCPPorts).";
+      };
+      mediaDir = mkOption {
+        type = str;
+        default = "/srv/nextcloud/data/ewan/files/Media/Photos";
+        description = ''
+          Primary media directory for Immich. Defaults to inside the Nextcloud
+                    user files tree so that photos synced via Nextcloud clients are visible in
+                    Immich, and vice-versa (the nextcloud-files-scan timer picks up writes daily).
+                    Override this if nextcloud.dataDir or nextcloud.adminUser differ from defaults.'';
+      };
+    };
+
+    # ── Jellyfin ──────────────────────────────────────────────────────────────
+    jellyfin = {
+      hostname = mkOption {
+        type = str;
+        default = "jellyfin.ewancroft.uk";
+        description = "Hostname used by Caddy for Jellyfin — should resolve to the server's Tailscale IP via a Cloudflare A record.";
+      };
+      port = mkOption {
+        type = int;
+        default = 8096;
+        description = "Internal Jellyfin HTTP port — not exposed, Caddy proxies to this.";
+      };
+      caddyPort = mkOption {
+        type = int;
+        default = 3005;
+        description = "Caddy virtual host port — accessible only via Tailnet (not in allowedTCPPorts).";
+      };
+      dataDir = mkOption {
+        type = str;
+        default = "/var/lib/jellyfin";
+        description = "Jellyfin config/metadata/plugin directory — managed by the NixOS jellyfin service.";
+      };
+      mediaDir = mkOption {
+        type = str;
+        default = "/srv/nextcloud/data/ewan/files/Media";
+        description = ''
+          Root directory created for Jellyfin media libraries. Defaults to inside
+                    the Nextcloud user files tree so media uploaded via Nextcloud clients is
+                    immediately available to Jellyfin. Add libraries (movies, TV, music etc.)
+                    as subdirectories of this path from the Jellyfin web UI after first-run.
+                    Override this if nextcloud.dataDir or nextcloud.adminUser differ from defaults.'';
       };
     };
 

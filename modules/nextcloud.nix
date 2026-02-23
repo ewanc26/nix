@@ -192,7 +192,7 @@ lib.mkIf cfg.services.nextcloud.enable {
   };
 
   # Periodically scan the data directory so files added directly to /srv
-  # (e.g. large archives copied via rsync) are picked up by Nextcloud.
+  # or written by co-located services (Immich, Jellyfin) are picked up by Nextcloud.
   systemd.services.nextcloud-files-scan = {
     description = "Nextcloud periodic file scan";
     after = [ "nextcloud-setup.service" ];

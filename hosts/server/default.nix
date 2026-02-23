@@ -14,12 +14,16 @@ in
     ../../modules/pds.nix
     ../../modules/forgejo.nix
     ../../modules/nextcloud.nix
+    ../../modules/immich.nix
+    ../../modules/jellyfin.nix
     ../../profiles/server-hardened.nix
   ];
 
   # Service toggles
   myConfig.services.forgejo.enable = true;
-  myConfig.services.nextcloud.enable = true;
+  myConfig.services.nextcloud.enable = true; # Tailnet-only — not in CF tunnel
+  myConfig.services.immich.enable = true; # Tailnet-only — not in CF tunnel
+  myConfig.services.jellyfin.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.pds.enable = true;
   myConfig.services.cloudflare.enable = true;
 
