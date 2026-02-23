@@ -1,16 +1,23 @@
 # Nix Configuration
 
-v0.3.1
+v0.4.0
 
-Personal NixOS and nix-darwin configurations for managing multiple machines with a unified, centralized setup.
+Personal NixOS and nix-darwin configurations for managing multiple
+machines with a unified, centralized setup.
 
-> **Note:** This is a personal configuration repository. While you're welcome to use it as reference, it's specifically tailored to my needs and setup.
-
-> **🎯 Quick Start for Forkers:** Edit `modules/options.nix` to customise everything — username, email, git settings, desktop theme, packages, and more. Per-host overrides go in `hosts/<hostname>/default.nix`.
+> **Note:** This is a personal configuration repository. While
+> you're welcome to use it as reference, it's specifically tailored
+> to my needs and setup.
+>
+> **🎯 Quick Start for Forkers:** Edit `modules/options.nix` to
+> customise everything — username, email, git settings, desktop
+> theme, packages, and more. Per-host overrides go in
+> `hosts/<hostname>/default.nix`.
 
 ## Key Features
 
-✨ **Centralized Configuration** - All option defaults in `modules/options.nix` (single source of truth)
+✨ **Centralized Configuration** - All option defaults in
+  `modules/options.nix` (single source of truth)
 🔄 **DRY Principles** - Zero duplication; the NixOS module system handles everything
 🎯 **Easy Customization** - Change any default in one file, applies everywhere
 📦 **Multi-System** - Unified config for NixOS and macOS
@@ -27,11 +34,12 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 ### Linux (NixOS) - SECONDARY
 
 - **laptop** - Dell Inspiron 3501 with KDE Plasma 6 — Secondary workstation
-- **server** - Minimal headless server — Bluesky PDS, Forgejo, Cloudflare tunnel + hardened security
+- **server** - Minimal headless server — Bluesky PDS, Forgejo,
+  Nextcloud, Cloudflare tunnel + hardened security
 
 ## Repository Structure
 
-```
+```text
 .
 ├── flake.nix                 # Main flake — defines all hosts
 ├── flake.lock                # Locked dependency versions
@@ -51,9 +59,10 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 │   ├── users.nix             # User account configuration
 │   ├── caddy.nix             # Caddy web server
 │   ├── pds.nix               # Bluesky ATProto PDS
+│   ├── pds-landing/          # PDS landing page assets
 │   ├── forgejo.nix           # Forgejo git forge
+│   ├── nextcloud.nix         # Nextcloud instance
 │   ├── cloudflare-tunnel.nix # Cloudflare tunnel (outbound-only)
-│   ├── cockpit.nix           # Cockpit web console
 │   ├── ssh-keys.nix          # Public key registry for all hosts
 │   ├── server/               # Headless server sub-modules
 │   │   ├── firewall.nix
@@ -76,7 +85,8 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 │
 ├── home/                     # Home Manager (unified across all hosts)
 │   ├── default.nix           # Main entry point
-│   └── programs/             # Per-program config (git, zsh, ssh, vscode, kde, ...)
+│   ├── scripts/              # User scripts (update-all, verify-ssh-external, ...)
+│   └── programs/         # git, zsh, ssh, vscode, kde, ghostty, ...
 │
 ├── settings/                 # Platform-specific declarative settings
 │   ├── darwin/               # macOS system.defaults (Dock, Finder, trackpad, etc.)
@@ -86,14 +96,20 @@ Personal NixOS and nix-darwin configurations for managing multiple machines with
 │   ├── setup.sh              # Key management helper
 │   └── *.env / *.json / ...  # Encrypted secret files
 │
+├── hooks/
+│   └── pre-commit        # auto-format: nix, sh, rust, toml, md
+│
 ├── tools/                    # Rust maintenance tools
-│   └── src/bin/              # health-check, flake-bump, gen-diff
+│   └── src/bin/              # health-check, flake-bump, gen-diff, server-config
 └── wallpapers/
 ```
 
 ## Configuration Architecture
 
-All options are declared with typed defaults in `modules/options.nix`. Every system module reads values via `config.myConfig.*`; home-manager modules use `osConfig.myConfig.*`. No custom abstraction layer — it's plain NixOS module system.
+All options are declared with typed defaults in `modules/options.nix`.
+Every system module reads values via `config.myConfig.*`;
+home-manager modules use `osConfig.myConfig.*`. No custom
+abstraction layer — it's plain NixOS module system.
 
 **To change a value for all hosts:**
 
@@ -126,7 +142,9 @@ See [`lib/USAGE.md`](lib/USAGE.md) for patterns used in modules.
 
 ```bash
 mkdir -p ~/.config
-curl -L https://github.com/ewanc26/nix/archive/refs/heads/main.tar.gz | tar -xz -C ~/.config
+curl -L \
+  https://github.com/ewanc26/nix/archive/refs/heads/main.tar.gz \
+  | tar -xz -C ~/.config
 mv ~/.config/nix-main ~/.config/nix-config
 cd ~/.config/nix-config
 ```
@@ -165,7 +183,9 @@ nano settings/darwin/default.nix  # macOS Dock, Finder, trackpad
 nano settings/plasma/default.nix  # KDE Plasma layout and behaviour
 ```
 
-See [`docs/settings.md`](docs/settings.md) for the full guide and [`docs/settings-config.md`](docs/settings-config.md) for the complete option reference.
+See [`docs/settings.md`](docs/settings.md) for the full guide and
+[`docs/settings-config.md`](docs/settings-config.md) for the
+complete option reference.
 
 ## Maintenance
 
@@ -224,13 +244,19 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 
 ## Inputs
 
-| Input                                                             | Version          |
-| ----------------------------------------------------------------- | ---------------- |
-| [nixpkgs](https://github.com/NixOS/nixpkgs)                       | nixos-25.11      |
-| [home-manager](https://github.com/nix-community/home-manager)     | release-25.11    |
-| [nix-darwin](https://github.com/LnL7/nix-darwin)                  | nix-darwin-25.11 |
-| [sops-nix](https://github.com/Mic92/sops-nix)                     | latest           |
-| [plasma-manager](https://github.com/nix-community/plasma-manager) | latest           |
+| Input | Version |
+| --- | --- |
+| [nixpkgs][nixpkgs] | nixos-25.11 |
+| [home-manager][home-manager] | release-25.11 |
+| [nix-darwin][nix-darwin] | nix-darwin-25.11 |
+| [sops-nix][sops-nix] | latest |
+| [plasma-manager][plasma-manager] | latest |
+
+[nixpkgs]: https://github.com/NixOS/nixpkgs
+[home-manager]: https://github.com/nix-community/home-manager
+[nix-darwin]: https://github.com/LnL7/nix-darwin
+[sops-nix]: https://github.com/Mic92/sops-nix
+[plasma-manager]: https://github.com/nix-community/plasma-manager
 
 ## Unified Configuration Benefits
 
@@ -240,6 +266,7 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 - **SSH** client configuration unified (connection multiplexing, agent integration)
 - **Git** settings consistent across NixOS and macOS
 - **Starship** prompt looks the same everywhere
+- **Ghostty** terminal configured identically on Linux and macOS
 
 ### Platform-Specific When Needed
 
@@ -261,9 +288,12 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 ### Host Management
 
 - [`docs/hosts.md`](docs/hosts.md) — hosts documentation index
-- [`docs/hosts-overview.md`](docs/hosts-overview.md) — complete comparison of all three hosts
-- [`docs/hosts-modification.md`](docs/hosts-modification.md) — how to modify and add hosts
-- [`docs/hosts-laptop.md`](docs/hosts-laptop.md) — Dell Inspiron 3501 (NixOS + KDE Plasma 6)
+- [`docs/hosts-overview.md`](docs/hosts-overview.md) — complete
+  comparison of all three hosts
+- [`docs/hosts-modification.md`](docs/hosts-modification.md) —
+  how to modify and add hosts
+- [`docs/hosts-laptop.md`](docs/hosts-laptop.md) — Dell Inspiron
+  3501 (NixOS + KDE Plasma 6)
 - [`docs/hosts-server.md`](docs/hosts-server.md) — headless server setup
 - [`docs/hosts-macmini.md`](docs/hosts-macmini.md) — macOS with nix-darwin
 - [`docs/TAILSCALE-SSH.md`](docs/TAILSCALE-SSH.md) — inter-host SSH over Tailscale
@@ -271,5 +301,6 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 ### Settings Management
 
 - [`docs/settings.md`](docs/settings.md) — settings overview
-- [`docs/settings-structure.md`](docs/settings-structure.md) — why the config is modular
+- [`docs/settings-structure.md`](docs/settings-structure.md) —
+  why the config is modular
 - [`docs/secrets.md`](docs/secrets.md) — secrets management
