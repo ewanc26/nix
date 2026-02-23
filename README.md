@@ -110,11 +110,16 @@ generate SVG diagrams of the infrastructure from the NixOS configurations.
 Physical connections and networks that can't be inferred automatically are
 defined in `topology.nix`.
 
-**Render the diagrams:**
+**Render the diagrams** (must run on Linux — SSH to the server or use a remote builder):
 
 ```bash
-nix build .#topology.x86_64-linux.config.output
-# SVGs are in ./result/
+# On the server:
+ssh server
+nix build ~/.config/nix-config#topology.x86_64-linux.config.output
+
+# Or from macOS with the server as a remote builder:
+nix build .#topology.x86_64-linux.config.output \
+  --builders 'ssh://server x86_64-linux'
 ```
 
 This produces two diagrams:

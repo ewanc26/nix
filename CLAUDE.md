@@ -80,8 +80,9 @@ Run `health-check` before rebuilding to catch common issues early (daemon, lock 
 SVG diagrams are auto-generated from NixOS configs. Physical connections and networks are defined in `topology.nix`.
 
 ```bash
-nix build .#topology.x86_64-linux.config.output
-# SVGs in ./result/
+# On the server (renderer requires Linux):
+ssh server
+nix build ~/.config/nix-config#topology.x86_64-linux.config.output
 ```
 
 When adding a new host, add its interfaces and physical connections to `topology.nix`.

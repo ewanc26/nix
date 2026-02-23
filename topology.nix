@@ -10,28 +10,24 @@
 #
 #  Docs: https://oddlama.github.io/nix-topology
 ##############################################################################
-{ config, lib, ... }:
+{ config, ... }:
+let
+  inherit (config.lib.topology) mkInternet mkRouter mkConnection;
+in
 {
   # ── External devices ───────────────────────────────────────────────────────
-  nodes.internet = {
-    name = "Internet";
-    icon = "services.cloudflare";
-    interfaces.tunnel = {
-      name = "CF Tunnel";
-      network = "cloudflare";
-    };
+  nodes.internet = mkInternet {
+    connections = mkConnection "router" "wan";
   };
 
-  nodes.router = {
-    name = "Router";
-    deviceType = "router";
-    interfaces.wan = {
-      name = "WAN";
-      network = "wan";
-    };
+  nodes.router = mkRouter "Router" {
+    interfaces.wan = { };
     interfaces.lan = {
-      name = "LAN";
       network = "home";
+      physicalConnections = [
+        (mkConnection "server" "eth0")
+        (mkConnection "laptop" "wlan0")
+      ];
     };
   };
 
@@ -41,46 +37,26 @@
     cidrv4 = "192.168.1.0/24";
   };
 
-  networks.cloudflare = {
-    name = "Cloudflare Tunnel";
-    style.color = "#f48120";
-  };
-
   networks.tailscale = {
     name = "Tailnet";
     cidrv4 = "100.64.0.0/10";
-    style.color = "#4a9eed";
   };
-
-  # ── Physical connections ───────────────────────────────────────────────────
-  # Router LAN → each host's primary ethernet/wifi interface.
-  nodes.router.interfaces.lan.physicalConnections = [
-    {
-      node = "server";
-      interface = "eth0";
-    }
-    {
-      node = "laptop";
-      interface = "wlan0";
-    }
-  ];
 
   # ── Host network assignments ───────────────────────────────────────────────
   nodes.server.interfaces.eth0.network = "home";
-  nodes.server.interfaces.tailscale0.network = "tailscale";
+  nodes.server.interfaces.tailscale0 = {
+    network = "tailscale";
+    type = "wireguard";
+    virtual = true;
+  };
 
-  nodes.laptop.interfaces.wlan0.network = "home";
-  nodes.laptop.interfaces.tailscale0.network = "tailscale";
-
-  # ── Cloudflare tunnel (logical, outbound-only from server) ─────────────────
-  nodes.server.interfaces.cf-tunnel = {
-    name = "CF Tunnel";
-    network = "cloudflare";
-    physicalConnections = [
-      {
-        node = "internet";
-        interface = "tunnel";
-      }
-    ];
+  nodes.laptop.interfaces.wlan0 = {
+    network = "home";
+    type = "wireless";
+  };
+  nodes.laptop.interfaces.tailscale0 = {
+    network = "tailscale";
+    type = "wireguard";
+    virtual = true;
   };
 }
