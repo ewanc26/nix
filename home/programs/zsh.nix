@@ -94,6 +94,12 @@ in
       });
 
     initContent = ''
+      # pnpm global bin dir — set unconditionally in initContent since
+      # home.sessionVariables/sessionPath are not reliably sourced on macOS.
+      export PNPM_HOME="$HOME/.local/share/pnpm"
+      mkdir -p "$PNPM_HOME"
+      export PATH="$PNPM_HOME:$PATH"
+
       # Display system info on new shell
       ${lib.optionalString cfg.isDesktop "fastfetch"}
 
@@ -142,6 +148,7 @@ in
       # --all-systems`), causing repeated GC expansion warnings. 1 GiB avoids
       # that without meaningfully affecting smaller evaluations.
       GC_INITIAL_HEAP_SIZE = toString (1 * 1024 * 1024 * 1024);
+
     };
 
     profileExtra = ''

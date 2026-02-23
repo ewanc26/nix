@@ -93,6 +93,18 @@ in
     ];
   };
 
+  # ── pnpm ──────────────────────────────────────────────────────────────────
+  # home-manager has no programs.pnpm module. The correct declarative setup is:
+  #   1. xdg.configFile writes ~/.config/pnpm/rc with global-bin-dir as an
+  #      absolute path — pnpm reads this file directly, no shell needed.
+  #   2. home.sessionVariables exports PNPM_HOME so pnpm itself knows where
+  #      to store global packages.
+  #   3. home.sessionPath prepends the bin dir to PATH using the dedicated
+  #      home-manager option (avoids manual string concat in shell init).
+  xdg.configFile."pnpm/rc".text = ''
+    global-bin-dir=${config.home.homeDirectory}/.local/share/pnpm
+  '';
+
   programs.home-manager.enable = true;
 
   # Disable the home-manager manual — avoids a known upstream warning about
