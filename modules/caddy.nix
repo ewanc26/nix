@@ -69,7 +69,7 @@ in
       # Explicitly disable HTTP challenge — DNS-01 only.
       webroot = null;
       credentialFiles = {
-        "CF_DNS_API_TOKEN_FILE" = config.sops.secrets."cloudflare-acme.env".path;
+        "CF_DNS_API_TOKEN" = config.sops.secrets."cloudflare-acme.env".path;
       };
       # Emit verbose lego output so failures are diagnosable in the journal.
       enableDebugLogs = true;
