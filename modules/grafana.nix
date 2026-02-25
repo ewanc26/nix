@@ -47,13 +47,6 @@ let
       job_name = "nextcloud";
       static_configs = [ { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.nextcloud.port}" ]; } ];
     }
-    ++ lib.optional cfg.services.immich.enable {
-      job_name = "immich";
-      static_configs = [
-        # Immich exposes two metrics endpoints on separate ports
-        { targets = [ "127.0.0.1:8081" "127.0.0.1:8082" ]; }
-      ];
-    }
     ++ lib.optional cfg.services.postgresql.enable {
       job_name = "postgres";
       static_configs = [ { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.postgres.port}" ]; } ];
@@ -106,10 +99,6 @@ lib.mkIf hasTailnet {
     owner = "nextcloud-exporter";
     mode = "0440";
   };
-
-  # ── Immich metrics ───────────────────────────────────────────────────────
-  # Enable Immich's built-in Prometheus endpoints (server: 8081, microservices: 8082).
-  services.immich.metrics.enable = lib.mkIf cfg.services.immich.enable true;
 
   # ── Caddy metrics ────────────────────────────────────────────────────────
   # Expose /metrics on the admin API port (2019, localhost only by default).
