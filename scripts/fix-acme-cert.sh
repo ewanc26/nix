@@ -114,8 +114,10 @@ if [[ -d "$CERT_DIR" ]]; then
 	ok "Cleared $CERT_DIR"
 fi
 
-info "Starting $ACME_SERVICE — this may take ~30–90s (DNS propagation)..."
+info "Restarting $ACME_SERVICE — this may take ~30-90s (DNS propagation)..."
 START_TIME=$(date --iso-8601=seconds)
+systemctl stop "$ACME_SERVICE" 2>/dev/null || true
+systemctl reset-failed "$ACME_SERVICE" 2>/dev/null || true
 if systemctl start "$ACME_SERVICE"; then
 	ok "ACME service completed successfully"
 else
