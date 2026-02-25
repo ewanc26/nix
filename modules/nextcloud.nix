@@ -62,9 +62,8 @@ lib.mkIf cfg.services.nextcloud.enable {
     # Store all Nextcloud state (config, apps, data) on the /srv volume.
     home = nc.dataDir;
 
-    # TLS is terminated upstream by Cloudflare; nginx only speaks plain HTTP
-    # locally. Setting https = false suppresses the nginx SSL config, but we
-    # still tell Nextcloud to generate https:// URLs via overwriteProtocol.
+    # Nextcloud is tailnet-only — TLS is provided by Tailscale's WireGuard.
+    # https = false suppresses nginx SSL config; URLs are plain HTTP.
     https = false;
 
     # Nginx listens on localhost only — Caddy is the only external entry point.
@@ -87,8 +86,8 @@ lib.mkIf cfg.services.nextcloud.enable {
     };
 
     settings = {
-      # Tell Nextcloud its public URL uses HTTPS even though nginx is plain HTTP.
-      overwriteprotocol = "https";
+      # No overwriteprotocol — Nextcloud serves plain HTTP over the tailnet.
+      # WireGuard (Tailscale) handles encryption at the network layer.
 
       default_phone_region = nc.defaultPhoneRegion;
 
@@ -133,8 +132,7 @@ lib.mkIf cfg.services.nextcloud.enable {
     phpOptions."upload_tmp_dir" = "${nc.dataDir}/tmp";
   };
 
-  # Pin nginx to localhost so Caddy is the sole external entry point.
-  # Also inject the HSTS header manually since https = false disables nginx.hstsMaxAge.
+  # Pin nginx to localhost — Caddy is the sole external entry point.
   services.nginx.virtualHosts."${nc.hostname}" = {
     listen = [
       {
@@ -142,9 +140,6 @@ lib.mkIf cfg.services.nextcloud.enable {
         port = nc.port;
       }
     ];
-    extraConfig = ''
-      add_header Strict-Transport-Security "max-age=15552000; includeSubDomains" always;
-    '';
   };
 
   # Ensure the PHP upload tmp dir exists with correct ownership before Nextcloud
@@ -177,7 +172,6 @@ lib.mkIf cfg.services.nextcloud.enable {
       bind ${cfg.server.tailscaleIP}
       handle {
         reverse_proxy http://127.0.0.1:${ncPort} {
-          header_up X-Forwarded-Proto https
           transport http {
             read_timeout  3600s
             write_timeout 3600s

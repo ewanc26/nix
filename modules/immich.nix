@@ -97,9 +97,7 @@ lib.mkIf cfg.services.immich.enable {
   services.caddy.virtualHosts."http://${im.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
-      reverse_proxy http://127.0.0.1:${toString im.port} {
-        header_up X-Forwarded-Proto https
-      }
+      reverse_proxy http://127.0.0.1:${toString im.port}
     '';
   };
 }
