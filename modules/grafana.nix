@@ -47,7 +47,7 @@ let
       job_name = "nextcloud";
       static_configs = [ { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.nextcloud.port}" ]; } ];
     }
-    ++ lib.optional cfg.services.postgresql.enable {
+    ++ lib.optional config.services.postgresql.enable {
       job_name = "postgres";
       static_configs = [ { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.postgres.port}" ]; } ];
     };
@@ -88,6 +88,7 @@ lib.mkIf hasTailnet {
       port = 9187;
       runAsLocalSuperUser = true;
     };
+
   };
 
   # Nextcloud metrics token — generate in Nextcloud admin → Monitoring app,
