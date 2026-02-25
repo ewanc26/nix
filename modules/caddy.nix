@@ -71,6 +71,8 @@ in
       credentialFiles = {
         "CF_DNS_API_TOKEN_FILE" = config.sops.secrets."cloudflare-acme.env".path;
       };
+      # Emit verbose lego output so failures are diagnosable in the journal.
+      enableDebugLogs = true;
       # Let Caddy read the cert files.
       group = config.services.caddy.group;
       # Reload Caddy whenever the cert is renewed.
