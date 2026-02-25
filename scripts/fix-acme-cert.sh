@@ -114,10 +114,36 @@ if [[ -d "$CERT_DIR" ]]; then
 	ok "Cleared $CERT_DIR"
 fi
 
-info "Restarting $ACME_SERVICE — this may take ~30-90s (DNS propagation)..."
+# ─────────────────────────────────────────────────────────────────────────────
+header "6b. All ACME-related units"
+# ─────────────────────────────────────────────────────────────────────────────
+systemctl list-units "acme*" --all --no-pager || true
+
+# ─────────────────────────────────────────────────────────────────────────────
+header "6c. Generated acme service script"
+# ─────────────────────────────────────────────────────────────────────────────
+SCRIPT=$(systemctl show "$ACME_SERVICE" -p ExecStart --value | awk '{print $1}')
+if [[ -n "$SCRIPT" && -f "$SCRIPT" ]]; then
+	info "Script path: $SCRIPT"
+	cat "$SCRIPT"
+else
+	info "Falling back to nix store search..."
+	SCRIPT=$(find /nix/store -maxdepth 3 -name "acme-ewancroft.uk-start" 2>/dev/null | head -1)
+	if [[ -n "$SCRIPT" ]]; then cat "$SCRIPT"; else fail "Script not found"; fi
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+header "6d. Triggering ACME (systemctl clean + start)"
+# ─────────────────────────────────────────────────────────────────────────────
+# systemctl clean --what=state is the official NixOS method: it removes the
+# cert dir AND the lego accounts/state directory so the next start is a full
+# fresh run rather than a renewal.
+info "Cleaning all ACME state (official NixOS method)..."
+systemctl clean --what=state "$ACME_SERVICE"
+ok "State cleaned"
+
+info "Starting $ACME_SERVICE — this may take ~30–90s (DNS propagation)..."
 START_TIME=$(date --iso-8601=seconds)
-systemctl stop "$ACME_SERVICE" 2>/dev/null || true
-systemctl reset-failed "$ACME_SERVICE" 2>/dev/null || true
 if systemctl start "$ACME_SERVICE"; then
 	ok "ACME service completed successfully"
 else
@@ -128,7 +154,6 @@ else
 	die "See journal output above for the root cause"
 fi
 
-# Always show the lego output so we can confirm LE was actually contacted
 info "Journal output from this run:"
 journalctl -u "$ACME_SERVICE" --since "$START_TIME" --no-pager
 
