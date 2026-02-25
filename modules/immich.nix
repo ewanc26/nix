@@ -91,13 +91,13 @@ lib.mkIf cfg.services.immich.enable {
 
   # ── Caddy reverse proxy ───────────────────────────────────────────────────
   # Tailscale direct route — bypasses Cloudflare (no upload size limit).
-  # Self-signed TLS terminated by Caddy; WireGuard encrypts the tailnet.
+  # Let's Encrypt wildcard cert (*.ewancroft.uk) via Cloudflare DNS-01.
   # Reachable from any tailnet device at https://${im.hostname} once split-dns
   # is configured in the Tailscale admin console (see modules/split-dns.nix).
   services.caddy.virtualHosts."https://${im.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
-      tls internal
+      tls ${cfg.server.acmeCertDir}/fullchain.pem ${cfg.server.acmeCertDir}/key.pem
       reverse_proxy http://127.0.0.1:${toString im.port}
     '';
   };

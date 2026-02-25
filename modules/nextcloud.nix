@@ -169,12 +169,13 @@ lib.mkIf cfg.services.nextcloud.enable {
   };
 
   # Tailscale direct route — bypasses Cloudflare (no upload size limit).
+  # Let's Encrypt wildcard cert (*.ewancroft.uk) via Cloudflare DNS-01.
   # Reachable at https://${nc.hostname} from any tailnet device once split-dns
   # is configured (see modules/split-dns.nix).
   services.caddy.virtualHosts."https://${nc.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
-      tls internal
+      tls ${cfg.server.acmeCertDir}/fullchain.pem ${cfg.server.acmeCertDir}/key.pem
       handle {
         reverse_proxy http://127.0.0.1:${ncPort} {
           transport http {

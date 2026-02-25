@@ -746,6 +746,12 @@ in
         };
       };
 
+      acmeCertDir = mkOption {
+        type = str;
+        default = "/var/lib/acme/ewancroft.uk";
+        description = "Directory containing the ACME wildcard cert for *.ewancroft.uk, used by Caddy tailnet vhosts.";
+      };
+
       cockpit = {
         enable = mkOption {
           type = bool;

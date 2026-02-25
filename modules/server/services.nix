@@ -27,8 +27,6 @@ in
       Origins = lib.mkForce "https://${cockpit.hostname} wss://${cockpit.hostname}";
       # Tell Cockpit to trust the X-Forwarded-Proto header from Caddy.
       ProtocolHeader = "X-Forwarded-Proto";
-      # Allow plain HTTP from Caddy (WireGuard encrypts the tailnet).
-      AllowUnencrypted = true;
     };
   };
 
@@ -37,7 +35,7 @@ in
       {
         extraConfig = ''
           bind ${cfg.server.tailscaleIP}
-          tls internal
+          tls ${cfg.server.acmeCertDir}/fullchain.pem ${cfg.server.acmeCertDir}/key.pem
           reverse_proxy http://127.0.0.1:${toString cockpit.port} {
             header_up X-Forwarded-Proto https
             transport http {
