@@ -30,6 +30,9 @@ let
   cfg = config.myConfig;
 
   # Build ingress routes based on enabled services.
+  # Only route publicly-accessible services through the CF tunnel.
+  # Nextcloud, Immich, and Jellyfin are tailnet-only — they are reachable
+  # via split DNS (CoreDNS) directly over the Tailscale network.
   ingressRoutes =
     lib.optionalAttrs cfg.services.pds.enable {
       ${cfg.pds.hostname} = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
@@ -37,15 +40,6 @@ let
     }
     // lib.optionalAttrs cfg.services.forgejo.enable {
       ${cfg.forgejo.hostname} = "http://127.0.0.1:${toString cfg.forgejo.caddyPort}";
-    }
-    // lib.optionalAttrs cfg.services.nextcloud.enable {
-      ${cfg.nextcloud.hostname} = "http://127.0.0.1:${toString cfg.nextcloud.caddyPort}";
-    }
-    // lib.optionalAttrs cfg.services.immich.enable {
-      ${cfg.immich.hostname} = "http://127.0.0.1:${toString cfg.immich.caddyPort}";
-    }
-    // lib.optionalAttrs cfg.services.jellyfin.enable {
-      ${cfg.jellyfin.hostname} = "http://127.0.0.1:${toString cfg.jellyfin.caddyPort}";
     };
 in
 lib.mkIf cfg.services.cloudflare.enable {

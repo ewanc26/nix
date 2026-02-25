@@ -90,13 +90,6 @@ lib.mkIf cfg.services.immich.enable {
   };
 
   # ── Caddy reverse proxy ───────────────────────────────────────────────────
-  # Cloudflare Tunnel route (remote access, subject to CF upload limits)
-  services.caddy.virtualHosts."http://${im.hostname}:${toString im.caddyPort}" = {
-    extraConfig = ''
-      reverse_proxy http://127.0.0.1:${toString im.port}
-    '';
-  };
-
   # Tailscale direct route — bypasses Cloudflare (no upload size limit).
   # Plain HTTP bound to the Tailscale IP; WireGuard encrypts the tunnel.
   # Reachable from any tailnet device at http://${im.hostname} once split-dns
