@@ -746,26 +746,28 @@ in
         };
       };
 
+      grafana = {
+        hostname = mkOption {
+          type = str;
+          default = "grafana.ewancroft.uk";
+          description = "Hostname for the Grafana dashboard (tailnet only).";
+        };
+        port = mkOption {
+          type = int;
+          default = 3000;
+          description = "Local port Grafana listens on.";
+        };
+        nextcloudMetrics = mkOption {
+          type = bool;
+          default = false;
+          description = "Enable Nextcloud exporter. Requires the Monitoring app and secrets/nextcloud-metrics-token.";
+        };
+      };
+
       acmeCertDir = mkOption {
         type = str;
         default = "/var/lib/acme/ewancroft.uk";
         description = "Directory containing the ACME wildcard cert for *.ewancroft.uk, used by Caddy tailnet vhosts.";
-      };
-
-      cockpit = {
-        enable = mkOption {
-          type = bool;
-          default = true;
-        };
-        hostname = mkOption {
-          type = str;
-          default = "cockpit.ewancroft.uk";
-          description = "Hostname for the Cockpit tailnet vhost — resolved to the server's Tailscale IP via split-dns.";
-        };
-        port = mkOption {
-          type = int;
-          default = 9090;
-        };
       };
 
       tailscaleIP = mkOption {

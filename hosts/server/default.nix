@@ -17,6 +17,7 @@ in
     ../../modules/nextcloud.nix
     ../../modules/immich.nix
     ../../modules/jellyfin.nix
+    ../../modules/grafana.nix
     ../../profiles/server-hardened.nix
   ];
 
