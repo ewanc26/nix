@@ -98,17 +98,12 @@ lib.mkIf cfg.services.immich.enable {
   };
 
   # Tailscale direct route — bypasses Cloudflare (no upload size limit).
-  # DNS-01 cert provisioned via CF_API_TOKEN; no inbound port needed for ACME.
-  # Reachable from any tailnet device at https://${im.hostname} once split-dns
+  # Plain HTTP bound to the Tailscale IP; WireGuard encrypts the tunnel.
+  # Reachable from any tailnet device at http://${im.hostname} once split-dns
   # is configured in the Tailscale admin console (see modules/split-dns.nix).
-  services.caddy.virtualHosts."https://${im.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
+  services.caddy.virtualHosts."http://${im.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
-      tls {
-        dns cloudflare {
-          api_token {$CF_API_TOKEN}
-        }
-      }
       reverse_proxy http://127.0.0.1:${toString im.port}
     '';
   };
