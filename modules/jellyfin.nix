@@ -100,7 +100,9 @@ lib.mkIf cfg.services.jellyfin.enable {
   services.caddy.virtualHosts."http://${jf.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
-      reverse_proxy http://127.0.0.1:${toString jf.port}
+      reverse_proxy http://127.0.0.1:${toString jf.port} {
+        header_up X-Forwarded-Proto https
+      }
     '';
   };
 }

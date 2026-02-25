@@ -177,6 +177,7 @@ lib.mkIf cfg.services.nextcloud.enable {
       bind ${cfg.server.tailscaleIP}
       handle {
         reverse_proxy http://127.0.0.1:${ncPort} {
+          header_up X-Forwarded-Proto https
           transport http {
             read_timeout  3600s
             write_timeout 3600s
