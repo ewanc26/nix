@@ -754,7 +754,7 @@ in
         };
         port = mkOption {
           type = int;
-          default = 3000;
+          default = 3100;
           description = "Local port Grafana listens on.";
         };
         nextcloudMetrics = mkOption {
