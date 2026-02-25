@@ -9,6 +9,7 @@ OPENSSL="nix run nixpkgs#openssl --"
 CERT_DIR="/var/lib/acme/ewancroft.uk"
 SECRET_PATH="/run/secrets/cloudflare-acme.env"
 ACME_SERVICE="acme-ewancroft.uk.service"
+ACME_ORDER_SERVICE="acme-order-renew-ewancroft.uk.service"
 FLAKE="/home/ewan/.config/nix-config#server"
 
 RED='\033[0;31m'
@@ -133,29 +134,31 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-header "6d. Triggering ACME (systemctl clean + start)"
+header "6d. Triggering ACME order/renew service"
 # ─────────────────────────────────────────────────────────────────────────────
-# systemctl clean --what=state is the official NixOS method: it removes the
-# cert dir AND the lego accounts/state directory so the next start is a full
-# fresh run rather than a renewal.
-info "Cleaning all ACME state (official NixOS method)..."
-systemctl clean --what=state "$ACME_SERVICE"
+# acme-order-renew-ewancroft.uk.service is the unit that actually runs lego.
+# Stop the preliminary service first so systemctl clean can proceed.
+info "Stopping preliminary service..."
+systemctl stop "$ACME_SERVICE" 2>/dev/null || true
+info "Cleaning ACME state..."
+systemctl clean --what=state "$ACME_SERVICE" 2>/dev/null || true
+systemctl clean --what=state "$ACME_ORDER_SERVICE" 2>/dev/null || true
 ok "State cleaned"
 
-info "Starting $ACME_SERVICE — this may take ~30–90s (DNS propagation)..."
+info "Starting $ACME_ORDER_SERVICE — this may take ~30–90s (DNS propagation)..."
 START_TIME=$(date --iso-8601=seconds)
-if systemctl start "$ACME_SERVICE"; then
-	ok "ACME service completed successfully"
+if systemctl start "$ACME_ORDER_SERVICE"; then
+	ok "ACME order service completed successfully"
 else
-	fail "ACME service failed"
+	fail "ACME order service failed"
 	echo ""
 	echo "  Full journal for this run:"
-	journalctl -u "$ACME_SERVICE" --since "$START_TIME" --no-pager
+	journalctl -u "$ACME_ORDER_SERVICE" --since "$START_TIME" --no-pager
 	die "See journal output above for the root cause"
 fi
 
 info "Journal output from this run:"
-journalctl -u "$ACME_SERVICE" --since "$START_TIME" --no-pager
+journalctl -u "$ACME_ORDER_SERVICE" --since "$START_TIME" --no-pager
 
 # ─────────────────────────────────────────────────────────────────────────────
 header "7. Verifying new cert"
