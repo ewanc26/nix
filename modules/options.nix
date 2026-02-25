@@ -486,12 +486,8 @@ in
       };
       mediaDir = mkOption {
         type = str;
-        default = "/srv/nextcloud/data/ewan/files/Media/Photos";
-        description = ''
-          Primary media directory for Immich. Defaults to inside the Nextcloud
-                    user files tree so that photos synced via Nextcloud clients are visible in
-                    Immich, and vice-versa (the nextcloud-files-scan timer picks up writes daily).
-                    Override this if nextcloud.dataDir or nextcloud.adminUser differ from defaults.'';
+        default = "/srv/immich";
+        description = "Primary media directory for Immich uploads and assets.";
       };
     };
 
