@@ -91,12 +91,13 @@ lib.mkIf cfg.services.immich.enable {
 
   # ── Caddy reverse proxy ───────────────────────────────────────────────────
   # Tailscale direct route — bypasses Cloudflare (no upload size limit).
-  # Plain HTTP bound to the Tailscale IP; WireGuard encrypts the tunnel.
-  # Reachable from any tailnet device at http://${im.hostname} once split-dns
+  # Self-signed TLS terminated by Caddy; WireGuard encrypts the tailnet.
+  # Reachable from any tailnet device at https://${im.hostname} once split-dns
   # is configured in the Tailscale admin console (see modules/split-dns.nix).
-  services.caddy.virtualHosts."http://${im.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
+  services.caddy.virtualHosts."https://${im.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
+      tls internal
       reverse_proxy http://127.0.0.1:${toString im.port}
     '';
   };

@@ -95,11 +95,12 @@ lib.mkIf cfg.services.jellyfin.enable {
 
   # ── Caddy reverse proxy ───────────────────────────────────────────────────
   # Tailscale direct route — bypasses Cloudflare.
-  # Reachable at http://${jf.hostname} from any tailnet device once split-dns
+  # Reachable at https://${jf.hostname} from any tailnet device once split-dns
   # is configured (see modules/split-dns.nix).
-  services.caddy.virtualHosts."http://${jf.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
+  services.caddy.virtualHosts."https://${jf.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
+      tls internal
       reverse_proxy http://127.0.0.1:${toString jf.port}
     '';
   };

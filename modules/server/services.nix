@@ -16,7 +16,7 @@ in
 
   # ── Cockpit — tailnet-only web management console ──────────────────────────
   # Cockpit listens on localhost only; Caddy proxies it on the Tailscale IP.
-  # Reachable at http://${cockpit.hostname} from any tailnet device once
+  # Reachable at https://${cockpit.hostname} from any tailnet device once
   # split-dns is configured (see modules/split-dns.nix).
   services.cockpit = lib.mkIf cockpit.enable {
     enable = true;
@@ -24,7 +24,7 @@ in
     settings.WebService = {
       # Required when behind a reverse proxy — Cockpit rejects WebSocket
       # connections from origins it doesn't recognise.
-      Origins = lib.mkForce "http://${cockpit.hostname} ws://${cockpit.hostname}";
+      Origins = lib.mkForce "https://${cockpit.hostname} wss://${cockpit.hostname}";
       # Tell Cockpit to trust the X-Forwarded-Proto header from Caddy.
       ProtocolHeader = "X-Forwarded-Proto";
       # Allow plain HTTP from Caddy (WireGuard encrypts the tailnet).
@@ -32,13 +32,14 @@ in
     };
   };
 
-  services.caddy.virtualHosts."http://${cockpit.hostname}" =
+  services.caddy.virtualHosts."https://${cockpit.hostname}" =
     lib.mkIf (cockpit.enable && cfg.server.tailscaleIP != "")
       {
         extraConfig = ''
           bind ${cfg.server.tailscaleIP}
+          tls internal
           reverse_proxy http://127.0.0.1:${toString cockpit.port} {
-            header_up X-Forwarded-Proto http
+            header_up X-Forwarded-Proto https
             transport http {
               read_timeout 30s
             }
