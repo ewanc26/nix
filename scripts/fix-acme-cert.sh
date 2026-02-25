@@ -4,6 +4,8 @@
 # Run on the server as root (or with sudo).
 set -euo pipefail
 
+export PATH="/run/current-system/sw/bin:/run/wrappers/bin:$PATH"
+
 CERT_DIR="/var/lib/acme/ewancroft.uk"
 SECRET_PATH="/run/secrets/cloudflare-acme.env"
 ACME_SERVICE="acme-ewancroft.uk.service"
