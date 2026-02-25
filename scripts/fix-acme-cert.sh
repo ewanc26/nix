@@ -7,7 +7,7 @@ set -euo pipefail
 CERT_DIR="/var/lib/acme/ewancroft.uk"
 SECRET_PATH="/run/secrets/cloudflare-acme.env"
 ACME_SERVICE="acme-ewancroft.uk.service"
-FLAKE="$HOME/.config/nix-config#server"
+FLAKE="/home/ewan/.config/nix-config#server"
 
 RED='\033[0;31m'
 GRN='\033[0;32m'
