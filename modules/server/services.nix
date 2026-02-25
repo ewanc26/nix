@@ -21,8 +21,15 @@ in
   services.cockpit = lib.mkIf cockpit.enable {
     enable = true;
     port = cockpit.port;
-    # Bind to localhost only — Caddy is the sole entry point.
-    settings.WebService.Origins = "http://${cockpit.hostname} ws://${cockpit.hostname}";
+    settings.WebService = {
+      # Required when behind a reverse proxy — Cockpit rejects WebSocket
+      # connections from origins it doesn't recognise.
+      Origins = lib.mkForce "http://${cockpit.hostname} ws://${cockpit.hostname}";
+      # Tell Cockpit to trust the X-Forwarded-Proto header from Caddy.
+      ProtocolHeader = "X-Forwarded-Proto";
+      # Allow plain HTTP from Caddy (WireGuard encrypts the tailnet).
+      AllowUnencrypted = true;
+    };
   };
 
   services.caddy.virtualHosts."http://${cockpit.hostname}" =
@@ -31,6 +38,7 @@ in
         extraConfig = ''
           bind ${cfg.server.tailscaleIP}
           reverse_proxy http://127.0.0.1:${toString cockpit.port} {
+            header_up X-Forwarded-Proto http
             transport http {
               read_timeout 30s
             }
