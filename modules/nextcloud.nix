@@ -169,8 +169,32 @@ lib.mkIf cfg.services.nextcloud.enable {
     };
   };
 
+  # Cloudflare Tunnel route (remote access)
   services.caddy.virtualHosts."http://${nc.hostname}:${caddyPort}" = {
     extraConfig = ''
+      handle {
+        reverse_proxy http://127.0.0.1:${ncPort} {
+          transport http {
+            read_timeout  3600s
+            write_timeout 3600s
+          }
+        }
+      }
+      request_body {
+        max_size 50GB
+      }
+    '';
+  };
+
+  # Tailscale direct route — bypasses Cloudflare (no upload size limit).
+  # Reachable at https://${nc.hostname} from any tailnet device once split-dns
+  # is configured (see modules/split-dns.nix).
+  services.caddy.virtualHosts."https://${nc.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
+    extraConfig = ''
+      bind ${cfg.server.tailscaleIP}
+      tls {
+        dns cloudflare {$CF_API_TOKEN}
+      }
       handle {
         reverse_proxy http://127.0.0.1:${ncPort} {
           transport http {

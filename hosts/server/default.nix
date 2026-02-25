@@ -10,6 +10,7 @@ in
     ./minimal-hardware.nix
     ../../modules/users.nix
     ../../modules/caddy.nix
+    ../../modules/split-dns.nix
     ../../modules/cloudflare-tunnel.nix
     ../../modules/pds.nix
     ../../modules/forgejo.nix
@@ -35,6 +36,11 @@ in
   systemd.targets.suspend.enable = false;
   systemd.targets.hibernate.enable = false;
   systemd.targets.hybrid-sleep.enable = false;
+
+  # ── Tailscale ─────────────────────────────────────────────────────────────
+  # Set to the output of `tailscale ip -4` on the server.
+  # This enables split-dns.nix (CoreDNS) and the tailnet Caddy vhosts.
+  myConfig.server.tailscaleIP = "100.78.91.100";
 
   networking.hostName = "server";
 

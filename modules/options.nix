@@ -756,6 +756,16 @@ in
           default = 9090;
         };
       };
+
+      tailscaleIP = mkOption {
+        type = str;
+        default = "";
+        description = ''
+          Server's Tailscale IPv4 address (output of `tailscale ip -4`).
+                    Used by split-dns.nix (CoreDNS bind address) and Caddy tailnet vhosts.
+                    Set this in hosts/server/default.nix after running `tailscale ip -4`.
+        '';
+      };
     };
 
     # ── Darwin ────────────────────────────────────────────────────────────────

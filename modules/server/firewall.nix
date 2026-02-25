@@ -15,5 +15,16 @@ in
 
     # Allow ICMP (ping) if configured
     allowPing = lib.mkDefault cfg.server.firewall.allowPing;
+
+    # Tailscale interface — allow HTTPS (443) and DNS (53) from tailnet devices.
+    # These ports are NOT opened globally; they're only reachable via the tailnet.
+    interfaces.tailscale0 = {
+      allowedTCPPorts = [
+        53
+        80
+        443
+      ];
+      allowedUDPPorts = [ 53 ];
+    };
   };
 }
