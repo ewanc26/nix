@@ -51,11 +51,11 @@ in
   # *.ewancroft.uk tailnet services (Nextcloud, Immich, Jellyfin, Cockpit).
   #
   # Prerequisite: create and sops-encrypt secrets/cloudflare-acme.env
-  # containing just the raw token value (no KEY= prefix).
+  # containing: CLOUDFLARE_DNS_API_TOKEN=<token>
   # The token needs Zone.DNS edit permission for ewancroft.uk.
   sops.secrets."cloudflare-acme.env" = lib.mkIf hasTailnet {
     sopsFile = ../secrets/cloudflare-acme.env;
-    format = "binary";
+    format = "dotenv";
     owner = "acme";
     mode = "0440";
   };
@@ -68,9 +68,8 @@ in
       dnsProvider = "cloudflare";
       # Explicitly disable HTTP challenge — DNS-01 only.
       webroot = null;
-      credentialFiles = {
-        "CF_DNS_API_TOKEN" = config.sops.secrets."cloudflare-acme.env".path;
-      };
+      # environmentFile is a dotenv-format file: CLOUDFLARE_DNS_API_TOKEN=<token>
+      environmentFile = config.sops.secrets."cloudflare-acme.env".path;
       # Emit verbose lego output so failures are diagnosable in the journal.
       enableDebugLogs = true;
       # Let Caddy read the cert files.
