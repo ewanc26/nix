@@ -106,16 +106,29 @@ systemctl status "$ACME_SERVICE" --no-pager -l 2>/dev/null ||
 # ─────────────────────────────────────────────────────────────────────────────
 header "6. Triggering ACME cert acquisition"
 # ─────────────────────────────────────────────────────────────────────────────
+# Remove existing cert state so lego requests a fresh cert from Let's Encrypt
+# rather than skipping because a (minica) cert already exists.
+if [[ -d "$CERT_DIR" ]]; then
+	info "Removing existing cert state to force fresh Let's Encrypt request..."
+	rm -rf "$CERT_DIR"
+	ok "Cleared $CERT_DIR"
+fi
+
 info "Starting $ACME_SERVICE — this may take ~30–90s (DNS propagation)..."
+START_TIME=$(date --iso-8601=seconds)
 if systemctl start "$ACME_SERVICE"; then
 	ok "ACME service completed successfully"
 else
 	fail "ACME service failed"
 	echo ""
-	echo "  Last 50 lines of journal:"
-	journalctl -u "$ACME_SERVICE" -n 50 --no-pager
+	echo "  Full journal for this run:"
+	journalctl -u "$ACME_SERVICE" --since "$START_TIME" --no-pager
 	die "See journal output above for the root cause"
 fi
+
+# Always show the lego output so we can confirm LE was actually contacted
+info "Journal output from this run:"
+journalctl -u "$ACME_SERVICE" --since "$START_TIME" --no-pager
 
 # ─────────────────────────────────────────────────────────────────────────────
 header "7. Verifying new cert"
