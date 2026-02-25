@@ -98,6 +98,13 @@ lib.mkIf cfg.services.jellyfin.enable {
   # Let's Encrypt wildcard cert (*.ewancroft.uk) via Cloudflare DNS-01.
   # Reachable at https://${jf.hostname} from any tailnet device once split-dns
   # is configured (see modules/split-dns.nix).
+  services.caddy.virtualHosts."http://${jf.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
+    extraConfig = ''
+      bind ${cfg.server.tailscaleIP}
+      redir https://${jf.hostname}{uri} permanent
+    '';
+  };
+
   services.caddy.virtualHosts."https://${jf.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}

@@ -94,6 +94,13 @@ lib.mkIf cfg.services.immich.enable {
   # Let's Encrypt wildcard cert (*.ewancroft.uk) via Cloudflare DNS-01.
   # Reachable from any tailnet device at https://${im.hostname} once split-dns
   # is configured in the Tailscale admin console (see modules/split-dns.nix).
+  services.caddy.virtualHosts."http://${im.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
+    extraConfig = ''
+      bind ${cfg.server.tailscaleIP}
+      redir https://${im.hostname}{uri} permanent
+    '';
+  };
+
   services.caddy.virtualHosts."https://${im.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}

@@ -172,6 +172,13 @@ lib.mkIf cfg.services.nextcloud.enable {
   # Let's Encrypt wildcard cert (*.ewancroft.uk) via Cloudflare DNS-01.
   # Reachable at https://${nc.hostname} from any tailnet device once split-dns
   # is configured (see modules/split-dns.nix).
+  services.caddy.virtualHosts."http://${nc.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
+    extraConfig = ''
+      bind ${cfg.server.tailscaleIP}
+      redir https://${nc.hostname}{uri} permanent
+    '';
+  };
+
   services.caddy.virtualHosts."https://${nc.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}

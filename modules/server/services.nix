@@ -11,6 +11,9 @@ in
   # Tailscale VPN for inter-host communication
   services.tailscale.enable = true;
 
+  # PCP (Performance Co-Pilot) — enables historical graphs in Cockpit.
+  services.pcp.enable = true;
+
   # SSH daemon (server hardened configuration from modules/server/ssh.nix)
   # No additional SSH config needed here — it's handled by server-hardened profile.
 
@@ -29,6 +32,15 @@ in
       ProtocolHeader = "X-Forwarded-Proto";
     };
   };
+
+  services.caddy.virtualHosts."http://${cockpit.hostname}" =
+    lib.mkIf (cockpit.enable && cfg.server.tailscaleIP != "")
+      {
+        extraConfig = ''
+          bind ${cfg.server.tailscaleIP}
+          redir https://${cockpit.hostname}{uri} permanent
+        '';
+      };
 
   services.caddy.virtualHosts."https://${cockpit.hostname}" =
     lib.mkIf (cockpit.enable && cfg.server.tailscaleIP != "")
