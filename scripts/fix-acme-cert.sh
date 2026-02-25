@@ -4,7 +4,7 @@
 # Run on the server as root (or with sudo).
 set -euo pipefail
 
-export PATH="/run/current-system/sw/bin:/run/wrappers/bin:$PATH"
+OPENSSL="nix run nixpkgs#openssl --"
 
 CERT_DIR="/var/lib/acme/ewancroft.uk"
 SECRET_PATH="/run/secrets/cloudflare-acme.env"
@@ -87,8 +87,8 @@ fi
 header "4. Current cert status"
 # ─────────────────────────────────────────────────────────────────────────────
 if [[ -f "$CERT_DIR/fullchain.pem" ]]; then
-	EXPIRY=$(openssl x509 -enddate -noout -in "$CERT_DIR/fullchain.pem" | cut -d= -f2)
-	ISSUER=$(openssl x509 -issuer -noout -in "$CERT_DIR/fullchain.pem" | sed 's/.*CN *= *//')
+	EXPIRY=$($OPENSSL x509 -enddate -noout -in "$CERT_DIR/fullchain.pem" | cut -d= -f2)
+	ISSUER=$($OPENSSL x509 -issuer -noout -in "$CERT_DIR/fullchain.pem" | sed 's/.*CN *= *//')
 	ok "Cert exists — issuer: $ISSUER | expires: $EXPIRY"
 	if echo "$ISSUER" | grep -qi "minica\|self"; then
 		info "Cert is minica/self-signed — will replace with Let's Encrypt"
@@ -124,9 +124,9 @@ if [[ ! -f "$CERT_DIR/fullchain.pem" ]]; then
 	die "Cert still missing at $CERT_DIR/fullchain.pem after ACME run"
 fi
 
-EXPIRY=$(openssl x509 -enddate -noout -in "$CERT_DIR/fullchain.pem" | cut -d= -f2)
-ISSUER=$(openssl x509 -issuer -noout -in "$CERT_DIR/fullchain.pem" | sed 's/.*CN *= *//')
-SAN=$(openssl x509 -ext subjectAltName -noout -in "$CERT_DIR/fullchain.pem" 2>/dev/null |
+EXPIRY=$($OPENSSL x509 -enddate -noout -in "$CERT_DIR/fullchain.pem" | cut -d= -f2)
+ISSUER=$($OPENSSL x509 -issuer -noout -in "$CERT_DIR/fullchain.pem" | sed 's/.*CN *= *//')
+SAN=$($OPENSSL x509 -ext subjectAltName -noout -in "$CERT_DIR/fullchain.pem" 2>/dev/null |
 	grep -o 'DNS:[^,]*' | head -1 || echo "unknown")
 
 ok "Cert issued — issuer : $ISSUER"
