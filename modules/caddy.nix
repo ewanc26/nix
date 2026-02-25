@@ -34,7 +34,7 @@
       "github.com/caddy-dns/cloudflare@v0.2.3"
     ];
     # !! Replace lib.fakeHash with the sha256 from the first failed build.
-    hash = lib.fakeHash;
+    hash = "sha256-eDCHOuPm+o3mW7y8nSaTnabmB/msw6y2ZUoGu56uvK0=";
   };
 
   # ── Caddy service ─────────────────────────────────────────────────────────
