@@ -137,11 +137,24 @@ lib.mkIf hasTailnet {
         {
           name = "Prometheus";
           type = "prometheus";
+          uid = "prometheus";
           url = "http://127.0.0.1:${toString prometheusPort}";
           isDefault = true;
         }
       ];
+      dashboards.settings.providers = [
+        {
+          name = "default";
+          options.path = "/etc/grafana/dashboards";
+        }
+      ];
     };
+  };
+
+  # ── Dashboard provisioning
+  environment.etc."grafana/dashboards/server-overview.json" = {
+    source = ./grafana-dashboard.json;
+    mode = "0444";
   };
 
   # ── Caddy vhosts ─────────────────────────────────────────────────────────
