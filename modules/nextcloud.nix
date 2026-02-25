@@ -193,7 +193,9 @@ lib.mkIf cfg.services.nextcloud.enable {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
       tls {
-        dns cloudflare {$CF_API_TOKEN}
+        dns cloudflare {
+          api_token {$CF_API_TOKEN}
+        }
       }
       handle {
         reverse_proxy http://127.0.0.1:${ncPort} {

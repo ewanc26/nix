@@ -105,7 +105,9 @@ lib.mkIf cfg.services.immich.enable {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
       tls {
-        dns cloudflare {$CF_API_TOKEN}
+        dns cloudflare {
+          api_token {$CF_API_TOKEN}
+        }
       }
       reverse_proxy http://127.0.0.1:${toString im.port}
     '';
