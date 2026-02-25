@@ -751,6 +751,11 @@ in
           type = bool;
           default = true;
         };
+        hostname = mkOption {
+          type = str;
+          default = "cockpit.ewancroft.uk";
+          description = "Hostname for the Cockpit tailnet vhost — resolved to the server's Tailscale IP via split-dns.";
+        };
         port = mkOption {
           type = int;
           default = 9090;

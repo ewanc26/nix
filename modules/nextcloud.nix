@@ -86,8 +86,9 @@ lib.mkIf cfg.services.nextcloud.enable {
     };
 
     settings = {
-      # No overwriteprotocol — Nextcloud serves plain HTTP over the tailnet.
-      # WireGuard (Tailscale) handles encryption at the network layer.
+      # Explicitly serve plain HTTP — Tailscale/WireGuard handles encryption.
+      overwriteprotocol = "http";
+      "overwrite.cli.url" = "http://${nc.hostname}";
 
       default_phone_region = nc.defaultPhoneRegion;
 
@@ -133,6 +134,8 @@ lib.mkIf cfg.services.nextcloud.enable {
   };
 
   # Pin nginx to localhost — Caddy is the sole external entry point.
+  # forceSSL/addSSL disabled; HSTS header explicitly removed since we serve
+  # plain HTTP over the tailnet (WireGuard handles encryption).
   services.nginx.virtualHosts."${nc.hostname}" = {
     listen = [
       {
@@ -140,6 +143,9 @@ lib.mkIf cfg.services.nextcloud.enable {
         port = nc.port;
       }
     ];
+    extraConfig = ''
+      more_clear_headers Strict-Transport-Security;
+    '';
   };
 
   # Ensure the PHP upload tmp dir exists with correct ownership before Nextcloud
@@ -165,7 +171,7 @@ lib.mkIf cfg.services.nextcloud.enable {
   };
 
   # Tailscale direct route — bypasses Cloudflare (no upload size limit).
-  # Reachable at https://${nc.hostname} from any tailnet device once split-dns
+  # Reachable at http://${nc.hostname} from any tailnet device once split-dns
   # is configured (see modules/split-dns.nix).
   services.caddy.virtualHosts."http://${nc.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
     extraConfig = ''

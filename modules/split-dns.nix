@@ -31,11 +31,13 @@ let
   tsIP = cfg.server.tailscaleIP;
 
   # Build host entries for all enabled Tailnet-routed services.
+  # Only services accessed directly over the tailnet belong here — externally
+  # accessible services (Forgejo, PDS) must resolve via public DNS to Cloudflare.
   hostEntries = lib.concatStringsSep "\n        " (
     lib.optional cfg.services.immich.enable "${tsIP} ${cfg.immich.hostname}"
     ++ lib.optional cfg.services.nextcloud.enable "${tsIP} ${cfg.nextcloud.hostname}"
     ++ lib.optional cfg.services.jellyfin.enable "${tsIP} ${cfg.jellyfin.hostname}"
-    ++ lib.optional cfg.services.forgejo.enable "${tsIP} ${cfg.forgejo.hostname}"
+    ++ lib.optional cfg.server.cockpit.enable "${tsIP} ${cfg.server.cockpit.hostname}"
   );
 in
 lib.mkIf (tsIP != "") {
