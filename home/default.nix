@@ -297,6 +297,44 @@ in
     ''
   );
 
+  # ── Nextcloud client autostart (Linux desktop) ─────────────────────────────
+  # Writes an XDG autostart entry so nextcloud-client launches in the background
+  # on every login. On macOS the client is installed as a cask and manages its
+  # own login item, so this is Linux-only.
+  xdg.configFile."autostart/Nextcloud.desktop" = lib.mkIf (cfg.isDesktop && !isDarwin) {
+    text = ''
+      [Desktop Entry]
+      Categories=Network
+      Comment=Nextcloud desktop sync client
+      Exec=nextcloud --background
+      GenericName=File Synchronizer
+      Icon=Nextcloud
+      Name=Nextcloud
+      StartupNotify=false
+      Type=Application
+      X-GNOME-Autostart-enabled=true
+      X-KDE-autostart-after=panel
+    '';
+  };
+
+  # ── Nextcloud server pre-seed ─────────────────────────────────────────────
+  # If no Nextcloud account has been configured yet (nextcloud.cfg missing or
+  # has no [Accounts] section), write a minimal config seeding the server URL
+  # and username. The client will open its OAuth flow to finish authentication
+  # on first launch — credentials are stored in KWallet, never in this file.
+  home.activation.nextcloudPreSeed = lib.mkIf (cfg.isDesktop && !isDarwin) (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      nc_cfg="$HOME/.config/Nextcloud/nextcloud.cfg"
+      if [ ! -f "$nc_cfg" ] || ! grep -q "^\[Accounts\]" "$nc_cfg"; then
+        $DRY_RUN_CMD mkdir -p "$(dirname "$nc_cfg")"
+        echo "nextcloud: pre-seeding server URL in nextcloud.cfg"
+        if [ -z "$DRY_RUN_CMD" ]; then
+          printf '[Accounts]\n0\\authType=webflow\n0\\davUser=${cfg.user.username}\n0\\serverUrl=https://${cfg.nextcloud.hostname}\n0\\url=https://${cfg.nextcloud.hostname}\ncount=1\n\n[General]\n' > "$nc_cfg"
+        fi
+      fi
+    ''
+  );
+
   # Allow syncing files of any size (client default blocks files over ~500 MB).
   home.activation.nextcloudMaxSize = lib.mkIf cfg.isDesktop (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''

@@ -28,6 +28,9 @@ result-*
 !/secrets/nextcloud-smtp-pass
 !/secrets/forgejo-user-token
 
+# 2.1 will need to re-auth on 29 May, 2026 as per Tailscale maximum 90-day window.
+!/secrets/tailscale-auth-key
+
 # 3. Explicitly block sensitive patterns everywhere just in case
 *.txt
 *.key

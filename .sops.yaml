@@ -33,6 +33,15 @@ creation_rules:
           - *ewan
           - *server
 
+  # ── Desktop-only secrets ─────────────────────────────────────────────────────
+  # tailscale-auth-key: used by the NixOS tailscale module on the laptop to
+  # automatically authenticate on first boot without a manual `tailscale up`.
+  - path_regex: secrets/tailscale-auth-key$
+    key_groups:
+      - age:
+          - *ewan
+          - *laptop
+
   # ── Fallback: any other file under secrets/ ─────────────────────────────────
   - path_regex: secrets/.*
     key_groups:

@@ -36,5 +36,23 @@ in
 
   services.dbus.enable = true;
   services.udisks2.enable = true;
-  services.tailscale.enable = true;
+
+  # ── Tailscale ──────────────────────────────────────────────────────────────
+  # authKeyFile causes a one-shot systemd service (tailscale-autoconnect) to run
+  # `tailscale up --auth-key <key>` on boot if the node is not already authed.
+  # Generate a reusable (or ephemeral) key at https://login.tailscale.com/admin/settings/keys
+  # then encrypt it:  echo -n "tskey-auth-..." > secrets/tailscale-auth-key
+  #                   sops --encrypt --in-place secrets/tailscale-auth-key
+  sops.secrets."tailscale-auth-key" = {
+    sopsFile = ../secrets/tailscale-auth-key;
+    format = "binary";
+  };
+
+  services.tailscale = {
+    enable = true;
+    # Open the Tailscale UDP port so direct (non-relay) connections work.
+    openFirewall = true;
+    # Auto-authenticate on first boot using the pre-provisioned auth key.
+    authKeyFile = config.sops.secrets."tailscale-auth-key".path;
+  };
 }
