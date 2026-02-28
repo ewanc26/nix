@@ -608,30 +608,6 @@ in
     # ── Server infrastructure ─────────────────────────────────────────────────
     server = {
 
-      timemachine = {
-        enable = mkOption {
-          type = bool;
-          default = false;
-        };
-        shareName = mkOption {
-          type = str;
-          default = "TimeMachine";
-        };
-        path = mkOption {
-          type = str;
-          default = "/srv/timemachine";
-        };
-        maxSizeGB = mkOption {
-          type = int;
-          default = 0;
-          description = "Soft cap in GB reported to macOS. 0 = unlimited.";
-        };
-        validUsers = mkOption {
-          type = listStr;
-          default = [ ];
-        };
-      };
-
       sshd = {
         enable = mkOption {
           type = bool;

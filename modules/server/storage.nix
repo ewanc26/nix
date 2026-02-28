@@ -11,7 +11,6 @@
 #
 #  Subdirectory layout:
 #    /srv/forgejo          — Forgejo git forge data
-#    /srv/matrix-synapse   — Matrix Synapse homeserver data
 #    /srv/postgresql       — PostgreSQL database files
 #    /srv/bluesky-pds      — Bluesky ATProto PDS data
 #    /srv/www              — Static websites / reverse-proxied web roots
@@ -79,7 +78,6 @@ in
   systemd.tmpfiles.rules = [
     # Service data dirs — owned by their respective service users
     "d /srv/forgejo         0750 forgejo        forgejo        -"
-    "d /srv/matrix-synapse  0750 matrix-synapse  matrix-synapse -"
     "d /srv/postgresql      0750 postgres        postgres       -"
     "d /srv/bluesky-pds     0750 pds             pds            -"
 

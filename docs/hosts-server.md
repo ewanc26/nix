@@ -13,7 +13,6 @@ Internet → Cloudflare edge (TLS)
                ↓ HTTP (hostname-based routing)
            Caddy
                ├── pds.ewancroft.uk    → bluesky-pds     (127.0.0.1:3000)
-               ├── matrix.ewancroft.uk → matrix-synapse   (127.0.0.1:8008)
                └── git.ewancroft.uk   → forgejo           (127.0.0.1:3001)
 ```
 
@@ -134,7 +133,7 @@ keys:
   - &server age1...   # ← paste here
 
 creation_rules:
-  - path_regex: secrets/(pds\.env|matrix\.env|...)
+  - path_regex: secrets/(pds\.env|...)
     key_groups:
       - age:
           - *ewan
@@ -149,7 +148,6 @@ From your macmini or laptop (you need your personal age key `~/.config/age/keys.
 cd ~/.config/nix-config
 # Re-encrypt each server secret with the new key added
 sops updatekeys secrets/pds.env
-sops updatekeys secrets/matrix.env
 sops updatekeys secrets/cf-tunnel.json
 sops updatekeys secrets/cloudflare.token
 sops updatekeys secrets/forgejo.env
