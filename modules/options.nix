@@ -805,6 +805,8 @@ in
             "libzen"
             # MAS helper — required for masApps below
             "mas"
+            # SDL2 — required by Mesen (NES/SNES emulator) and other SDL apps
+            "sdl2"
           ];
         };
         casks = mkOption {
