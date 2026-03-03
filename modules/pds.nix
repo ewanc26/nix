@@ -57,7 +57,7 @@ let
             cp ${./pds-landing/assets/thumb.svg} $out/assets/thumb.svg
 
             # favicon (fml)
-            cp ${./pds-landing/assets/icon/favicon.ico} $out/favicon.ico
+            cp ${./pds-landing/assets/icon/ms-icon-310x310.png} $out/favicon.ico # higher resolution is better
             cp ${./pds-landing/assets/icon/ms-icon-310x310.png} $out/ms-icon-310x310.png
             cp ${./pds-landing/assets/icon/ms-icon-150x150.png} $out/ms-icon-150x150.png
             cp ${./pds-landing/assets/icon/ms-icon-144x144.png} $out/ms-icon-144x144.png
