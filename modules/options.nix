@@ -214,6 +214,7 @@ in
           "inkscape"
           "parsec-bin"
           "prismlauncher"
+          "bitwarden-desktop"
         ];
       };
 
@@ -884,6 +885,7 @@ in
             "microsoft-teams"
             "microsoft-word"
             "nextcloud-vfs"
+            "bitwarden"
           ];
         };
         masApps = mkOption {
