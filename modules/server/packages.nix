@@ -5,18 +5,7 @@
 }:
 let
   cfg = config.myConfig;
-
-  resolvePackages =
-    names:
-    builtins.filter (x: x != null) (
-      map (
-        name:
-        if pkgs ? ${name} then
-          pkgs.${name}
-        else
-          builtins.trace "WARNING: package '${name}' not found in nixpkgs, skipping" null
-      ) names
-    );
+  resolvePackages = (import ../../lib).resolveFrom pkgs;
 in
 {
   environment.systemPackages =

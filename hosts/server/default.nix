@@ -9,15 +9,15 @@ in
   imports = [
     ./minimal-hardware.nix
     ../../modules/users.nix
-    ../../modules/caddy.nix
-    ../../modules/split-dns.nix
-    ../../modules/cloudflare-tunnel.nix
-    ../../modules/pds.nix
-    ../../modules/forgejo.nix
-    ../../modules/nextcloud.nix
-    ../../modules/immich.nix
-    ../../modules/jellyfin.nix
-    ../../modules/grafana.nix
+    ../../modules/server/caddy.nix
+    ../../modules/server/split-dns.nix
+    ../../modules/server/cloudflare-tunnel.nix
+    ../../modules/server/pds.nix
+    ../../modules/server/forgejo.nix
+    ../../modules/server/nextcloud.nix
+    ../../modules/server/immich.nix
+    ../../modules/server/jellyfin.nix
+    ../../modules/server/grafana.nix
     ../../profiles/server-hardened.nix
   ];
 
@@ -29,10 +29,12 @@ in
   myConfig.services.pds.enable = true;
   myConfig.services.cloudflare.enable = true;
 
-  # Ignore laptop lid — treat as headless, never suspend
-  services.logind.settings.Login.HandleLidSwitch = "ignore";
-  services.logind.settings.Login.HandleLidSwitchExternalPower = "ignore";
-  services.logind.settings.Login.HandleLidSwitchDocked = "ignore";
+  # Ignore laptop lid — treat as headless, never suspend.
+  services.logind.settings.Login = {
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleLidSwitchDocked = "ignore";
+  };
   systemd.targets.sleep.enable = false;
   systemd.targets.suspend.enable = false;
   systemd.targets.hibernate.enable = false;

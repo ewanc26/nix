@@ -6,18 +6,7 @@
 }:
 let
   cfg = config.myConfig;
-
-  resolvePackages =
-    names:
-    builtins.filter (x: x != null) (
-      map (
-        name:
-        if pkgs ? ${name} then
-          pkgs.${name}
-        else
-          builtins.trace "WARNING: package '${name}' not found in nixpkgs, skipping" null
-      ) names
-    );
+  resolvePackages = (import ../../lib).resolveFrom pkgs;
 
   # Packages from the shared development list that are too large or that are
   # better managed via Homebrew on a space-constrained 256 GB Mac.
@@ -32,9 +21,9 @@ let
     "openjdk21"
   ];
 
-  developmentForDarwin = lib.filter
-    (name: !(builtins.elem name darwinDevExclude))
-    cfg.packages.development;
+  developmentForDarwin = lib.filter (
+    name: !(builtins.elem name darwinDevExclude)
+  ) cfg.packages.development;
 in
 {
   environment.systemPackages =

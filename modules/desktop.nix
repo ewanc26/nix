@@ -7,18 +7,7 @@
 }:
 let
   cfg = config.myConfig;
-
-  resolveKde =
-    names:
-    builtins.filter (x: x != null) (
-      map (
-        name:
-        if pkgs.kdePackages ? ${name} then
-          pkgs.kdePackages.${name}
-        else
-          builtins.trace "WARNING: kdePackages.${name} not found, skipping" null
-      ) names
-    );
+  resolveKde = (import ../lib).resolveFrom pkgs.kdePackages;
 in
 {
   # X11/Wayland base — required even in Wayland sessions.

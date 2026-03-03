@@ -59,7 +59,7 @@ lib.mkIf cfg.services.cloudflare.enable {
   # JSON credentials file created by `cloudflared tunnel create server`.
   # Encrypt with: sops --encrypt --age <age-pubkey> cf-tunnel.json > secrets/cf-tunnel.json
   sops.secrets."cf-tunnel.json" = {
-    sopsFile = ../secrets/cf-tunnel.json;
+    sopsFile = ../../secrets/cf-tunnel.json;
     format = "binary";
     owner = "cloudflared";
     group = "cloudflared";
@@ -69,7 +69,7 @@ lib.mkIf cfg.services.cloudflare.enable {
   };
 
   sops.secrets."cloudflare.token" = {
-    sopsFile = ../secrets/cloudflare.token;
+    sopsFile = ../../secrets/cloudflare.token;
     format = "binary";
     owner = "root";
   };

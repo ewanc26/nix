@@ -54,7 +54,7 @@ in
   # containing the raw token value only (no KEY= prefix, no trailing newline).
   # The token needs Zone.DNS edit permission for ewancroft.uk.
   sops.secrets."cloudflare-acme.env" = lib.mkIf hasTailnet {
-    sopsFile = ../secrets/cloudflare-acme.env;
+    sopsFile = ../../secrets/cloudflare-acme.env;
     format = "binary";
     owner = "acme";
     mode = "0440";

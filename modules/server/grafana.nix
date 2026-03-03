@@ -95,7 +95,7 @@ lib.mkIf hasTailnet {
   # then: sops secrets/nextcloud-metrics-token (binary, raw token).
   # Only activated when myConfig.server.grafana.nextcloudMetrics = true.
   sops.secrets."nextcloud-metrics-token" = lib.mkIf (cfg.services.nextcloud.enable && cfg.server.grafana.nextcloudMetrics) {
-    sopsFile = ../secrets/nextcloud-metrics-token;
+    sopsFile = ../../secrets/nextcloud-metrics-token;
     format = "binary";
     owner = "nextcloud-exporter";
     mode = "0440";

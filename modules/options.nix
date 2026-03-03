@@ -19,7 +19,9 @@ let
   int = types.int;
   bool = types.bool;
   listStr = types.listOf types.str;
+  listInt = types.listOf types.int;
   nullStr = types.nullOr types.str;
+  attrsInt = types.attrsOf types.int;
 
 in
 {
@@ -676,11 +678,11 @@ in
           default = true;
         };
         allowedTCPPorts = mkOption {
-          type = types.listOf int;
+          type = listInt;
           default = [ 22 ];
         };
         allowedUDPPorts = mkOption {
-          type = types.listOf int;
+          type = listInt;
           default = [ ];
         };
       };
@@ -856,7 +858,7 @@ in
           ];
         };
         masApps = mkOption {
-          type = types.attrsOf int;
+          type = attrsInt;
           default = {
             "Amphetamine" = 937984704;
             "OneDrive" = 823766827;

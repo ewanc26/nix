@@ -29,7 +29,7 @@ in
 lib.mkIf cfg.services.forgejo.enable {
 
   sops.secrets."forgejo.env" = {
-    sopsFile = ../secrets/forgejo.env;
+    sopsFile = ../../secrets/forgejo.env;
     format = "dotenv";
     owner = "forgejo";
     group = "forgejo";

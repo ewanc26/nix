@@ -64,6 +64,39 @@
         sops-nix.homeManagerModules.sops
       ];
 
+      # Nixpkgs settings applied identically on every host.
+      sharedNixpkgsConfig = {
+        nixpkgs.config.allowUnfree = true;
+        nixpkgs.overlays = [ nix-vscode-extensions.overlays.default ];
+      };
+
+      # Build a home-manager configuration block, parameterised per platform.
+      # isDarwin   — sets extraSpecialArgs.isDarwin and controls which extra
+      #              HM modules are loaded (plasma-manager vs mac-app-util).
+      # extraModules — platform-specific HM modules appended to sharedHMModules.
+      mkHMConfig =
+        {
+          isDarwin,
+          extraModules ? [ ],
+        }:
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.extraSpecialArgs = { inherit isDarwin; };
+          home-manager.sharedModules = sharedHMModules ++ extraModules;
+          home-manager.users.ewan = ./home/default.nix;
+          home-manager.backupFileExtension = "hm-bak";
+          home-manager.overwriteBackup = true;
+        };
+
+      # Instantiate nixpkgs-unstable for a given system with allowUnfree = true.
+      mkUnstablePkgs =
+        system:
+        import nixpkgs-unstable {
+          inherit system;
+          config.allowUnfree = true;
+        };
+
       # Modules common to every NixOS host.
       nixosModules = [
         ./modules/options.nix
@@ -71,23 +104,11 @@
         sops-nix.nixosModules.sops
         nix-topology.nixosModules.default
         home-manager.nixosModules.home-manager
-        {
-          nixpkgs.config.allowUnfree = true;
-          nixpkgs.overlays = [ nix-vscode-extensions.overlays.default ];
-        }
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.extraSpecialArgs = {
-            isDarwin = false;
-          };
-          home-manager.sharedModules = sharedHMModules ++ [
-            plasma-manager.homeModules.plasma-manager
-          ];
-          home-manager.users.ewan = ./home/default.nix;
-          home-manager.backupFileExtension = "hm-bak";
-          home-manager.overwriteBackup = true;
-        }
+        sharedNixpkgsConfig
+        (mkHMConfig {
+          isDarwin = false;
+          extraModules = [ plasma-manager.homeModules.plasma-manager ];
+        })
       ];
 
       # Modules common to every nix-darwin host.
@@ -95,23 +116,11 @@
         ./modules/options.nix
         mac-app-util.darwinModules.default
         home-manager.darwinModules.home-manager
-        {
-          nixpkgs.config.allowUnfree = true;
-          nixpkgs.overlays = [ nix-vscode-extensions.overlays.default ];
-        }
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.extraSpecialArgs = {
-            isDarwin = true;
-          };
-          home-manager.sharedModules = sharedHMModules ++ [
-            mac-app-util.homeManagerModules.default
-          ];
-          home-manager.users.ewan = ./home/default.nix;
-          home-manager.backupFileExtension = "hm-bak";
-          home-manager.overwriteBackup = true;
-        }
+        sharedNixpkgsConfig
+        (mkHMConfig {
+          isDarwin = true;
+          extraModules = [ mac-app-util.homeManagerModules.default ];
+        })
       ];
 
       forAllSystems =
@@ -147,10 +156,7 @@
         server = nixpkgs.lib.nixosSystem {
           specialArgs = {
             inherit self;
-            pkgs-unstable = import nixpkgs-unstable {
-              system = "x86_64-linux";
-              config.allowUnfree = true;
-            };
+            pkgs-unstable = mkUnstablePkgs "x86_64-linux";
           };
           modules = nixosModules ++ [
             ./hosts/server
@@ -161,10 +167,7 @@
         server-arm = nixpkgs.lib.nixosSystem {
           specialArgs = {
             inherit self;
-            pkgs-unstable = import nixpkgs-unstable {
-              system = "aarch64-linux";
-              config.allowUnfree = true;
-            };
+            pkgs-unstable = mkUnstablePkgs "aarch64-linux";
           };
           modules = nixosModules ++ [
             ./hosts/server
