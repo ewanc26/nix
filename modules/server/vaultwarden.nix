@@ -60,10 +60,15 @@ lib.mkIf cfg.services.vaultwarden.enable {
   services.vaultwarden = {
     enable = true;
 
+    # Store data on /srv so it survives OS reinstalls.
+    # Setting dataDir here (not DATA_FOLDER in config) ensures the built-in
+    # backup script also looks in the right place.
+    dataDir = "/srv/vaultwarden";
+
     # Sops-managed env file holds ADMIN_TOKEN and SMTP_PASSWORD.
     environmentFile = config.sops.secrets."vaultwarden.env".path;
 
-    # Built-in backup — runs daily, keeps SQLite snapshots in backupDir.
+    # Built-in backup — runs daily, copies SQLite DB to backupDir.
     backupDir = "/srv/vaultwarden/backup";
 
     config = {
@@ -73,9 +78,6 @@ lib.mkIf cfg.services.vaultwarden.enable {
       ROCKET_ADDRESS = "127.0.0.1";
       ROCKET_PORT = vw.port;
       ROCKET_LOG = "critical";
-
-      # Store data on /srv so it survives OS reinstalls.
-      DATA_FOLDER = "/srv/vaultwarden";
 
       # No public registrations — admin-created accounts only.
       SIGNUPS_ALLOWED = false;
