@@ -29,8 +29,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    catppuccin.url = "github:catppuccin/nix";
-
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -52,7 +50,6 @@
       sops-nix,
       nix-topology,
       nix-vscode-extensions,
-      catppuccin,
       mac-app-util,
       plasma-manager,
       ...
@@ -60,7 +57,6 @@
     let
       # Shared home-manager modules used by every host.
       sharedHMModules = [
-        catppuccin.homeModules.catppuccin
         sops-nix.homeManagerModules.sops
       ];
 

@@ -142,6 +142,7 @@ in
           "python313"
           "bun"
           "pnpm"
+          "yarn"
           "rustup"
           "dotnet-sdk"
           "gopls"
@@ -300,7 +301,7 @@ in
 
       theme = mkOption {
         type = str;
-        default = "Catppuccin-Mocha-Standard-Green-Dark";
+        default = "adw-gtk3-dark";
         description = "GTK theme name.";
       };
 
@@ -312,7 +313,7 @@ in
       plasma = {
         colorScheme = mkOption {
           type = str;
-          default = "CatppuccinMochaGreen";
+          default = "BreezeDark";
         };
 
         desktopTheme = mkOption {
@@ -372,11 +373,11 @@ in
       };
       colorTheme = mkOption {
         type = str;
-        default = "Catppuccin Mocha";
+        default = "Default Dark Modern";
       };
       iconTheme = mkOption {
         type = str;
-        default = "catppuccin-vsc-icons";
+        default = "vs-seti";
       };
       fontSize = mkOption {
         type = int;

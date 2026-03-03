@@ -356,10 +356,7 @@ in
     enable = true;
     theme = {
       name = cfg.desktop.theme;
-      package = pkgs.catppuccin-gtk.override {
-        accents = [ "green" ];
-        variant = "mocha";
-      };
+      package = pkgs.adw-gtk3;
     };
     iconTheme.name = cfg.desktop.iconTheme;
   };
@@ -368,13 +365,6 @@ in
     enable = true;
     platformTheme.name = "kvantum";
     style.name = "kvantum";
-  };
-
-  catppuccin = lib.mkIf (!isDarwin && cfg.isDesktop) {
-    enable = true;
-    flavor = "mocha";
-    accent = "green";
-    starship.enable = false;
   };
 
   # ── macOS: wallpaper via desktoppr ───────────────────────────────────────

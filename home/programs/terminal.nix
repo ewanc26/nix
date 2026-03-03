@@ -10,10 +10,10 @@ in
 {
   programs.konsole = {
     enable = true;
-    defaultProfile = "Catppuccin Mocha";
-    profiles."Catppuccin Mocha" = {
-      name = "Catppuccin Mocha";
-      colorScheme = "Catppuccin Mocha";
+    defaultProfile = "Default";
+    profiles."Default" = {
+      name = "Default";
+      colorScheme = "Breeze";
       font = {
         name = d.monoFontFamily;
         size = d.monoFontSize;

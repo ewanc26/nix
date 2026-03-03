@@ -25,9 +25,8 @@ in
       font-size = d.monoFontSize;
 
       # ── Theme ───────────────────────────────────────────────────────────
-      # Inline Catppuccin Mocha colours — no external theme file needed
-      background = "1e1e2e"; # base
-      foreground = "cdd6f4"; # text
+      background = "1e1e2e";
+      foreground = "cdd6f4";
 
       # ── Window ──────────────────────────────────────────────────────────
       window-decoration = if isDarwin then "auto" else "none";
