@@ -12,39 +12,35 @@
 #
 #  Storage:
 #    SQLite database and attachments live at /srv/vaultwarden (on the /srv
-#    volume). Automatic daily backups go to /srv/vaultwarden/backup.
+#    volume). Daily SQLite backups go to /srv/vaultwarden/backup via a
+#    custom systemd timer (the built-in backupDir option is not used because
+#    it hardcodes /var/lib/vaultwarden as source and ignores DATA_FOLDER).
 #
 #  Secrets (sops-encrypted, age backend):
 #    secrets/vaultwarden.env — KEY=value env file, must contain:
 #      ADMIN_TOKEN   # argon2 hash — generate with:
-#                    #   vaultwarden hash --preset owasp
-#                    # or a plain token (less secure):
-#                    #   openssl rand -base64 48
+#                    #   nix run nixpkgs#vaultwarden -- hash --preset owasp
 #      SMTP_PASSWORD # Resend API key
-#
-#    Encrypt: sops --encrypt --age <host-age-pubkey> secrets/vaultwarden.env
-#    (Use .sops.yaml at the repo root to configure recipients automatically.)
-#
-#  First-run:
-#    1. Navigate to https://vault.ewancroft.uk/admin and enter your ADMIN_TOKEN.
-#    2. Disable signups after creating your account (already set below).
 ##############################################################################
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
   cfg = config.myConfig;
   vw = cfg.vaultwarden;
   vwPort = toString vw.port;
+  dataDir = "/srv/vaultwarden";
+  backupDir = "/srv/vaultwarden/backup";
 in
 lib.mkIf cfg.services.vaultwarden.enable {
 
   # ── Storage ───────────────────────────────────────────────────────────────
   systemd.tmpfiles.rules = [
-    "d /srv/vaultwarden        0700 vaultwarden vaultwarden -"
-    "d /srv/vaultwarden/backup 0700 vaultwarden vaultwarden -"
+    "d ${dataDir}        0700 vaultwarden vaultwarden -"
+    "d ${backupDir}      0700 vaultwarden vaultwarden -"
   ];
 
   # ── Secrets ───────────────────────────────────────────────────────────────
@@ -60,29 +56,24 @@ lib.mkIf cfg.services.vaultwarden.enable {
   services.vaultwarden = {
     enable = true;
 
-    # Store data on /srv so it survives OS reinstalls.
-    # Setting dataDir here (not DATA_FOLDER in config) ensures the built-in
-    # backup script also looks in the right place.
-    dataDir = "/srv/vaultwarden";
-
     # Sops-managed env file holds ADMIN_TOKEN and SMTP_PASSWORD.
     environmentFile = config.sops.secrets."vaultwarden.env".path;
 
-    # Built-in backup — runs daily, copies SQLite DB to backupDir.
-    backupDir = "/srv/vaultwarden/backup";
+    # backupDir is intentionally omitted: the built-in backup script
+    # hardcodes /var/lib/vaultwarden as source and ignores DATA_FOLDER.
+    # Our own timer below handles backups correctly.
 
     config = {
       DOMAIN = "https://${vw.hostname}";
 
-      # Bind to localhost only — Caddy is the sole entry point.
       ROCKET_ADDRESS = "127.0.0.1";
       ROCKET_PORT = vw.port;
       ROCKET_LOG = "critical";
 
-      # No public registrations — admin-created accounts only.
+      DATA_FOLDER = dataDir;
+
       SIGNUPS_ALLOWED = false;
 
-      # SMTP via Resend.
       SMTP_HOST = "smtp.resend.com";
       SMTP_PORT = 465;
       SMTP_SECURITY = "force_tls";
@@ -90,7 +81,6 @@ lib.mkIf cfg.services.vaultwarden.enable {
       SMTP_FROM = vw.smtpFrom;
       SMTP_FROM_NAME = vw.smtpFromName;
 
-      # Don't leak password hints.
       SHOW_PASSWORD_HINT = false;
 
       LOG_LEVEL = "warn";
@@ -98,16 +88,16 @@ lib.mkIf cfg.services.vaultwarden.enable {
     };
   };
 
-  # Wait for /srv before starting — the data directory must exist first.
+  # ── Systemd service tweaks ────────────────────────────────────────────────
   systemd.services.vaultwarden = {
     after = [ "srv.mount" ];
     wants = [ "srv.mount" ];
     serviceConfig = {
       Restart = lib.mkForce "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
-      # The NixOS vaultwarden module applies ReadOnlyPaths hardening by default.
-      # Explicitly grant write access to the data and backup directories on /srv.
-      ReadWritePaths = [ "/srv/vaultwarden" ];
+      # The NixOS module applies ReadOnlyPaths hardening — explicitly allow
+      # writes to /srv/vaultwarden so the RSA key and DB can be created.
+      ReadWritePaths = [ dataDir ];
     };
     unitConfig = {
       StartLimitIntervalSec = cfg.server.servicePolicy.startLimitIntervalSec;
@@ -115,9 +105,35 @@ lib.mkIf cfg.services.vaultwarden.enable {
     };
   };
 
+  # ── Backup (custom — replaces broken built-in) ────────────────────────────
+  # sqlite3 .backup produces a consistent online snapshot of the live DB.
+  systemd.services.vaultwarden-backup = {
+    description = "Vaultwarden SQLite backup";
+    after = [ "vaultwarden.service" ];
+    requires = [ "vaultwarden.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "vaultwarden";
+      ExecStart = "${pkgs.writeShellScript "vaultwarden-backup" ''
+        set -euo pipefail
+        stamp=$(date +%Y%m%d-%H%M%S)
+        dest="${backupDir}/db-$stamp.sqlite3"
+        ${pkgs.sqlite}/bin/sqlite3 "${dataDir}/db.sqlite3" ".backup '$dest'"
+        # Keep only the 14 most recent backups
+        ls -t ${backupDir}/db-*.sqlite3 | tail -n +15 | xargs -r rm --
+      ''}";
+    };
+  };
+
+  systemd.timers.vaultwarden-backup = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+    };
+  };
+
   # ── Caddy reverse proxy ───────────────────────────────────────────────────
-  # Tailnet-only — no Cloudflare Tunnel. Caddy terminates TLS with the
-  # Let's Encrypt wildcard cert (*.ewancroft.uk) obtained via DNS-01.
   services.caddy.virtualHosts."http://${vw.hostname}" = {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
