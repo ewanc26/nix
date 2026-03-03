@@ -423,6 +423,10 @@ in
         type = bool;
         default = false;
       };
+      vaultwarden.enable = mkOption {
+        type = bool;
+        default = false;
+      };
     };
 
     # ── Nextcloud ─────────────────────────────────────────────────────────────
@@ -596,6 +600,30 @@ in
           "https://europe.firehose.network"
           "https://asia.firehose.network"
         ];
+      };
+    };
+
+    # ── Vaultwarden ──────────────────────────────────────────────────────────
+    vaultwarden = {
+      hostname = mkOption {
+        type = str;
+        default = "vault.ewancroft.uk";
+        description = "Hostname for Vaultwarden (tailnet only).";
+      };
+      port = mkOption {
+        type = int;
+        default = 8222;
+        description = "Port Vaultwarden's Rocket HTTP server listens on (localhost).";
+      };
+      smtpFrom = mkOption {
+        type = str;
+        default = "vaultwarden@server.ewancroft.uk";
+        description = "From address used for Vaultwarden email notifications.";
+      };
+      smtpFromName = mkOption {
+        type = str;
+        default = "Vaultwarden";
+        description = "Display name used in Vaultwarden notification emails.";
       };
     };
 

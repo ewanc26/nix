@@ -37,6 +37,7 @@ let
     lib.optional cfg.services.immich.enable "${tsIP} ${cfg.immich.hostname}"
     ++ lib.optional cfg.services.nextcloud.enable "${tsIP} ${cfg.nextcloud.hostname}"
     ++ lib.optional cfg.services.jellyfin.enable "${tsIP} ${cfg.jellyfin.hostname}"
+    ++ lib.optional cfg.services.vaultwarden.enable "${tsIP} ${cfg.vaultwarden.hostname}"
     ++ [ "${tsIP} ${cfg.server.grafana.hostname}" ]
   );
 in
