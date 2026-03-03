@@ -103,6 +103,9 @@ lib.mkIf cfg.services.vaultwarden.enable {
     serviceConfig = {
       Restart = lib.mkForce "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
+      # The NixOS vaultwarden module applies ReadOnlyPaths hardening by default.
+      # Explicitly grant write access to the data and backup directories on /srv.
+      ReadWritePaths = [ "/srv/vaultwarden" ];
     };
     unitConfig = {
       StartLimitIntervalSec = cfg.server.servicePolicy.startLimitIntervalSec;
