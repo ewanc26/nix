@@ -154,7 +154,7 @@ lib.mkIf cfg.services.pds.enable {
       handle /index.html {
         redir / permanent
       }
-      @landing path / /style.css /utils.js /status.js /script.js /assets/* /favicon.ico
+      @landing path / /style.css /utils.js /status.js /script.js /assets/* /favicon.ico /favicon-*.png /apple-icon-*.png /android-icon-*.png /ms-icon-*.png /manifest.json /browserconfig.xml
       handle @landing {
         root * ${landingPage}
         file_server
