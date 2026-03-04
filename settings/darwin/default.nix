@@ -36,26 +36,26 @@
     # Apps managed by home-manager live in ~/Applications/Home Manager Apps/.
     persistent-apps = [
       # ── Communication ─────────────────────────────────────────────
-      "/System/Applications/Mail.app"
-      "/Applications/WhatsApp.app"
-      "/System/Applications/Messages.app"
-      "/System/Applications/FaceTime.app"
-      "/System/Applications/Phone.app"
-      "/System/Applications/iPhone Mirroring.app"
-      "/Applications/Signal.app"
-      "/Applications/Element.app"
-      "/Applications/Discord.app"
+      { folder = "/System/Applications/Mail.app"; }
+      { folder = "/Applications/WhatsApp.app"; }
+      { folder = "/System/Applications/Messages.app"; }
+      { folder = "/System/Applications/FaceTime.app"; }
+      { folder = "/System/Applications/Phone.app"; }
+      { folder = "/System/Applications/iPhone Mirroring.app"; }
+      { folder = "/Applications/Signal.app"; }
+      { folder = "/Applications/Element.app"; }
+      { folder = "/Applications/Discord.app"; }
       # ── Productivity ───────────────────────────────────────────────
-      "/System/Applications/Calendar.app"
-      "/System/Applications/Reminders.app"
-      "/Applications/Obsidian.app"
-      "/Users/ewan/Applications/Home Manager Apps/Visual Studio Code.app"
-      "/Applications/Claude.app"
+      { folder = "/System/Applications/Calendar.app"; }
+      { folder = "/System/Applications/Reminders.app"; }
+      { folder = "/Applications/Obsidian.app"; }
+      { folder = "/Users/ewan/Applications/Home Manager Apps/Visual Studio Code.app"; }
+      { folder = "/Applications/Claude.app"; }
       # ── Media ─────────────────────────────────────────────
-      "/Applications/Spotify.app"
-      "/Applications/Firefox.app"
+      { folder = "/Applications/Spotify.app"; }
+      { folder = "/Applications/Firefox.app"; }
       # ── System ─────────────────────────────────────────────────────
-      "/Users/ewan/Applications/Home Manager Apps/Ghostty.app"
+      { folder = "/Users/ewan/Applications/Home Manager Apps/Ghostty.app"; }
     ];
   };
 
