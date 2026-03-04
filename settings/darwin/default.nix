@@ -49,7 +49,7 @@
       "/System/Applications/Calendar.app"
       "/System/Applications/Reminders.app"
       "/Applications/Obsidian.app"
-      "/Applications/Visual Studio Code.app"
+      "/Users/ewan/Applications/Home Manager Apps/Visual Studio Code.app"
       "/Applications/Claude.app"
       # ── Media ─────────────────────────────────────────────
       "/Applications/Spotify.app"

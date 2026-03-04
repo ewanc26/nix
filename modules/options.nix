@@ -852,7 +852,6 @@ in
             "obsidian"
             "netnewswire"
             # Development
-            "visual-studio-code"
             "github"
             # Media
             "spotify"
