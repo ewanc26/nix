@@ -34,5 +34,10 @@ in
       ln -sf "$REPO/hooks/pre-commit" "$REPO/.git/hooks/pre-commit"
       chmod +x "$REPO/hooks/pre-commit"
     fi
+
+    # Reload the Dock after activation so any Homebrew-installed apps
+    # (e.g. Element, Spotify) that were absent when the dock plist was
+    # written are picked up cleanly.
+    killall Dock 2>/dev/null || true
   '';
 }

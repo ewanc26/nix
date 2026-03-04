@@ -37,7 +37,9 @@ in
   ]
   ++ lib.optionals (cfg.isDesktop && !isDarwin) [
     ./programs/kde.nix # KDE Plasma settings — Linux desktop only
-    ./programs/vscode.nix # VSCode — desktop only
+  ]
+  ++ lib.optionals cfg.isDesktop [
+    ./programs/vscode.nix # VSCode — desktop (mac-app-util handles macOS app bundle)
   ]
   ++ lib.optionals (cfg.isDesktop) [
     ./programs/starship.nix
