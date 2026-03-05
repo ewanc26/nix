@@ -260,3 +260,7 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 - [`docs/settings.md`](docs/settings.md) — settings overview
 - [`docs/settings-structure.md`](docs/settings-structure.md) — why the config is modular
 - [`docs/secrets.md`](docs/secrets.md) — secrets management
+
+## ☕ Support
+
+If you found this useful, consider [buying me a ko-fi](https://ko-fi.com/ewancroft)!
