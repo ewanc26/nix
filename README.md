@@ -204,7 +204,6 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 | [sops-nix][sops-nix] | latest |
 | [nix-topology][nix-topology] | latest |
 | [plasma-manager][plasma-manager] | latest |
-| [catppuccin][catppuccin] | latest |
 | [nix-vscode-extensions][nix-vscode-extensions] | latest |
 | [mac-app-util][mac-app-util] | latest |
 
@@ -214,7 +213,6 @@ See [docs/hosts.md](docs/hosts.md). Quick summary:
 [sops-nix]: https://github.com/Mic92/sops-nix
 [nix-topology]: https://github.com/oddlama/nix-topology
 [plasma-manager]: https://github.com/nix-community/plasma-manager
-[catppuccin]: https://github.com/catppuccin/nix
 [nix-vscode-extensions]: https://github.com/nix-community/nix-vscode-extensions
 [mac-app-util]: https://github.com/hraban/mac-app-util
 
