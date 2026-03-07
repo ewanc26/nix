@@ -33,6 +33,9 @@ result-*
 
 # 3. Explicitly block sensitive patterns everywhere just in case
 *.txt
+# Nextcloud meta files are plain text with no secrets — safe to track
+!/modules/server/nextcloud-meta/privacy.txt
+!/modules/server/nextcloud-meta/legal.txt
 *.key
 *.pem
 *_rsa

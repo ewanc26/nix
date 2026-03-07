@@ -30,6 +30,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -37,6 +38,16 @@ let
   nc = cfg.nextcloud;
   ncPort = toString nc.port;
   caddyPort = toString nc.caddyPort;
+  metaFiles = pkgs.linkFarm "nextcloud-meta" [
+    {
+      name = "privacy.txt";
+      path = ./nextcloud-meta/privacy.txt;
+    }
+    {
+      name = "legal.txt";
+      path = ./nextcloud-meta/legal.txt;
+    }
+  ];
 in
 lib.mkIf cfg.services.nextcloud.enable {
 
@@ -183,6 +194,11 @@ lib.mkIf cfg.services.nextcloud.enable {
     extraConfig = ''
       bind ${cfg.server.tailscaleIP}
       tls ${cfg.server.acmeCertDir}/fullchain.pem ${cfg.server.acmeCertDir}/key.pem
+      handle /.meta/* {
+        uri strip_prefix /.meta
+        root * ${metaFiles}
+        file_server
+      }
       handle {
         reverse_proxy http://127.0.0.1:${ncPort} {
           transport http {

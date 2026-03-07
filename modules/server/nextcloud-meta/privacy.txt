@@ -1,0 +1,81 @@
+PRIVACY NOTICE
+==============
+
+Last updated: March 2025
+
+Who runs this
+-------------
+This Nextcloud instance is operated by Ewan Croft, based in the United Kingdom.
+Contact: contact@ewancroft.uk
+
+What this is
+------------
+This is a private, non-commercial Nextcloud instance, used primarily by me
+and occasionally by close family. Access is restricted to a private Tailscale
+network (tailnet). It is not accessible from the public internet.
+
+What data is collected
+----------------------
+Only what is put there: files, calendars, contacts, and anything else
+explicitly uploaded or created. No analytics, no telemetry, no third-party
+tracking.
+
+How that data is used
+---------------------
+Solely for the personal purposes of whoever stored it. It is not processed
+for advertising, profiling, or anything commercial.
+
+To be direct about it: I have no interest in what anyone else stores here.
+Other users' files are their business. Privacy between users is the default
+behaviour, not a feature I had to consciously implement. The only circumstance
+in which I would access another user's data is for maintenance or migration
+purposes — and even then, only as much as the task actually requires.
+
+With that said: I'd recommend keeping original copies of anything important
+elsewhere. To quote myself: "it's running on a fucking laptop over wifi." I do
+my best to keep it reliable, but it shouldn't be anyone's only copy of
+something they care about. iCloud is a reasonable secondary option if you're
+already in the Apple ecosystem.
+
+Sharing
+-------
+Nothing stored here is sold, licensed, or disclosed to any third party. Data
+isn't shared with external services unless explicitly configured by the person
+who owns that data (e.g. an external calendar sync).
+
+Where data is stored
+--------------------
+On self-hosted hardware located in the United Kingdom. Nothing goes to
+third-party cloud storage.
+
+How long data is kept
+---------------------
+For as long as the instance is running, or until it is deleted. Files and data
+can be removed at any time through the Nextcloud interface.
+
+Legal basis
+-----------
+This instance is operated exclusively for personal and household purposes by a
+private individual. As such, it falls under the household exemption in Article
+2(2)(c) of the retained Regulation (EU) 2016/679 (UK GDPR, as incorporated
+into domestic law by the European Union (Withdrawal) Act 2018), which excludes
+from the regulation any processing carried out by a natural person in the course
+of a purely personal or household activity. In plain terms: this is a family
+file server, not a data controller.
+
+The Data Protection Act 2018 (c.12) applies insofar as it governs processing
+outside that exemption.
+
+That said, I voluntarily apply the principles of lawfulness, fairness,
+transparency, and data minimisation set out in Article 5 of the UK GDPR — not
+because I'm required to, but because it's the right approach.
+
+Your rights
+-----------
+Anyone whose personal data is held here has the right to access, correct, or
+erase it. To exercise any of these rights, contact me at contact@ewancroft.uk.
+
+Changes
+-------
+This notice may be updated from time to time. The current version is always
+available at https://cloud.ewancroft.uk/.meta/privacy.txt
