@@ -1,16 +1,22 @@
 {
   lib,
   stdenv,
-  path ? ./.,
 }:
 
+let
+  # Explicitly reference the landing page files
+  sourceFiles = lib.sourceByRegex ./. [
+    "^(index\.html|script\.js|status\.js|utils\.js)$"
+    "^styles(/.*)?$"
+    "^assets(/.*)?$"
+  ];
+in
 stdenv.mkDerivation {
   pname = "pds-landing";
   version = "1.0.0";
 
-  src = path;
+  src = sourceFiles;
 
-  # Unpack the source, then copy everything to output
   phases = [
     "unpackPhase"
     "installPhase"
@@ -18,10 +24,7 @@ stdenv.mkDerivation {
 
   installPhase = ''
     mkdir -p $out
-    # Copy all files from the unpacked source
     cp -r . $out/
-    # Remove .DS_Store files if present
-    find $out -name ".DS_Store" -delete
   '';
 
   meta = with lib; {
