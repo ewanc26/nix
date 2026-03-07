@@ -1,7 +1,33 @@
 # Nix Config Tools
 
-Three Rust utilities for managing the nix config. Run via the flake — no
-`cargo build` required:
+⚠️ **DEPRECATED** — These tools have been consolidated into the monorepo at `~/Developer/Git/pkgs/packages/nix-config-tools`.
+
+Please use the monorepo version instead:
+
+```bash
+nix run ~/Developer/Git/pkgs#health-check
+nix run ~/Developer/Git/pkgs#flake-bump
+nix run ~/Developer/Git/pkgs#gen-diff
+nix run ~/Developer/Git/pkgs#server-config
+```
+
+Or via shell aliases (set up by `home/programs/zsh.nix`):
+
+```bash
+health-check    # pre-rebuild preflight
+flake-bump      # inspect / update flake inputs
+gen-diff        # diff package changes between generations
+```
+
+## Migration Details
+
+The source code remains here for reference, but builds should use the monorepo flake. The nix-config flake has been updated to include the monorepo as an input (`pkgs-monorepo`), allowing the tools to be built and run efficiently within a unified workspace.
+
+---
+
+**For historical reference, see the old documentation below. It remains accurate but all commands should now use the monorepo location.**
+
+---
 
 ```bash
 nix run ~/.config/nix-config/tools#<tool>

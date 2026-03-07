@@ -38,6 +38,12 @@
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     mac-app-util.url = "github:hraban/mac-app-util";
+
+    # Language-agnostic monorepo with TypeScript and Rust packages
+    pkgs-monorepo = {
+      url = "path:../../../Developer/Git/pkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -52,6 +58,7 @@
       nix-vscode-extensions,
       mac-app-util,
       plasma-manager,
+      pkgs-monorepo,
       ...
     }:
     let
