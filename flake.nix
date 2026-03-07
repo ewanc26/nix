@@ -41,7 +41,7 @@
 
     # Language-agnostic monorepo with TypeScript and Rust packages
     pkgs-monorepo = {
-      url = "path:/Users/ewan/Developer/Git/pkgs";
+      url = "github:ewanc26/pkgs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

@@ -64,10 +64,10 @@ in
         gd = "git diff";
         gds = "git diff --staged";
 
-        # ── Nix tool aliases (from monorepo) ──────────────────────────────────
-        flake-bump = "nix run ~/Developer/Git/pkgs#flake-bump";
-        gen-diff = "nix run ~/Developer/Git/pkgs#gen-diff";
-        health-check = "nix run ~/Developer/Git/pkgs#health-check";
+        # ── Nix tool aliases (from github:ewanc26/pkgs) ───────────────────────
+        flake-bump = "nix run github:ewanc26/pkgs#flake-bump";
+        gen-diff = "nix run github:ewanc26/pkgs#gen-diff";
+        health-check = "nix run github:ewanc26/pkgs#health-check";
         update-all = "~/.config/nix-config/home/scripts/update-all";
         update-everything = "~/.config/nix-config/home/scripts/update-everything";
 

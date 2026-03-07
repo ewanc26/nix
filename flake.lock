@@ -333,13 +333,17 @@
         ]
       },
       "locked": {
-        "narHash": "sha256-o0kih0lokmDxPTsusV+Q73BBchOTC0c142tstufBnig=",
-        "path": "/Users/ewan/Developer/Git/pkgs",
-        "type": "path"
+        "lastModified": 1772901285,
+        "narHash": "sha256-Ln/syaFosZQTx8fTFyj2mpZvxa96jc2GXpkqhL5h6r0=",
+        "owner": "ewanc26",
+        "repo": "pkgs",
+        "rev": "d5869dbb0e2b1c8d9e77ff110c5300263a96f348",
+        "type": "github"
       },
       "original": {
-        "path": "/Users/ewan/Developer/Git/pkgs",
-        "type": "path"
+        "owner": "ewanc26",
+        "repo": "pkgs",
+        "type": "github"
       }
     },
     "plasma-manager": {
