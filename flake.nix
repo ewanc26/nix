@@ -147,15 +147,9 @@
         ];
       };
 
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          pds-landing = pkgs.callPackage ./modules/server/pds-landing { };
-        }
-      );
+      packages = forAllSystems (system: {
+        pds-landing = pkgs-monorepo.packages.${system}.pds-landing;
+      });
 
       nixosConfigurations = {
         laptop = nixpkgs.lib.nixosSystem {
@@ -168,7 +162,7 @@
 
         server = nixpkgs.lib.nixosSystem {
           specialArgs = {
-            inherit self;
+            inherit self pkgs-monorepo;
             pkgs-unstable = mkUnstablePkgs "x86_64-linux";
           };
           modules = nixosModules ++ [
@@ -179,7 +173,7 @@
 
         server-arm = nixpkgs.lib.nixosSystem {
           specialArgs = {
-            inherit self;
+            inherit self pkgs-monorepo;
             pkgs-unstable = mkUnstablePkgs "aarch64-linux";
           };
           modules = nixosModules ++ [

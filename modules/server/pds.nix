@@ -20,6 +20,7 @@
   lib,
   pkgs,
   pkgs-unstable,
+  pkgs-monorepo,
   ...
 }:
 let
@@ -28,58 +29,8 @@ let
   pdsPort = toString pds.port;
   caddyPort = toString pds.caddyPort;
 
-  # Static landing page served by Caddy at the PDS root URL.
-  # Built from modular source files in ./pds-landing/.
-  landingPage =
-    pkgs.runCommand "pds-landing"
-      {
-        nativeBuildInputs = [ pkgs.tailwindcss_3 ];
-      }
-      ''
-            # Lay out source so Tailwind's content scanner finds all class names.
-            mkdir -p src/styles $out/assets
-            cp ${./pds-landing/index.html}              src/index.html
-            cp ${./pds-landing/utils.js}                src/utils.js
-            cp ${./pds-landing/status.js}               src/status.js
-            cp ${./pds-landing/script.js}               src/script.js
-            cp ${./pds-landing/styles/input.css}        src/styles/input.css
-
-            # Build — scan src/ for used utility classes then emit minified CSS.
-            cat > tailwind.config.js << 'EOF'
-        module.exports = { content: ['./src/**/*.{html,js}'], theme: { extend: {} } }
-        EOF
-            tailwindcss --config tailwind.config.js --input src/styles/input.css --output $out/style.css --minify
-
-            cp src/index.html   $out/index.html
-            cp src/utils.js     $out/utils.js
-            cp src/status.js    $out/status.js
-            cp src/script.js    $out/script.js
-            cp ${./pds-landing/assets/thumb.svg} $out/assets/thumb.svg
-
-            # favicon (fml)
-            cp ${./pds-landing/assets/icon/ms-icon-310x310.png} $out/favicon.ico # higher resolution is better
-            cp ${./pds-landing/assets/icon/ms-icon-310x310.png} $out/ms-icon-310x310.png
-            cp ${./pds-landing/assets/icon/ms-icon-150x150.png} $out/ms-icon-150x150.png
-            cp ${./pds-landing/assets/icon/ms-icon-144x144.png} $out/ms-icon-144x144.png
-            cp ${./pds-landing/assets/icon/ms-icon-70x70.png} $out/ms-icon-70x70.png
-            cp ${./pds-landing/assets/icon/manifest.json} $out/manifest.json
-            cp ${./pds-landing/assets/icon/favicon-256x256.png} $out/favicon-256x256.png
-            cp ${./pds-landing/assets/icon/favicon-96x96.png} $out/favicon-96x96.png
-            cp ${./pds-landing/assets/icon/favicon-32x32.png} $out/favicon-32x32.png
-            cp ${./pds-landing/assets/icon/favicon-16x16.png} $out/favicon-16x16.png
-            cp ${./pds-landing/assets/icon/browserconfig.xml} $out/browserconfig.xml
-            cp ${./pds-landing/assets/icon/apple-icon-180x180.png} $out/apple-icon-180x180.png
-            cp ${./pds-landing/assets/icon/apple-icon-152x152.png} $out/apple-icon-152x152.png
-            cp ${./pds-landing/assets/icon/apple-icon-144x144.png} $out/apple-icon-144x144.png
-            cp ${./pds-landing/assets/icon/apple-icon-120x120.png} $out/apple-icon-120x120.png
-            cp ${./pds-landing/assets/icon/apple-icon-114x114.png} $out/apple-icon-114x114.png
-            cp ${./pds-landing/assets/icon/apple-icon-76x76.png} $out/apple-icon-76x76.png
-            cp ${./pds-landing/assets/icon/apple-icon-72x72.png} $out/apple-icon-72x72.png
-            cp ${./pds-landing/assets/icon/apple-icon-60x60.png} $out/apple-icon-60x60.png
-            cp ${./pds-landing/assets/icon/apple-icon-57x57.png} $out/apple-icon-57x57.png
-            cp ${./pds-landing/assets/icon/android-icon-192x192.png} $out/android-icon-192x192.png
-
-      '';
+  # Static landing page — built and maintained in the pkgs monorepo.
+  landingPage = pkgs-monorepo.packages.${pkgs.system}.pds-landing;
 
   # UK Online Safety Act age-assurance static responses.
   ageAssuranceBlocks = ''
