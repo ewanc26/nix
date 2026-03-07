@@ -21,11 +21,15 @@ gen-diff        # diff package changes between generations
 
 ## Migration Details
 
-The source code remains here for reference, but builds should use the monorepo flake. The nix-config flake has been updated to include the monorepo as an input (`pkgs-monorepo`), allowing the tools to be built and run efficiently within a unified workspace.
+The source code remains here for reference, but builds should use the monorepo
+flake. The nix-config flake has been updated to include the monorepo as an input
+(`pkgs-monorepo`), allowing the tools to be built and run efficiently within a
+unified workspace.
 
 ---
 
-**For historical reference, see the old documentation below. It remains accurate but all commands should now use the monorepo location.**
+**For historical reference, see the old documentation below.** It remains
+accurate but all commands should now use the monorepo location.
 
 ---
 
@@ -52,12 +56,15 @@ health-check
 ```
 
 Checks:
+
 - Nix daemon is responding
 - `flake.lock` is present and valid JSON
 - Flake evaluates without errors
 - Git working tree is clean
 - Age key exists at `~/.config/age/keys.txt`
 - SSH keys present in `modules/ssh-keys.nix`
+- Disk space on `/nix/store`
+- Homebrew installed (macOS only)
 - Disk space on `/nix/store`
 - Homebrew installed (macOS only)
 
@@ -96,14 +103,12 @@ Wraps `nix store diff-closures` with a friendlier interface and generation listi
 The following tools were removed. Their source files remain in `src/bin/` for
 reference but are no longer compiled.
 
-| Tool | Reason removed |
-|---|---|
-| `darwin-export` | macOS settings are now fully declarative in `settings/darwin/default.nix` — nothing to export |
-| `gnome-export` | GNOME/dconf settings are now fully declarative in `settings/gnome/dconf-settings.nix` — nothing to export |
-| `secrets-setup` | Was a stub that only checked if `~/.config/age/keys.txt` existed; `health-check` covers this |
-| `categorize-apps` | `nix search` / `brew info --cask` lookups produce false positives; `darwin.nix` is hand-maintained |
-| `generate-app-config` | Same reasons as `categorize-apps` |
-| `sync-apps` | Same reasons, plus it auto-mutated config files without review |
+- `darwin-export` — macOS settings are now fully declarative in `settings/darwin/default.nix` — nothing to export
+- `gnome-export` — GNOME/dconf settings are now fully declarative in `settings/gnome/dconf-settings.nix` — nothing to export
+- `secrets-setup` — Was a stub that only checked if `~/.config/age/keys.txt` existed; `health-check` covers this
+- `categorize-apps` — `nix search` / `brew info --cask` lookups produce false positives; `darwin.nix` is hand-maintained
+- `generate-app-config` — Same reasons as `categorize-apps`
+- `sync-apps` — Same reasons, plus it auto-mutated config files without review
 
 ---
 
@@ -113,11 +118,13 @@ reference but are no longer compiled.
 
 1. Create `src/bin/your-tool.rs`
 2. Add to `Cargo.toml`:
+
    ```toml
    [[bin]]
    name = "your-tool"
    path = "src/bin/your-tool.rs"
    ```
+
 3. Expose in `flake.nix` under `apps`
 4. Add a shell alias in `settings/config/shell.nix` if used regularly
 

@@ -41,7 +41,7 @@
 
     # Language-agnostic monorepo with TypeScript and Rust packages
     pkgs-monorepo = {
-      url = "path:../../../Developer/Git/pkgs";
+      url = "path:/Users/ewan/Developer/Git/pkgs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -146,6 +146,16 @@
           { nixosConfigurations = self.nixosConfigurations; }
         ];
       };
+
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          pds-landing = pkgs.callPackage ./modules/server/pds-landing { };
+        }
+      );
 
       nixosConfigurations = {
         laptop = nixpkgs.lib.nixosSystem {

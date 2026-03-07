@@ -326,6 +326,22 @@
         "type": "github"
       }
     },
+    "pkgs-monorepo": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "narHash": "sha256-o0kih0lokmDxPTsusV+Q73BBchOTC0c142tstufBnig=",
+        "path": "/Users/ewan/Developer/Git/pkgs",
+        "type": "path"
+      },
+      "original": {
+        "path": "/Users/ewan/Developer/Git/pkgs",
+        "type": "path"
+      }
+    },
     "plasma-manager": {
       "inputs": {
         "home-manager": [
@@ -358,6 +374,7 @@
         "nix-vscode-extensions": "nix-vscode-extensions",
         "nixpkgs": "nixpkgs_5",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "pkgs-monorepo": "pkgs-monorepo",
         "plasma-manager": "plasma-manager",
         "sops-nix": "sops-nix"
       }
