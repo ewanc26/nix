@@ -1,0 +1,4 @@
+# The pds-landing subdirectory is a standalone SvelteKit app with its own
+# node_modules and prettier config (prettier-plugin-svelte). Exclude it from
+# the repo-root prettier run to avoid "cannot find package" errors.
+modules/server/pds-landing/

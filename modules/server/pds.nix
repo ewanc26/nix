@@ -101,11 +101,11 @@ lib.mkIf cfg.services.pds.enable {
     extraConfig = ''
       ${ageAssuranceBlocks}
 
-      # Landing page — serve static assets; redirect bare /index.html to /.
+      # Landing page — SvelteKit static build; redirect bare /index.html to /.
       handle /index.html {
         redir / permanent
       }
-      @landing path / /style.css /utils.js /status.js /script.js /assets/* /favicon.ico /favicon-*.png /apple-icon-*.png /android-icon-*.png /ms-icon-*.png /manifest.json /browserconfig.xml
+      @landing path / /_app/* /favicon.svg /favicon.ico
       handle @landing {
         root * ${landingPage}
         file_server

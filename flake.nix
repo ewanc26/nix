@@ -147,10 +147,6 @@
         ];
       };
 
-      packages = forAllSystems (system: {
-        pds-landing = pkgs-monorepo.packages.${system}.pds-landing;
-      });
-
       nixosConfigurations = {
         laptop = nixpkgs.lib.nixosSystem {
           specialArgs = { inherit self; };
