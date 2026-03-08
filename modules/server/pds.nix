@@ -30,7 +30,7 @@ let
   caddyPort = toString pds.caddyPort;
 
   # Static landing page — built and maintained in the pkgs monorepo.
-  landingPage = pkgs-monorepo.packages.${pkgs.system}.pds-landing;
+  landingPage = pkgs-monorepo.packages.${pkgs.stdenv.hostPlatform.system}.pds-landing;
 
   # UK Online Safety Act age-assurance static responses.
   ageAssuranceBlocks = ''
