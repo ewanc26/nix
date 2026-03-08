@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# clean-srv — remove unrecognised top-level directories from /srv.
+#
+# Known directories are those declared in modules/server/storage.nix plus
+# the service data dirs referenced in options.nix. Anything else at the top
+# level of /srv is considered stale and will be deleted.
+#
+# Usage:
+#   clean-srv           # dry-run: print what would be removed
+#   clean-srv --apply   # actually delete the stale directories
+#
+# Must be run as root (the script will re-exec with sudo if needed).
+
+set -euo pipefail
+
+# ── Privilege check ─────────────────────────────────────────────────────────
+if [[ $EUID -ne 0 ]]; then
+  echo "Re-running with sudo..." >&2
+  exec sudo "$0" "$@"
+fi
+
+# ── Parse arguments ─────────────────────────────────────────────────────────
+DRY_RUN=true
+for arg in "$@"; do
+  [[ "$arg" == "--apply" ]] && DRY_RUN=false
+done
+
+# ── Known /srv top-level directories ────────────────────────────────────────
+# Update this list when adding or removing services in storage.nix / options.nix.
+KNOWN=(
+  forgejo
+  postgresql
+  bluesky-pds
+  www
+  nextcloud
+  immich
+  timemachine
+)
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+is_known() {
+  local name="$1"
+  for k in "${KNOWN[@]}"; do
+    [[ "$k" == "$name" ]] && return 0
+  done
+  return 1
+}
+
+SRV="/srv"
+
+if [[ ! -d "$SRV" ]]; then
+  echo "ERROR: $SRV does not exist or is not mounted." >&2
+  exit 1
+fi
+
+# ── Scan ─────────────────────────────────────────────────────────────────────
+STALE=()
+while IFS= read -r -d '' entry; do
+  name="$(basename "$entry")"
+  if ! is_known "$name"; then
+    STALE+=("$entry")
+  fi
+done < <(find "$SRV" -mindepth 1 -maxdepth 1 -print0)
+
+if [[ ${#STALE[@]} -eq 0 ]]; then
+  echo "Nothing to clean — /srv contains only known directories."
+  exit 0
+fi
+
+# ── Report ───────────────────────────────────────────────────────────────────
+echo "Stale /srv entries:"
+for path in "${STALE[@]}"; do
+  size="$(du -sh "$path" 2>/dev/null | cut -f1)"
+  echo "  ${size:-?}  $path"
+done
+echo
+
+if $DRY_RUN; then
+  echo "Dry-run mode — nothing deleted. Re-run with --apply to remove the above."
+  exit 0
+fi
+
+# ── Delete ───────────────────────────────────────────────────────────────────
+echo "Deleting stale entries..."
+for path in "${STALE[@]}"; do
+  echo "  rm -rf $path"
+  rm -rf "$path"
+done
+echo "Done."

@@ -428,6 +428,13 @@ in
         type = bool;
         default = false;
       };
+      timemachine = {
+        enable = mkOption {
+          type = bool;
+          default = false;
+          description = "Enable Time Machine backup target via Samba vfs_fruit (SMB, Tailscale only).";
+        };
+      };
     };
 
     # ── Nextcloud ─────────────────────────────────────────────────────────────
@@ -625,6 +632,20 @@ in
         type = str;
         default = "Vaultwarden";
         description = "Display name used in Vaultwarden notification emails.";
+      };
+    };
+
+    # ── Time Machine ───────────────────────────────────────────────────────────
+    timemachine = {
+      path = mkOption {
+        type = str;
+        default = "/srv/timemachine";
+        description = "Directory served as the Netatalk AFP Time Machine volume.";
+      };
+      volSizeLimitMiB = mkOption {
+        type = int;
+        default = 512000;
+        description = "Maximum backup sparsebundle size in MiB (512000 ≈ 500 GB).";
       };
     };
 

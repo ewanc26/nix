@@ -85,8 +85,16 @@ in
     "d /srv/www             0755 root            root           -"
     "d /srv/www/default     0755 root            root           -"
 
+    # Time Machine AFP backup target — owned by the primary user
+    "d /srv/timemachine     0750 ${config.myConfig.user.username} users          -"
+
     # Nextcloud PHP upload temp dir — must be on the same filesystem as
     # /srv/nextcloud/data so chunk assembly is an atomic rename.
     "d /srv/nextcloud/tmp   0750 nextcloud       nextcloud      -"
+
+    # Time Machine — owned by the backup user; created here so the directory
+    # exists even before the timemachine module's tmpfiles rules run.
+    # The timemachine module sets tighter permissions (0700) on activation.
+    "d /srv/timemachine     0700 ewan            users          -"
   ];
 }

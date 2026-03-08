@@ -19,6 +19,7 @@ in
     ../../modules/server/jellyfin.nix
     ../../modules/server/grafana.nix
     ../../modules/server/vaultwarden.nix
+    ../../modules/server/timemachine.nix
     ../../profiles/server-hardened.nix
   ];
 
@@ -30,6 +31,7 @@ in
   myConfig.services.pds.enable = true;
   myConfig.services.cloudflare.enable = true;
   myConfig.services.vaultwarden.enable = true; # Tailnet-only — password manager, never public
+  myConfig.services.timemachine.enable = true; # Tailnet-only — Time Machine AFP target
 
   # Ignore laptop lid — treat as headless, never suspend.
   services.logind.settings.Login = {
