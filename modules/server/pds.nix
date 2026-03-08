@@ -106,8 +106,10 @@ lib.mkIf cfg.services.pds.enable {
       # Redirect bare /index.html to /.
       redir /index.html / permanent
 
-      # Proxy anything that doesn't exist as a static file to the PDS.
-      @pds not file
+      # Proxy anything that doesn't exist as a static file (or index.html) to the PDS.
+      @pds not file {
+        try_files {path} {path}/index.html
+      }
       handle @pds {
         reverse_proxy http://127.0.0.1:${pdsPort}
       }
