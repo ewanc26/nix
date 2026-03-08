@@ -333,11 +333,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1772940746,
-        "narHash": "sha256-9lRwuWQZRytY6mfTkytrTnbkLZtYR/3cBSfKauEAuHA=",
+        "lastModified": 1772940984,
+        "narHash": "sha256-6fK03GnYmdftKZv8v5MZwyRBw8LOAW4BH8N+BqF7uvI=",
         "owner": "ewanc26",
         "repo": "pkgs",
-        "rev": "efd8ee7c80b867c41eeb24365ececaf0cdb1b30c",
+        "rev": "6cd4dd9fa797b5c958bf306a484f57488c47efe9",
         "type": "github"
       },
       "original": {
