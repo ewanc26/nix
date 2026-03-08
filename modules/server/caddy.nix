@@ -41,8 +41,9 @@ in
       Restart = lib.mkForce "always";
       RestartSec = lib.mkDefault "5s";
     };
-    # Ensure the ACME wildcard cert exists before Caddy starts.
-    after = lib.optional hasTailnet "acme-ewancroft.uk.service";
+    # Ensure the ACME wildcard cert exists before Caddy starts,
+    # and that Tailscaled is up so the bind address exists.
+    after = [ "tailscaled.service" ] ++ lib.optional hasTailnet "acme-ewancroft.uk.service";
     wants = lib.optional hasTailnet "acme-ewancroft.uk.service";
   };
 
