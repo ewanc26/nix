@@ -14,8 +14,8 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
-		"@ewanc26/pds-landing": "^2.0.0",
-		"@ewanc26/ui": "^0.1.2"
+		"@ewanc26/pds-landing": "github:ewanc26/pkgs#main&path:packages/pds-landing",
+		"@ewanc26/ui": "github:ewanc26/pkgs#main&path:packages/ui"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^3.0.10",
