@@ -104,20 +104,15 @@ lib.mkIf cfg.services.pds.enable {
       root * ${landingPage}
 
       # Redirect bare /index.html to /.
-      handle /index.html {
-        redir / permanent
-      }
+      redir /index.html / permanent
 
-      # Serve any file that exists in the static build dir.
-      @static file
-      handle @static {
-        file_server
-      }
-
-      # Everything else goes to the PDS.
-      handle {
+      # Proxy anything that doesn't exist as a static file to the PDS.
+      @pds not file
+      handle @pds {
         reverse_proxy http://127.0.0.1:${pdsPort}
       }
+
+      file_server
     '';
   };
 }
