@@ -101,16 +101,20 @@ lib.mkIf cfg.services.pds.enable {
     extraConfig = ''
       ${ageAssuranceBlocks}
 
-      # Landing page — SvelteKit static build; redirect bare /index.html to /.
+      root * ${landingPage}
+
+      # Redirect bare /index.html to /.
       handle /index.html {
         redir / permanent
       }
-      @landing path / /_app/* /favicon.svg /favicon.ico /favicon*.png /apple-icon*.png /android-icon*.png /ms-icon*.png /manifest.json /browserconfig.xml /robots.txt /thumb.svg
-      handle @landing {
-        root * ${landingPage}
+
+      # Serve any file that exists in the static build dir.
+      @static file
+      handle @static {
         file_server
       }
 
+      # Everything else goes to the PDS.
       handle {
         reverse_proxy http://127.0.0.1:${pdsPort}
       }
