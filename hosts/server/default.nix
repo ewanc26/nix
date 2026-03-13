@@ -21,6 +21,7 @@ in
     ../../modules/server/grafana.nix
     ../../modules/server/vaultwarden.nix
     ../../modules/server/timemachine.nix
+    ../../modules/server/gotosocial.nix
     ../../profiles/server-hardened.nix
   ];
 
@@ -38,6 +39,7 @@ in
   myConfig.services.cloudflare.enable = true;
   myConfig.services.vaultwarden.enable = true; # Tailnet-only — password manager, never public
   myConfig.services.timemachine.enable = true; # Tailnet-only — Time Machine AFP target
+  myConfig.services.gotosocial.enable = true;
 
   # Ignore laptop lid — treat as headless, never suspend.
   services.logind.settings.Login = {

@@ -433,6 +433,11 @@ in
         type = bool;
         default = false;
       };
+      gotosocial.enable = mkOption {
+        type = bool;
+        default = false;
+        description = "Enable GoToSocial ActivityPub server.";
+      };
       timemachine = {
         enable = mkOption {
           type = bool;
@@ -651,6 +656,30 @@ in
         type = int;
         default = 512000;
         description = "Maximum backup sparsebundle size in MiB (512000 ≈ 500 GB).";
+      };
+    };
+
+    # ── GoToSocial ─────────────────────────────────────────────────────────────
+    gotosocial = {
+      hostname = mkOption {
+        type = str;
+        default = "ap.ewancroft.uk";
+        description = "Public hostname for GoToSocial (the \"host\" config key).";
+      };
+      accountDomain = mkOption {
+        type = str;
+        default = "ewancroft.uk";
+        description = "Domain for user handles — accounts appear as @user@accountDomain.";
+      };
+      port = mkOption {
+        type = int;
+        default = 8080;
+        description = "Internal GoToSocial HTTP port.";
+      };
+      caddyPort = mkOption {
+        type = int;
+        default = 3006;
+        description = "Caddy virtual host port — used by the Cloudflare tunnel.";
       };
     };
 
