@@ -44,8 +44,8 @@ lib.mkIf cfg.services.gotosocial.enable {
       port = gts.port;
       bind-address = "127.0.0.1";
       db-type = "sqlite";
-      db-address = "/var/lib/gotosocial/sqlite.db";
-      storage-local-base-path = "/var/lib/gotosocial/storage";
+      db-address = "/srv/gotosocial/sqlite.db";
+      storage-local-base-path = "/srv/gotosocial/storage";
       accounts-registration-open = false;
       accounts-allow-custom-css = false;
       letsencrypt-enabled = false;
@@ -53,7 +53,10 @@ lib.mkIf cfg.services.gotosocial.enable {
   };
 
   systemd.services.gotosocial = {
+    after = [ "srv.mount" ];
+    wants = [ "srv.mount" ];
     serviceConfig = {
+      ReadWritePaths = [ "/srv/gotosocial" ];
       Restart = lib.mkForce "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
     };
