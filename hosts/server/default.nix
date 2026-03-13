@@ -30,6 +30,10 @@ in
   myConfig.services.immich.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.jellyfin.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.pds.enable = true;
+  myConfig.pds.serviceHandleDomains = [
+    ".pds.ewancroft.uk"
+    ".pds.croft.click"
+  ];
   myConfig.services.pdsGatekeeper.enable = true;
   myConfig.services.cloudflare.enable = true;
   myConfig.services.vaultwarden.enable = true; # Tailnet-only — password manager, never public

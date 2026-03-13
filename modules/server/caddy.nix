@@ -61,6 +61,14 @@ in
     mode = "0440";
   };
 
+  # Separate token for the croft.click zone — needed to issue *.pds.croft.click.
+  sops.secrets."cloudflare-acme-croft-click.env" = {
+    sopsFile = ../../secrets/cloudflare-acme-croft-click.env;
+    format = "binary";
+    owner = "acme";
+    mode = "0440";
+  };
+
   security.acme = lib.mkIf hasTailnet {
     acceptTerms = true;
     defaults.email = cfg.user.email;
@@ -79,6 +87,36 @@ in
       # Let Caddy read the cert files.
       group = config.services.caddy.group;
       # Reload Caddy whenever the cert is renewed.
+      reloadServices = [ "caddy" ];
+    };
+
+    # Wildcard cert for *.pds.ewancroft.uk — required because the handle domain
+    # changed from .ewancroft.uk to .pds.ewancroft.uk, meaning user handles are
+    # user.pds.ewancroft.uk which *.ewancroft.uk does not cover.
+    certs."pds.ewancroft.uk" = {
+      domain = "*.pds.ewancroft.uk";
+      dnsProvider = "cloudflare";
+      webroot = null;
+      credentialFiles = {
+        "CF_DNS_API_TOKEN_FILE" = config.sops.secrets."cloudflare-acme.env".path;
+      };
+      enableDebugLogs = true;
+      group = config.services.caddy.group;
+      reloadServices = [ "caddy" ];
+    };
+
+    # Wildcard cert for *.pds.croft.click — required because Cloudflare free
+    # plan does not auto-issue SSL for third-level subdomains (e.g.
+    # user.pds.croft.click). Uses DNS-01 against the croft.click zone.
+    certs."pds.croft.click" = {
+      domain = "*.pds.croft.click";
+      dnsProvider = "cloudflare";
+      webroot = null;
+      credentialFiles = {
+        "CF_DNS_API_TOKEN_FILE" = config.sops.secrets."cloudflare-acme-croft-click.env".path;
+      };
+      enableDebugLogs = true;
+      group = config.services.caddy.group;
       reloadServices = [ "caddy" ];
     };
   };
