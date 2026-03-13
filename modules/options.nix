@@ -408,6 +408,11 @@ in
         type = bool;
         default = false;
       };
+      pdsGatekeeper.enable = mkOption {
+        type = bool;
+        default = false;
+        description = "Enable PDS Gatekeeper (2FA proxy for the ATProto PDS). Requires services.pds.enable = true.";
+      };
       nextcloud.enable = mkOption {
         type = bool;
         default = false;

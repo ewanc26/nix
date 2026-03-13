@@ -44,6 +44,12 @@
       url = "github:ewanc26/pkgs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Isabel's packages — provides pds-gatekeeper NixOS module and package
+    tgirlpkgs = {
+      url = "github:tgirlcloud/pkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -59,6 +65,7 @@
       mac-app-util,
       plasma-manager,
       pkgs-monorepo,
+      tgirlpkgs,
       ...
     }:
     let
@@ -162,6 +169,7 @@
             pkgs-unstable = mkUnstablePkgs "x86_64-linux";
           };
           modules = nixosModules ++ [
+            tgirlpkgs.nixosModules.default
             ./hosts/server
             { nixpkgs.hostPlatform = "x86_64-linux"; }
           ];
@@ -173,6 +181,7 @@
             pkgs-unstable = mkUnstablePkgs "aarch64-linux";
           };
           modules = nixosModules ++ [
+            tgirlpkgs.nixosModules.default
             ./hosts/server
             { nixpkgs.hostPlatform = "aarch64-linux"; }
           ];

@@ -13,6 +13,7 @@ in
     ../../modules/server/split-dns.nix
     ../../modules/server/cloudflare-tunnel.nix
     ../../modules/server/pds.nix
+    ../../modules/server/pds-gatekeeper.nix
     ../../modules/server/forgejo.nix
     ../../modules/server/nextcloud.nix
     ../../modules/server/immich.nix
@@ -29,6 +30,7 @@ in
   myConfig.services.immich.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.jellyfin.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.pds.enable = true;
+  myConfig.services.pdsGatekeeper.enable = true;
   myConfig.services.cloudflare.enable = true;
   myConfig.services.vaultwarden.enable = true; # Tailnet-only — password manager, never public
   myConfig.services.timemachine.enable = true; # Tailnet-only — Time Machine AFP target
