@@ -49,6 +49,8 @@ lib.mkIf cfg.services.pdsGatekeeper.enable {
       GATEKEEPER_HOST = gkHost;
       GATEKEEPER_PORT = gkPort;
       PDS_BASE_URL = "http://127.0.0.1:${pdsPort}";
+      PDS_HOSTNAME = pds.hostname;
+      PDS_DATA_DIRECTORY = "/srv/bluesky-pds";
       GATEKEEPER_TRUST_PROXY = "true";
       # Gatekeeper expects a .env file path; supply an empty nix-store file
       # so it doesn't error on startup (secrets come via environmentFiles).
