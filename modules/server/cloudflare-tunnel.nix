@@ -34,10 +34,32 @@ let
   # Nextcloud, Immich, and Jellyfin are tailnet-only — they are reachable
   # via split DNS (CoreDNS) directly over the Tailscale network.
   ingressRoutes =
-    lib.optionalAttrs cfg.services.pds.enable {
-      ${cfg.pds.hostname} = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
-      "*.${cfg.pds.hostname}" = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
-    }
+    lib.optionalAttrs cfg.services.pds.enable (
+      {
+        ${cfg.pds.hostname} = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
+        "*.${cfg.pds.hostname}" = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
+      }
+      // lib.listToAttrs (
+        lib.concatMap
+          (
+            domain:
+            let
+              bare = lib.removePrefix "." domain;
+            in
+            [
+              {
+                name = bare;
+                value = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
+              }
+              {
+                name = "*.${bare}";
+                value = "http://127.0.0.1:${toString cfg.pds.caddyPort}";
+              }
+            ]
+          )
+          (lib.filter (d: d != ".${cfg.pds.hostname}" && d != cfg.pds.hostname) cfg.pds.serviceHandleDomains)
+      )
+    )
     // lib.optionalAttrs cfg.services.forgejo.enable {
       ${cfg.forgejo.hostname} = "http://127.0.0.1:${toString cfg.forgejo.caddyPort}";
     };

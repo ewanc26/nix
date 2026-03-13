@@ -111,13 +111,6 @@ lib.mkIf cfg.services.pds.enable {
         try_files {path} {path}/index.html
       }
       handle @pds {
-        header Access-Control-Allow-Origin "*"
-        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        header Access-Control-Allow-Headers "Authorization, Content-Type, atproto-accept-labelers, atproto-proxy, DPoP"
-        @cors_preflight method OPTIONS
-        handle @cors_preflight {
-          respond 204
-        }
         reverse_proxy http://127.0.0.1:${pdsPort}
       }
 

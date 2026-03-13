@@ -78,7 +78,7 @@ lib.mkIf cfg.services.pdsGatekeeper.enable {
   # These four endpoints are intercepted by gatekeeper before the catch-all
   # reverse_proxy in pds.nix. lib.mkBefore ensures they appear first in the
   # merged extraConfig string so Caddy evaluates them with higher priority.
-  services.caddy.virtualHosts."http://${pds.hostname}:${caddyPort}".extraConfig = lib.mkBefore ''
+  services.caddy.virtualHosts.":${caddyPort}".extraConfig = lib.mkBefore ''
     handle /xrpc/com.atproto.server.createSession {
       reverse_proxy ${gkUrl}
     }
