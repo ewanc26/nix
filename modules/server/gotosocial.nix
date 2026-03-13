@@ -49,6 +49,7 @@ lib.mkIf cfg.services.gotosocial.enable {
       accounts-registration-open = false;
       accounts-allow-custom-css = false;
       letsencrypt-enabled = false;
+      trusted-proxies = [ "127.0.0.1/32" ];
     };
   };
 
