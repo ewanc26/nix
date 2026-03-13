@@ -380,7 +380,8 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "pkgs-monorepo": "pkgs-monorepo",
         "plasma-manager": "plasma-manager",
-        "sops-nix": "sops-nix"
+        "sops-nix": "sops-nix",
+        "tgirlpkgs": "tgirlpkgs"
       }
     },
     "sops-nix": {
@@ -430,6 +431,26 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default-darwin",
+        "type": "github"
+      }
+    },
+    "tgirlpkgs": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1773363760,
+        "narHash": "sha256-iyTuzXBExI2cQmRz2gGLt/7ZxZIX5d2HQdBx9ZA1Q48=",
+        "owner": "tgirlcloud",
+        "repo": "pkgs",
+        "rev": "ff49f331e933e66610270289bc47645bc257dbd4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tgirlcloud",
+        "repo": "pkgs",
         "type": "github"
       }
     },
