@@ -266,12 +266,19 @@ delete_all_emoji() {
 
 	while [[ -n "$next_url" ]]; do
 		local http_status body
-		http_status=$(curl -s --max-time 30 \
-			-D /tmp/gts_list_headers.txt \
-			-o /tmp/gts_emoji_list.json \
-			-w "%{http_code}" \
-			-X GET "$next_url" \
-			-H "Authorization: Bearer $GTS_TOKEN")
+		while true; do
+			http_status=$(curl -s --max-time 30 \
+				-D /tmp/gts_list_headers.txt \
+				-o /tmp/gts_emoji_list.json \
+				-w "%{http_code}" \
+				-X GET "$next_url" \
+				-H "Authorization: Bearer $GTS_TOKEN")
+			[[ "$http_status" != "429" ]] && break
+			local wait
+			wait=$(rate_limit_sleep_time /tmp/gts_list_headers.txt)
+			echo "  [RATE] list — 429 rate limited, sleeping ${wait}s..." >&2
+			sleep "$wait"
+		done
 
 		if [[ "$http_status" != "200" ]]; then
 			echo "Error: failed to list emoji (HTTP ${http_status})." >&2
@@ -324,12 +331,19 @@ delete_all_emoji() {
 	local deleted=0 del_failed=0
 	for id in "${all_ids[@]}"; do
 		local status
-		status=$(curl -s --max-time 30 \
-			-D /tmp/gts_del_headers.txt \
-			-o /tmp/gts_del_response.json \
-			-w "%{http_code}" \
-			-X DELETE "${ENDPOINT}/${id}" \
-			-H "Authorization: Bearer $GTS_TOKEN")
+		while true; do
+			status=$(curl -s --max-time 30 \
+				-D /tmp/gts_del_headers.txt \
+				-o /tmp/gts_del_response.json \
+				-w "%{http_code}" \
+				-X DELETE "${ENDPOINT}/${id}" \
+				-H "Authorization: Bearer $GTS_TOKEN")
+			[[ "$status" != "429" ]] && break
+			local wait
+			wait=$(rate_limit_sleep_time /tmp/gts_del_headers.txt)
+			echo "  [RATE] delete ${id} — 429 rate limited, sleeping ${wait}s..." >&2
+			sleep "$wait"
+		done
 
 		if [[ "$status" == "200" || "$status" == "204" ]]; then
 			((deleted++)) || true
@@ -627,12 +641,19 @@ delete_category_emoji() {
 
 	while [[ -n "$next_url" ]]; do
 		local http_status body
-		http_status=$(curl -s --max-time 30 \
-			-D /tmp/gts_list_headers.txt \
-			-o /tmp/gts_emoji_list.json \
-			-w "%{http_code}" \
-			-X GET "$next_url" \
-			-H "Authorization: Bearer $GTS_TOKEN")
+		while true; do
+			http_status=$(curl -s --max-time 30 \
+				-D /tmp/gts_list_headers.txt \
+				-o /tmp/gts_emoji_list.json \
+				-w "%{http_code}" \
+				-X GET "$next_url" \
+				-H "Authorization: Bearer $GTS_TOKEN")
+			[[ "$http_status" != "429" ]] && break
+			local wait
+			wait=$(rate_limit_sleep_time /tmp/gts_list_headers.txt)
+			echo "  [RATE] list — 429 rate limited, sleeping ${wait}s..." >&2
+			sleep "$wait"
+		done
 
 		if [[ "$http_status" != "200" ]]; then
 			echo "  [FAIL] list category '${category}' — HTTP ${http_status}" >&2
@@ -652,12 +673,19 @@ delete_category_emoji() {
 				continue
 			fi
 			local del_status
-			del_status=$(curl -s --max-time 30 \
-				-D /tmp/gts_del_headers.txt \
-				-o /tmp/gts_del_response.json \
-				-w "%{http_code}" \
-				-X DELETE "${ENDPOINT}/${id}" \
-				-H "Authorization: Bearer $GTS_TOKEN")
+			while true; do
+				del_status=$(curl -s --max-time 30 \
+					-D /tmp/gts_del_headers.txt \
+					-o /tmp/gts_del_response.json \
+					-w "%{http_code}" \
+					-X DELETE "${ENDPOINT}/${id}" \
+					-H "Authorization: Bearer $GTS_TOKEN")
+				[[ "$del_status" != "429" ]] && break
+				local wait
+				wait=$(rate_limit_sleep_time /tmp/gts_del_headers.txt)
+				echo "  [RATE] delete ${id} — 429 rate limited, sleeping ${wait}s..." >&2
+				sleep "$wait"
+			done
 			if [[ "$del_status" == "200" || "$del_status" == "204" ]]; then
 				echo "  [DEL]  emoji ${id}"
 			else
