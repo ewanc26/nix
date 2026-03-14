@@ -109,7 +109,12 @@ lib.mkIf cfg.services.gotosocial.enable {
   services.caddy.virtualHosts."http://${gts.hostname}:${caddyPort}" = {
     extraConfig = ''
       handle {
-        reverse_proxy http://127.0.0.1:${gtsPort}
+        reverse_proxy http://127.0.0.1:${gtsPort} {
+          # Cloudflare tunnel passes CF-Connecting-IP with the real client IP.
+          # Forward it as X-Real-IP so GTS can resolve the actual remote address.
+          header_up X-Real-IP {http.request.header.CF-Connecting-IP}
+        }
+        header Cache-Control "no-store, private"
       }
     '';
   };
