@@ -91,7 +91,7 @@ lib.mkIf cfg.services.gotosocial.enable {
       smtp-username = "resend";
       smtp-from = "gts@server.ewancroft.uk";
       # Emoji
-      media-emoji-local-max-original-size = 1048576; # 1 MiB
+      media-emoji-local-max-size = 500 KiB;
     };
   };
 
