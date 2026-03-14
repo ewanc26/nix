@@ -36,6 +36,14 @@ let
 in
 lib.mkIf cfg.services.gotosocial.enable {
 
+  sops.secrets."gotosocial.env" = {
+    sopsFile = ../../secrets/gotosocial.env;
+    format = "dotenv";
+    owner = "gotosocial";
+    group = "gotosocial";
+    mode = "0400";
+  };
+
   services.gotosocial = {
     enable = true;
     settings = {
@@ -50,6 +58,16 @@ lib.mkIf cfg.services.gotosocial.enable {
       accounts-allow-custom-css = false;
       letsencrypt-enabled = false;
       trusted-proxies = [ "127.0.0.1/32" ];
+      # Tell federation partners this is an English-language instance.
+      instance-languages = [ "en" ];
+      # Persist the Wazero/WASM ffmpeg compilation cache across restarts.
+      # Without this GoToSocial recompiles on every cold start (~100MiB, slow).
+      wazero-compilation-cache = "/srv/gotosocial/wazero-cache";
+      # SMTP via Resend — useful for password resets even on a single-user instance.
+      smtp-host = "smtp.resend.com";
+      smtp-port = 587;
+      smtp-username = "resend";
+      smtp-from = "gts@server.ewancroft.uk";
     };
   };
 
@@ -57,6 +75,7 @@ lib.mkIf cfg.services.gotosocial.enable {
     after = [ "srv.mount" ];
     wants = [ "srv.mount" ];
     serviceConfig = {
+      EnvironmentFile = config.sops.secrets."gotosocial.env".path;
       ReadWritePaths = [ "/srv/gotosocial" ];
       Restart = lib.mkForce "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
