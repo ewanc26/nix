@@ -80,6 +80,7 @@ lib.mkIf cfg.services.gotosocial.enable {
         "131.0.72.0/22"
       ];
       # Tell federation partners this is an English-language instance.
+      landing-page-user = "ewan";
       instance-languages = [ "en" ];
       # Persist the Wazero/WASM ffmpeg compilation cache across restarts.
       # Without this GoToSocial recompiles on every cold start (~100MiB, slow).
