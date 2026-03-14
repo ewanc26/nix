@@ -173,9 +173,14 @@ in
     if ${pkgs.curl}/bin/curl --silent --max-time 5 --output /dev/null "https://github.com"; then
       page=1
       while true; do
-        repos=$(${pkgs.curl}/bin/curl --silent \
-          "https://api.github.com/users/${cfg.user.githubUsername}/repos?per_page=100&page=$page" \
-          | ${pkgs.jq}/bin/jq -r '.[].name // empty')
+        gh_response=$(${pkgs.curl}/bin/curl --silent \
+          "https://api.github.com/users/${cfg.user.githubUsername}/repos?per_page=100&page=$page")
+        # Bail out if the API returned an error or rate-limit (non-array response).
+        if ! echo "$gh_response" | ${pkgs.jq}/bin/jq -e 'type == "array"' > /dev/null 2>&1; then
+          echo "developer: github API returned non-array response (rate limit?), stopping"
+          break
+        fi
+        repos=$(echo "$gh_response" | ${pkgs.jq}/bin/jq -r '.[] | select(.fork == false and .archived == false) | .name // empty')
         [ -z "$repos" ] && break
         for repo in $repos; do
           [ "$repo" = "nix" ] && continue
