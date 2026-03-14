@@ -46,6 +46,7 @@ lib.mkIf cfg.services.gotosocial.enable {
 
   services.gotosocial = {
     enable = true;
+    environmentFile = config.sops.secrets."gotosocial.env".path;
     settings = {
       host = gts.hostname;
       account-domain = gts.accountDomain;
@@ -75,7 +76,6 @@ lib.mkIf cfg.services.gotosocial.enable {
     after = [ "srv.mount" ];
     wants = [ "srv.mount" ];
     serviceConfig = {
-      EnvironmentFile = config.sops.secrets."gotosocial.env".path;
       ReadWritePaths = [ "/srv/gotosocial" ];
       Restart = lib.mkForce "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
