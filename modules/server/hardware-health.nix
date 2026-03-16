@@ -64,38 +64,38 @@ let
     set -euo pipefail
 
     # ── Runtime vars from smartd ───────────────────────────────────────────
-    SUBJECT="''${SMARTD_SUBJECT:-Disk alert on ''${SMARTD_HOSTNAME:-server}}"
-    DEVICE="''${SMARTD_DEVICE:-unknown}"
-    DEVICE_STR="''${SMARTD_DEVICESTRING:-''${SMARTD_DEVICE:-unknown}}"
-    FAILTYPE="''${SMARTD_FAILTYPE:-unknown}"
-    HOST="''${SMARTD_HOSTNAME:-server}"
-    TFIRST="''${SMARTD_TFIRST:-unknown}"
-    MESSAGE="''${SMARTD_MESSAGE:-No details available.}"
-    RECIPIENT="''${SMARTD_ADDRESS:-${cfg.server.smartd.recipient}}"
+    export SUBJECT="''${SMARTD_SUBJECT:-Disk alert on ''${SMARTD_HOSTNAME:-server}}"
+    export DEVICE="''${SMARTD_DEVICE:-unknown}"
+    export DEVICE_STR="''${SMARTD_DEVICESTRING:-''${SMARTD_DEVICE:-unknown}}"
+    export FAILTYPE="''${SMARTD_FAILTYPE:-unknown}"
+    export HOST="''${SMARTD_HOSTNAME:-server}"
+    export TFIRST="''${SMARTD_TFIRST:-unknown}"
+    export MESSAGE="''${SMARTD_MESSAGE:-No details available.}"
+    export RECIPIENT="''${SMARTD_ADDRESS:-${cfg.server.smartd.recipient}}"
 
     # ── Build-time values exported for envsubst ────────────────────────────
-    FROM_ADDRESS="${cfg.server.smartd.fromAddress}"
+    export FROM_ADDRESS="${cfg.server.smartd.fromAddress}"
 
     # HTML-escape the diagnostic message before injecting into the template
-    ESCAPED_MSG=$(printf '%s' "$MESSAGE" | ${pkgs.gnused}/bin/sed \
+    export ESCAPED_MSG=$(printf '%s' "$MESSAGE" | ${pkgs.gnused}/bin/sed \
       's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
 
-    # Substitute all placeholders in the template
-    BODY=$(${pkgs.envsubst}/bin/envsubst \
+    # Write the final email to a temp file — avoids heredoc expansion mangling the HTML
+    TMPFILE=$(${pkgs.coreutils}/bin/mktemp)
+    trap '${pkgs.coreutils}/bin/rm -f "$TMPFILE"' EXIT
+
+    # Headers
+    printf 'To: %s\nFrom: %s\nSubject: %s\nMIME-Version: 1.0\nContent-Type: text/html; charset=UTF-8\n\n' \
+      "$RECIPIENT" "$FROM_ADDRESS" "$SUBJECT" > "$TMPFILE"
+
+    # Substitute all placeholders in the template and append the body
+    ${pkgs.envsubst}/bin/envsubst \
       '$SUBJECT $DEVICE $DEVICE_STR $FAILTYPE $HOST $TFIRST $ESCAPED_MSG $RECIPIENT $FROM_ADDRESS' \
-      < ${alertTemplate})
+      < ${alertTemplate} >> "$TMPFILE"
 
     ${pkgs.msmtp}/bin/msmtp \
       --config=${msmtpConfig} \
-      "$RECIPIENT" <<EOF
-    To: $RECIPIENT
-    From: $FROM_ADDRESS
-    Subject: $SUBJECT
-    MIME-Version: 1.0
-    Content-Type: text/html; charset=UTF-8
-
-    $BODY
-    EOF
+      "$RECIPIENT" < "$TMPFILE"
   '';
 in
 {
