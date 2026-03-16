@@ -823,6 +823,19 @@ in
         };
       };
 
+      smartd = {
+        recipient = mkOption {
+          type = str;
+          default = "contact@ewancroft.uk";
+          description = "Email address for smartd disk health alert notifications.";
+        };
+        fromAddress = mkOption {
+          type = str;
+          default = "smartd@server.ewancroft.uk";
+          description = "From address used in smartd alert emails.";
+        };
+      };
+
       acmeCertDir = mkOption {
         type = str;
         default = "/var/lib/acme/ewancroft.uk";
