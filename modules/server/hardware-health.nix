@@ -36,7 +36,7 @@ let
     port           465
     from           ${cfg.server.smartd.fromAddress}
     user           resend
-    passwordfile   ${config.sops.secrets."smartd-smtp-pass".path}
+    passwordeval  cat ${config.sops.secrets."smartd-smtp-pass".path}
 
     account default : resend
   '';
