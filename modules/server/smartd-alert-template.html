@@ -4,6 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>$SUBJECT</title>
+    <meta name="color-scheme" content="dark" />
+    <meta name="supported-color-schemes" content="dark" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      /* Apple Mail / Outlook Mac: lock in dark palette */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #0d1210 !important;
+        }
+        #outer {
+          background-color: #0d1210 !important;
+        }
+        #card {
+          background-color: #141c19 !important;
+        }
+        #titlebar {
+          background-color: #243028 !important;
+        }
+        .inset {
+          background-color: #1a2420 !important;
+        }
+        .codebox {
+          background-color: #0d1210 !important;
+        }
+      }
+    </style>
     <!--[if mso
       ]><noscript
         ><xml
@@ -19,6 +47,7 @@
       margin: 0;
       padding: 0;
       background-color: #0d1210;
+      background-image: linear-gradient(#0d1210, #0d1210);
       font-family:
         &quot;JetBrains Mono&quot;, ui-monospace, SFMono-Regular, Menlo, Monaco,
         Consolas, &quot;Courier New&quot;, monospace;
@@ -29,7 +58,12 @@
       width="100%"
       cellpadding="0"
       cellspacing="0"
-      style="background-color: #0d1210; padding: 32px 16px"
+      id="outer"
+      style="
+        background-color: #0d1210;
+        background-image: linear-gradient(#0d1210, #0d1210);
+        padding: 32px 16px;
+      "
     >
       <tr>
         <td align="center">
@@ -51,7 +85,9 @@
                     0 8px 32px rgba(0, 0, 0, 0.5);
                   overflow: hidden;
                   background-color: #141c19;
+                  background-image: linear-gradient(#141c19, #141c19);
                 "
+                id="card"
               >
                 <!-- Titlebar -->
                 <table
@@ -62,8 +98,10 @@
                 >
                   <tr>
                     <td
+                      id="titlebar"
                       style="
                         background-color: #243028;
+                        background-image: linear-gradient(#243028, #243028);
                         padding: 9px 16px;
                         border-bottom: 1px solid rgba(166, 227, 161, 0.15);
                       "
@@ -234,8 +272,13 @@
                               width="100%"
                               cellpadding="0"
                               cellspacing="0"
+                              class="inset"
                               style="
                                 background-color: #1a2420;
+                                background-image: linear-gradient(
+                                  #1a2420,
+                                  #1a2420
+                                );
                                 border: 1px solid #2e3d34;
                                 border-radius: 6px;
                               "
@@ -276,8 +319,13 @@
                               width="100%"
                               cellpadding="0"
                               cellspacing="0"
+                              class="inset"
                               style="
                                 background-color: #1a2420;
+                                background-image: linear-gradient(
+                                  #1a2420,
+                                  #1a2420
+                                );
                                 border: 1px solid #2e3d34;
                                 border-radius: 6px;
                               "
@@ -317,8 +365,13 @@
                               width="100%"
                               cellpadding="0"
                               cellspacing="0"
+                              class="inset"
                               style="
                                 background-color: #1a2420;
+                                background-image: linear-gradient(
+                                  #1a2420,
+                                  #1a2420
+                                );
                                 border: 1px solid #2e3d34;
                                 border-radius: 6px;
                               "
@@ -395,8 +448,13 @@
                       >
                         <tr>
                           <td
+                            class="codebox"
                             style="
                               background-color: #0d1210;
+                              background-image: linear-gradient(
+                                #0d1210,
+                                #0d1210
+                              );
                               border: 1px solid #243028;
                               border-radius: 6px;
                               padding: 16px 18px;
