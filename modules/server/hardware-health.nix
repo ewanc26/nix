@@ -94,7 +94,7 @@ let
       < ${alertTemplate} >> "$TMPFILE"
 
     ${pkgs.msmtp}/bin/msmtp \
-      --config=${msmtpConfig} \
+      --file=${msmtpConfig} \
       "$RECIPIENT" < "$TMPFILE"
   '';
 in
