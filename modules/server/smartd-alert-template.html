@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>$SUBJECT</title>
+    <!--[if mso
+      ]><noscript
+        ><xml
+          ><o:OfficeDocumentSettings
+            ><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings
+          ></xml
+        ></noscript
+      ><!
+    [endif]-->
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #0d1210;
+      font-family:
+        &quot;JetBrains Mono&quot;, ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, &quot;Courier New&quot;, monospace;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background-color: #0d1210; padding: 32px 16px"
+    >
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            style="max-width: 620px"
+          >
+            <!-- Terminal card -->
+            <tr>
+              <td
+                style="
+                  border-radius: 8px;
+                  border: 1px solid #2e3d34;
+                  box-shadow:
+                    0 0 0 1px rgba(166, 227, 161, 0.06),
+                    0 8px 32px rgba(0, 0, 0, 0.5);
+                  overflow: hidden;
+                  background-color: #141c19;
+                "
+              >
+                <!-- Titlebar -->
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                >
+                  <tr>
+                    <td
+                      style="
+                        background-color: #243028;
+                        padding: 9px 16px;
+                        border-bottom: 1px solid rgba(166, 227, 161, 0.15);
+                      "
+                    >
+                      <table
+                        role="presentation"
+                        cellpadding="0"
+                        cellspacing="0"
+                      >
+                        <tr>
+                          <td style="padding-right: 6px">
+                            <div
+                              style="
+                                width: 10px;
+                                height: 10px;
+                                border-radius: 50%;
+                                background-color: rgba(166, 227, 161, 0.25);
+                                border: 1px solid rgba(166, 227, 161, 0.4);
+                                display: inline-block;
+                              "
+                            ></div>
+                          </td>
+                          <td style="padding-right: 6px">
+                            <div
+                              style="
+                                width: 10px;
+                                height: 10px;
+                                border-radius: 50%;
+                                background-color: rgba(166, 227, 161, 0.25);
+                                border: 1px solid rgba(166, 227, 161, 0.4);
+                                display: inline-block;
+                              "
+                            ></div>
+                          </td>
+                          <td style="padding-right: 10px">
+                            <div
+                              style="
+                                width: 10px;
+                                height: 10px;
+                                border-radius: 50%;
+                                background-color: rgba(166, 227, 161, 0.25);
+                                border: 1px solid rgba(166, 227, 161, 0.4);
+                                display: inline-block;
+                              "
+                            ></div>
+                          </td>
+                          <td>
+                            <span style="color: #a6e3a1; font-size: 12px"
+                              >smartd alert</span
+                            >
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Card body -->
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                >
+                  <tr>
+                    <td style="padding: 22px 26px 26px">
+                      <!-- Prompt line -->
+                      <p
+                        style="
+                          margin: 0 0 4px;
+                          font-size: 15px;
+                          line-height: 1.4;
+                        "
+                      >
+                        <span style="color: #a6e3a1; font-weight: 700"
+                          >smartd@$HOST</span
+                        ><span
+                          style="color: #93b09a; font-weight: 700; opacity: 0.6"
+                          >:~</span
+                        ><span style="color: #93b09a; font-weight: 700">
+                          $</span
+                        >
+                      </p>
+
+                      <!-- Tagline -->
+                      <p
+                        style="
+                          margin: 0 0 20px;
+                          color: #93b09a;
+                          font-size: 13px;
+                        "
+                      >
+                        disk health alert &middot; $HOST
+                      </p>
+
+                      <!-- Section: failure -->
+                      <p
+                        style="
+                          margin: 0 0 10px;
+                          color: #a6e3a1;
+                          font-size: 10px;
+                          font-weight: 700;
+                          text-transform: uppercase;
+                          letter-spacing: 0.12em;
+                        "
+                      >
+                        failure
+                      </p>
+                      <p
+                        style="
+                          margin: 0 0 20px;
+                          color: #f38ba8;
+                          font-size: 14px;
+                          font-weight: 700;
+                        "
+                      >
+                        $FAILTYPE
+                      </p>
+
+                      <!-- Divider -->
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellpadding="0"
+                        cellspacing="0"
+                        style="margin: 0 0 20px"
+                      >
+                        <tr>
+                          <td
+                            style="
+                              border-top: 1px solid rgba(166, 227, 161, 0.12);
+                              font-size: 0;
+                              line-height: 0;
+                            "
+                          >
+                            &nbsp;
+                          </td>
+                        </tr>
+                      </table>
+
+                      <!-- Section: device -->
+                      <p
+                        style="
+                          margin: 0 0 10px;
+                          color: #a6e3a1;
+                          font-size: 10px;
+                          font-weight: 700;
+                          text-transform: uppercase;
+                          letter-spacing: 0.12em;
+                        "
+                      >
+                        device
+                      </p>
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellpadding="0"
+                        cellspacing="0"
+                        style="margin-bottom: 20px"
+                      >
+                        <tr>
+                          <td
+                            width="48%"
+                            style="padding-right: 8px; vertical-align: top"
+                          >
+                            <table
+                              role="presentation"
+                              width="100%"
+                              cellpadding="0"
+                              cellspacing="0"
+                              style="
+                                background-color: #1a2420;
+                                border: 1px solid #2e3d34;
+                                border-radius: 6px;
+                              "
+                            >
+                              <tr>
+                                <td style="padding: 12px 14px">
+                                  <p
+                                    style="
+                                      margin: 0 0 4px;
+                                      color: #93b09a;
+                                      font-size: 10px;
+                                      font-weight: 700;
+                                      text-transform: uppercase;
+                                      letter-spacing: 0.1em;
+                                    "
+                                  >
+                                    path
+                                  </p>
+                                  <p
+                                    style="
+                                      margin: 0;
+                                      color: #cdd6f4;
+                                      font-size: 13px;
+                                    "
+                                  >
+                                    $DEVICE
+                                  </p>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                          <td
+                            width="52%"
+                            style="padding-left: 8px; vertical-align: top"
+                          >
+                            <table
+                              role="presentation"
+                              width="100%"
+                              cellpadding="0"
+                              cellspacing="0"
+                              style="
+                                background-color: #1a2420;
+                                border: 1px solid #2e3d34;
+                                border-radius: 6px;
+                              "
+                            >
+                              <tr>
+                                <td style="padding: 12px 14px">
+                                  <p
+                                    style="
+                                      margin: 0 0 4px;
+                                      color: #93b09a;
+                                      font-size: 10px;
+                                      font-weight: 700;
+                                      text-transform: uppercase;
+                                      letter-spacing: 0.1em;
+                                    "
+                                  >
+                                    first detected
+                                  </p>
+                                  <p
+                                    style="
+                                      margin: 0;
+                                      color: #cdd6f4;
+                                      font-size: 13px;
+                                    "
+                                  >
+                                    $TFIRST
+                                  </p>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colspan="2" style="padding-top: 8px">
+                            <table
+                              role="presentation"
+                              width="100%"
+                              cellpadding="0"
+                              cellspacing="0"
+                              style="
+                                background-color: #1a2420;
+                                border: 1px solid #2e3d34;
+                                border-radius: 6px;
+                              "
+                            >
+                              <tr>
+                                <td style="padding: 12px 14px">
+                                  <p
+                                    style="
+                                      margin: 0 0 4px;
+                                      color: #93b09a;
+                                      font-size: 10px;
+                                      font-weight: 700;
+                                      text-transform: uppercase;
+                                      letter-spacing: 0.1em;
+                                    "
+                                  >
+                                    description
+                                  </p>
+                                  <p
+                                    style="
+                                      margin: 0;
+                                      color: #cdd6f4;
+                                      font-size: 13px;
+                                    "
+                                  >
+                                    $DEVICE_STR
+                                  </p>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+
+                      <!-- Divider -->
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellpadding="0"
+                        cellspacing="0"
+                        style="margin: 0 0 20px"
+                      >
+                        <tr>
+                          <td
+                            style="
+                              border-top: 1px solid rgba(166, 227, 161, 0.12);
+                              font-size: 0;
+                              line-height: 0;
+                            "
+                          >
+                            &nbsp;
+                          </td>
+                        </tr>
+                      </table>
+
+                      <!-- Section: diagnostic output -->
+                      <p
+                        style="
+                          margin: 0 0 10px;
+                          color: #a6e3a1;
+                          font-size: 10px;
+                          font-weight: 700;
+                          text-transform: uppercase;
+                          letter-spacing: 0.12em;
+                        "
+                      >
+                        diagnostic output
+                      </p>
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellpadding="0"
+                        cellspacing="0"
+                      >
+                        <tr>
+                          <td
+                            style="
+                              background-color: #0d1210;
+                              border: 1px solid #243028;
+                              border-radius: 6px;
+                              padding: 16px 18px;
+                            "
+                          >
+                            <p
+                              style="
+                                margin: 0;
+                                color: #93b09a;
+                                font-size: 12px;
+                                line-height: 1.7;
+                                white-space: pre-wrap;
+                                word-break: break-word;
+                              "
+                            >
+                              $ESCAPED_MSG
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding-top: 16px; text-align: center">
+                <p
+                  style="
+                    margin: 0;
+                    color: rgba(166, 227, 161, 0.35);
+                    font-size: 11px;
+                  "
+                >
+                  powered by
+                  <span style="text-decoration: underline">smartd</span>
+                  &nbsp;&middot;&nbsp; ewancroft.uk
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
