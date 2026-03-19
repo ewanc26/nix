@@ -82,16 +82,19 @@ else:
 
 json_to_pem() {
 	local mode="$1" # private | public
-	local json_input
+	local json_input tmppy
 	json_input="$(cat)"
-	echo "$json_input" | nix shell nixpkgs#python3Packages.cryptography --command \
-		python3 -c "$JSON_TO_PEM_PY" "$mode"
+	tmppy=$(mktemp /tmp/gts_key_convert.XXXXXX.py)
+	echo "$JSON_TO_PEM_PY" >"$tmppy"
+	echo "$json_input" | nix-shell -p "python3.withPackages(ps: [ps.cryptography])" \
+		--run "python3 $tmppy $mode"
+	rm -f "$tmppy"
 }
 
 # ── Pre-flight ────────────────────────────────────────────────────────────────
 [[ "$(id -u)" -eq 0 ]] || error "Run as root."
 [[ -f "$GTS_DB" ]] || error "GTS DB not found: $GTS_DB"
-for cmd in sqlite3 psql systemctl curl jq nix; do
+for cmd in sqlite3 psql systemctl curl jq nix-shell; do
 	command -v "$cmd" &>/dev/null || error "Missing required command: $cmd"
 done
 
