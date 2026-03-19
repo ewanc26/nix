@@ -37,6 +37,15 @@ let
 in
 lib.mkIf cfg.services.sharkey.enable {
 
+  # Declare the sharkey user/group statically so sops-nix can resolve the
+  # owner at activation time. The nixpkgs sharkey module creates this user
+  # during service activation, which is too late for sops secret ownership.
+  users.users.sharkey = {
+    isSystemUser = true;
+    group = "sharkey";
+  };
+  users.groups.sharkey = { };
+
   sops.secrets."sharkey.env" = {
     sopsFile = ../../secrets/sharkey.env;
     format = "dotenv";
