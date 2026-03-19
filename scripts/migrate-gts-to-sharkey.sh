@@ -197,7 +197,7 @@ fi
 
 info "Verifying actor public key..."
 ACTOR=$(curl -fsSL -H 'Accept: application/activity+json' \
-	"https://${AP_HOSTNAME}/users/${GTS_USERNAME}" 2>/dev/null || true)
+	"https://${AP_HOSTNAME}/@${GTS_USERNAME}" 2>/dev/null || true)
 if echo "$ACTOR" | jq -e '.publicKey.publicKeyPem' &>/dev/null; then
 	ACTOR_KEY=$(echo "$ACTOR" | jq -r '.publicKey.publicKeyPem')
 	if [[ "$ACTOR_KEY" == "$PUBLIC_KEY" ]]; then
