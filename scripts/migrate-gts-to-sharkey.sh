@@ -49,7 +49,12 @@ confirm() {
 
 # ── Inline Python converter: Go JSON RSA key → PEM ────────────────────────────
 # Called as: json_to_pem <private|public> <<< "$JSON"
-# Uses nix shell to provide python3 + cryptography without a global install.
+# Uses nix-shell to provide python3 + cryptography without a global install.
+#
+# Go's encoding/json marshals *rsa.PrivateKey with fields:
+#   private: {"N":...,"E":...,"D":...,"Primes":[p,q],...}
+# Go's encoding/json marshals *rsa.PublicKey with fields:
+#   public:  {"N":...,"E":...}
 JSON_TO_PEM_PY='
 import sys, json
 from cryptography.hazmat.primitives.asymmetric.rsa import (
@@ -59,25 +64,20 @@ from cryptography.hazmat.primitives.serialization import (
     Encoding, PrivateFormat, PublicFormat, NoEncryption
 )
 
-# Go marshals big.Int via MarshalText() — plain decimal, no quotes, as a JSON number.
-def bigint(v):
-    return int(v)
-
-k = json.loads(sys.stdin.read())
-N = bigint(k["N"])
-E = int(k["E"])
-D = bigint(k["D"])
-P = bigint(k["Primes"][0])
-Q = bigint(k["Primes"][1])
-
+k    = json.loads(sys.stdin.read())
+mode = sys.argv[1]
+N    = int(k["N"])
+E    = int(k["E"])
 pub  = RSAPublicNumbers(E, N)
-priv = RSAPrivateNumbers(P, Q, D, rsa_crt_dmp1(D, P), rsa_crt_dmq1(D, Q), rsa_crt_iqmp(P, Q), pub)
-key  = priv.private_key()
 
-if sys.argv[1] == "private":
-    sys.stdout.write(key.private_bytes(Encoding.PEM, PrivateFormat.TraditionalOpenSSL, NoEncryption()).decode())
+if mode == "private":
+    D    = int(k["D"])
+    P    = int(k["Primes"][0])
+    Q    = int(k["Primes"][1])
+    priv = RSAPrivateNumbers(P, Q, D, rsa_crt_dmp1(D, P), rsa_crt_dmq1(D, Q), rsa_crt_iqmp(P, Q), pub)
+    sys.stdout.write(priv.private_key().private_bytes(Encoding.PEM, PrivateFormat.TraditionalOpenSSL, NoEncryption()).decode())
 else:
-    sys.stdout.write(key.public_key().public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode())
+    sys.stdout.write(pub.public_key().public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode())
 '
 
 json_to_pem() {
