@@ -146,10 +146,6 @@ else
 	info "GoToSocial is not running — nothing to stop."
 fi
 
-warn "Now run:  nixos-rebuild switch --flake .#server"
-warn "(myConfig.services.sharkey.enable = true in your host config)"
-read -r -p "$(echo -e "${YELLOW}Press Enter once nixos-rebuild switch completes...${NC}")"
-
 systemctl is-active --quiet sharkey || error "Sharkey is not running. Check: journalctl -u sharkey -n 50"
 systemctl is-active --quiet postgresql || error "PostgreSQL is not running."
 info "Sharkey + PostgreSQL are up."

@@ -86,16 +86,21 @@ lib.mkIf cfg.services.sharkey.enable {
     };
   };
 
-  # ── Keep media on /srv (same physical disk as all other service data) ──────
+  # ── Media directory on /srv ───────────────────────────────────────────────
+  # Must exist before Sharkey starts — nixpkgs bind-mounts mediaDirectory into
+  # the service namespace and fails with NAMESPACE (226) if the path is absent.
+  systemd.tmpfiles.rules = [
+    "d ${sk.mediaDir} 0750 sharkey sharkey -"
+  ];
+
+  # ── Systemd service tweaks ────────────────────────────────────────────────
   systemd.services.sharkey = {
     after = [ "srv.mount" ];
     wants = [ "srv.mount" ];
     serviceConfig = {
-      ReadWritePaths = [ sk.mediaDir ];
       Restart = lib.mkForce "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
     };
-
   };
 
   # ── Caddy vhost — same pattern as every other CF-tunnel service ───────────
