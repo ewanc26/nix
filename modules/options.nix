@@ -433,10 +433,10 @@ in
         type = bool;
         default = false;
       };
-      gotosocial.enable = mkOption {
+      sharkey.enable = mkOption {
         type = bool;
         default = false;
-        description = "Enable GoToSocial ActivityPub server.";
+        description = "Enable Sharkey ActivityPub / microblogging server.";
       };
       timemachine = {
         enable = mkOption {
@@ -659,27 +659,27 @@ in
       };
     };
 
-    # ── GoToSocial ─────────────────────────────────────────────────────────────
-    gotosocial = {
+    # ── Sharkey ───────────────────────────────────────────────────────────────
+    sharkey = {
       hostname = mkOption {
         type = str;
         default = "ap.ewancroft.uk";
-        description = "Public hostname for GoToSocial (the \"host\" config key).";
-      };
-      accountDomain = mkOption {
-        type = str;
-        default = "ewancroft.uk";
-        description = "Domain for user handles — accounts appear as @user@accountDomain.";
+        description = "Public hostname for Sharkey (same as the old GTS host to preserve actor URLs).";
       };
       port = mkOption {
         type = int;
-        default = 8080;
-        description = "Internal GoToSocial HTTP port.";
+        default = 3007;
+        description = "Internal Sharkey HTTP port.";
       };
       caddyPort = mkOption {
         type = int;
-        default = 3006;
+        default = 3008;
         description = "Caddy virtual host port — used by the Cloudflare tunnel.";
+      };
+      mediaDir = mkOption {
+        type = str;
+        default = "/srv/sharkey/media";
+        description = "Directory for Sharkey uploaded media (avatars, attachments, etc.)";
       };
     };
 

@@ -63,8 +63,8 @@ let
     // lib.optionalAttrs cfg.services.forgejo.enable {
       ${cfg.forgejo.hostname} = "http://127.0.0.1:${toString cfg.forgejo.caddyPort}";
     }
-    // lib.optionalAttrs cfg.services.gotosocial.enable {
-      ${cfg.gotosocial.hostname} = "http://127.0.0.1:${toString cfg.gotosocial.caddyPort}";
+    // lib.optionalAttrs cfg.services.sharkey.enable {
+      ${cfg.sharkey.hostname} = "http://127.0.0.1:${toString cfg.sharkey.caddyPort}";
     };
 in
 lib.mkIf cfg.services.cloudflare.enable {
