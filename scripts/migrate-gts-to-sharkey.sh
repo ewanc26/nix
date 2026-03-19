@@ -139,8 +139,12 @@ confirm "Continue?" || {
 	exit 0
 }
 
-info "Stopping GoToSocial..."
-systemctl stop "$GTS_SERVICE"
+if systemctl is-active --quiet "$GTS_SERVICE" 2>/dev/null; then
+	info "Stopping GoToSocial..."
+	systemctl stop "$GTS_SERVICE"
+else
+	info "GoToSocial is not running — nothing to stop."
+fi
 
 warn "Now run:  nixos-rebuild switch --flake .#server"
 warn "(myConfig.services.sharkey.enable = true in your host config)"
