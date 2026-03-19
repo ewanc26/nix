@@ -7,8 +7,16 @@
 #    2. Stopping GTS, switching to Sharkey via nixos-rebuild
 #    3. Injecting the old RSA keypair into Sharkey's PostgreSQL
 #
+#  GTS schema (SQLite):
+#    table: accounts
+#    columns: private_key, public_key  (PEM strings, local account has domain IS NULL)
+#
+#  Sharkey schema (PostgreSQL, 2025.4.6):
+#    table: user_keypair
+#    columns: "userId" (PK, FK → user.id), "publicKey", "privateKey"  (varchar 4096)
+#
 #  Run as root on the NixOS server.
-#  Prereq: sharkey.nix written + secrets/sharkey.env encrypted + options updated.
+#  Prereq: sharkey.nix written + secrets/sharkey.env sops-encrypted + nixos-rebuild pending.
 # =============================================================================
 set -euo pipefail
 
@@ -42,7 +50,9 @@ for cmd in sqlite3 psql systemctl curl jq; do
 	command -v "$cmd" &>/dev/null || error "Missing required command: $cmd"
 done
 
-# ── Step 1: Extract RSA keys ──────────────────────────────────────────────────
+# ── Step 1: Extract RSA keys from GTS SQLite ─────────────────────────────────
+# GTS bun ORM maps PrivateKey/PublicKey (*rsa.PrivateKey/*rsa.PublicKey) to
+# snake_case columns private_key/public_key, stored as PEM strings.
 info "Extracting RSA keypair for @${GTS_USERNAME} from SQLite..."
 
 PRIVATE_KEY=$(sqlite3 "$GTS_DB" \
@@ -50,9 +60,15 @@ PRIVATE_KEY=$(sqlite3 "$GTS_DB" \
 PUBLIC_KEY=$(sqlite3 "$GTS_DB" \
 	"SELECT public_key FROM accounts WHERE username='${GTS_USERNAME}' AND domain IS NULL LIMIT 1;")
 
-[[ -n "$PRIVATE_KEY" && -n "$PUBLIC_KEY" ]] || error "Could not extract keys — check username."
+[[ -n "$PRIVATE_KEY" ]] || error "private_key is empty — check GTS_USERNAME and that the account is local."
+[[ -n "$PUBLIC_KEY" ]] || error "public_key is empty."
 
-# Persist to a backup file in case we need to re-run step 3
+# Sanity-check PEM headers
+[[ "$PRIVATE_KEY" == *"BEGIN RSA PRIVATE KEY"* || "$PRIVATE_KEY" == *"BEGIN PRIVATE KEY"* ]] ||
+	error "private_key does not look like a PEM block."
+[[ "$PUBLIC_KEY" == *"BEGIN PUBLIC KEY"* ]] ||
+	error "public_key does not look like a PEM block."
+
 {
 	echo "PRIVATE_KEY<<EOF"
 	echo "$PRIVATE_KEY"
@@ -65,7 +81,7 @@ chmod 600 "$KEY_BACKUP"
 info "Keys backed up to: $KEY_BACKUP"
 
 # ── Step 2: Stop GTS, rebuild with Sharkey ────────────────────────────────────
-warn "About to stop GoToSocial. ap.ewancroft.uk will be down until Sharkey starts."
+warn "About to stop GoToSocial. ap.ewancroft.uk will be offline until Sharkey starts."
 confirm "Continue?" || {
 	info "Aborted."
 	exit 0
@@ -75,75 +91,75 @@ info "Stopping GoToSocial..."
 systemctl stop "$GTS_SERVICE"
 
 warn "Now run:  nixos-rebuild switch --flake .#server"
-warn "(services.gotosocial.enable = false, services.sharkey.enable = true)"
+warn "(myConfig.services.sharkey.enable = true in your host config)"
 read -r -p "$(echo -e "${YELLOW}Press Enter once nixos-rebuild switch completes...${NC}")"
 
 systemctl is-active --quiet sharkey || error "Sharkey is not running. Check: journalctl -u sharkey -n 50"
 systemctl is-active --quiet postgresql || error "PostgreSQL is not running."
 info "Sharkey + PostgreSQL are up."
 
-# ── Step 3: Create account in Sharkey ─────────────────────────────────────────
-warn "Create the @${GTS_USERNAME} account in the Sharkey admin panel now."
-warn "  https://${AP_HOSTNAME}  ->  Admin  ->  Users  ->  Create"
-warn "Username must be: ${GTS_USERNAME}"
+# ── Step 3: Create the local account in Sharkey ───────────────────────────────
+warn "Create @${GTS_USERNAME} in the Sharkey setup wizard or admin panel:"
+warn "  https://${AP_HOSTNAME}  (first run triggers the setup wizard)"
+warn "  Username must be exactly: ${GTS_USERNAME}"
 read -r -p "$(echo -e "${YELLOW}Press Enter once the account exists...${NC}")"
 
 SHARKEY_USER_ID=$(sudo -u postgres psql -d "$SHARKEY_DB" -tA \
 	-c "SELECT id FROM \"user\" WHERE username='${GTS_USERNAME}' AND host IS NULL LIMIT 1;" 2>/dev/null || true)
+SHARKEY_USER_ID="${SHARKEY_USER_ID// /}" # trim whitespace psql may add
 
-[[ -n "$SHARKEY_USER_ID" ]] || error "User @${GTS_USERNAME} not found in Sharkey DB. Create the account first."
+[[ -n "$SHARKEY_USER_ID" ]] || error "@${GTS_USERNAME} not found in Sharkey DB — create the account first."
 info "Sharkey user ID: ${SHARKEY_USER_ID}"
 
-# ── Step 4: Inject old RSA keypair ────────────────────────────────────────────
-info "Injecting GTS RSA keypair into Sharkey..."
+# ── Step 4: Inject old RSA keypair into user_keypair ─────────────────────────
+# Sharkey 2025.4.6 always has the user_keypair table (UserKeypair.ts entity).
+# Columns: "userId" (PK), "publicKey" varchar(4096), "privateKey" varchar(4096).
+# Dollar-quoting ($pem$...$pem$) handles PEM newlines safely without escaping.
+info "Injecting GTS RSA keypair into Sharkey's user_keypair table..."
 
-HAS_KEYPAIR_TABLE=$(sudo -u postgres psql -d "$SHARKEY_DB" -tA \
-	-c "SELECT to_regclass('public.user_keypair');" 2>/dev/null || echo "")
+sudo -u postgres psql -d "$SHARKEY_DB" -c \
+	"INSERT INTO user_keypair (\"userId\", \"publicKey\", \"privateKey\")
+     VALUES (
+       '${SHARKEY_USER_ID}',
+       \$pem\$${PUBLIC_KEY}\$pem\$,
+       \$pem\$${PRIVATE_KEY}\$pem\$
+     )
+     ON CONFLICT (\"userId\") DO UPDATE
+       SET \"publicKey\"  = EXCLUDED.\"publicKey\",
+           \"privateKey\" = EXCLUDED.\"privateKey\";"
 
-if [[ "$HAS_KEYPAIR_TABLE" == "user_keypair" ]]; then
-	sudo -u postgres psql -d "$SHARKEY_DB" -c \
-		"INSERT INTO user_keypair (\"userId\", \"publicKey\", \"privateKey\")
-         VALUES ('${SHARKEY_USER_ID}', \$pem\$${PUBLIC_KEY}\$pem\$, \$pem\$${PRIVATE_KEY}\$pem\$)
-         ON CONFLICT (\"userId\") DO UPDATE
-           SET \"publicKey\"  = EXCLUDED.\"publicKey\",
-               \"privateKey\" = EXCLUDED.\"privateKey\";"
-	info "Updated user_keypair table."
-else
-	# Older schema — keys inline on user table
-	sudo -u postgres psql -d "$SHARKEY_DB" -c \
-		"UPDATE \"user\"
-         SET \"publicKey\"  = \$pem\$${PUBLIC_KEY}\$pem\$,
-             \"privateKey\" = \$pem\$${PRIVATE_KEY}\$pem\$
-         WHERE id = '${SHARKEY_USER_ID}';"
-	info "Updated user table (inline key columns)."
-fi
+info "user_keypair updated."
 
-info "Restarting Sharkey..."
+info "Restarting Sharkey to pick up the new keypair..."
 systemctl restart sharkey
 sleep 5
-systemctl is-active --quiet sharkey || error "Sharkey failed to restart."
+systemctl is-active --quiet sharkey || error "Sharkey failed to restart. Check: journalctl -u sharkey -n 50"
 
 # ── Step 5: Verify ────────────────────────────────────────────────────────────
 info "Verifying WebFinger..."
-WF=$(curl -fsSL "https://${ACCOUNT_DOMAIN}/.well-known/webfinger?resource=acct:${GTS_USERNAME}@${ACCOUNT_DOMAIN}" 2>/dev/null || true)
+WF=$(curl -fsSL \
+	"https://${ACCOUNT_DOMAIN}/.well-known/webfinger?resource=acct:${GTS_USERNAME}@${ACCOUNT_DOMAIN}" \
+	2>/dev/null || true)
 if echo "$WF" | jq -e '.subject' &>/dev/null; then
 	info "WebFinger OK: $(echo "$WF" | jq -r '.subject')"
 else
-	warn "WebFinger returned unexpected result — check your Vercel redirect."
+	warn "WebFinger probe failed — check the Vercel redirect at ewancroft.uk."
 fi
 
 info "Verifying actor public key..."
-ACTOR=$(curl -fsSL -H 'Accept: application/activity+json' "https://${AP_HOSTNAME}/users/${GTS_USERNAME}" 2>/dev/null || true)
+ACTOR=$(curl -fsSL -H 'Accept: application/activity+json' \
+	"https://${AP_HOSTNAME}/users/${GTS_USERNAME}" 2>/dev/null || true)
 if echo "$ACTOR" | jq -e '.publicKey.publicKeyPem' &>/dev/null; then
 	ACTOR_KEY=$(echo "$ACTOR" | jq -r '.publicKey.publicKeyPem')
 	if [[ "$ACTOR_KEY" == "$PUBLIC_KEY" ]]; then
-		info "Actor public key matches GTS original. Identity preserved."
+		info "Actor public key matches GTS original. ✓  Identity preserved."
 	else
-		warn "Public key mismatch — Sharkey may not have reloaded yet. Try: systemctl restart sharkey"
+		warn "Public key mismatch — Sharkey may be caching its generated key."
+		warn "Try:  systemctl restart sharkey  and re-run the verify block."
 	fi
 else
-	warn "Could not retrieve actor JSON — Sharkey may still be starting up."
+	warn "Could not fetch actor JSON — Sharkey may still be starting up."
 fi
 
 echo ""
-info "Done. Key backup retained at: ${KEY_BACKUP}"
+info "Done. Key backup at: ${KEY_BACKUP}"
