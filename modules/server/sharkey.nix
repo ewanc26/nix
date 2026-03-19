@@ -86,10 +86,7 @@ lib.mkIf cfg.services.sharkey.enable {
       Restart = lib.mkForce "always";
       RestartSec = cfg.server.servicePolicy.restartSec;
     };
-    unitConfig = {
-      StartLimitIntervalSec = cfg.server.servicePolicy.startLimitIntervalSec;
-      StartLimitBurst = cfg.server.servicePolicy.startLimitBurst;
-    };
+
   };
 
   # ── Caddy vhost — same pattern as every other CF-tunnel service ───────────
