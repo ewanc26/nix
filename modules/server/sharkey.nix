@@ -12,13 +12,16 @@
 #    WebFinger redirect at ewancroft.uk (Vercel) still points to
 #    ap.ewancroft.uk, so handles resolve as @ewan@ewancroft.uk unchanged.
 #
-#  PostgreSQL + Redis:
-#    services.sharkey.setupPostgresql and setupRedis both default to true in
-#    nixpkgs, so local instances are provisioned and wired automatically.
+#  PostgreSQL + Redis + Meilisearch:
+#    services.sharkey.setupPostgresql, setupRedis, and setupMeilisearch are all
+#    enabled. setupMeilisearch starts a local Meilisearch instance on port 7700
+#    and wires it into Sharkey's config automatically via the NixOS module.
 #
 #  Secrets (secrets/sharkey.env — sops dotenv):
 #    MK_CONFIG_DB_PASS=...       PostgreSQL password for the sharkey user
-#    MK_CONFIG_SMTP_PASS=...     Resend API key
+#
+#  SMTP is configured via Admin → Settings → Email in the Sharkey web UI,
+#  NOT via the YAML config. There is no smtp key in the config schema.
 #
 #  First-run:
 #    Open https://ap.ewancroft.uk — Sharkey prompts for initial setup.
@@ -59,9 +62,13 @@ lib.mkIf cfg.services.sharkey.enable {
     environmentFiles = [ config.sops.secrets."sharkey.env".path ];
 
     # Automatically provision a local PostgreSQL database and Redis instance.
-    # Both default to true in nixpkgs — kept explicit here for clarity.
     setupPostgresql = true;
     setupRedis = true;
+
+    # Meilisearch full-text search — local instance managed by the NixOS module.
+    # Starts services.meilisearch on localhost:7700 and wires the API key automatically.
+    setupMeilisearch = true;
+
     openFirewall = false;
 
     settings = {
@@ -71,18 +78,21 @@ lib.mkIf cfg.services.sharkey.enable {
       port = sk.port;
       address = "127.0.0.1";
 
+      # ID generation algorithm — do NOT change after initial setup.
+      # Changing this after data exists will corrupt existing record IDs.
+      id = "aidx";
+
+      # Full-text search via Meilisearch — local instance on localhost:7700.
+      # setupMeilisearch = true above provisions the service and API key automatically.
+      fulltextSearch.provider = "meilisearch";
+
       # Media storage on /srv — survives rebuilds, same disk as other services.
       mediaDirectory = sk.mediaDir;
 
-      # SMTP via Resend — for password resets / notifications.
-      # Password injected via MK_CONFIG_SMTP_PASS in the env file.
-      smtp = {
-        host = "smtp.resend.com";
-        port = 587;
-        secure = false; # STARTTLS
-        user = "resend";
-        from = "sharkey@server.ewancroft.uk";
-      };
+      # NOTE: SMTP / email is NOT configured here.
+      # Sharkey stores email server settings in the database, configured via
+      # Admin → Settings → Email in the web UI. There is no smtp key in the
+      # Sharkey YAML config schema.
     };
   };
 
