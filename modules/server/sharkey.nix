@@ -61,11 +61,21 @@ lib.mkIf cfg.services.sharkey.enable {
     mode = "0400";
   };
 
+  # Declare meilisearch user/group statically so sops-nix can resolve the
+  # owner at activation time (same pattern as sharkey above).
+  users.users.meilisearch = {
+    isSystemUser = true;
+    group = "meilisearch";
+  };
+  users.groups.meilisearch = { };
+
   services.meilisearch = {
     masterKeyFile = config.sops.secrets."meilisearch-master-key".path;
-    environment = "production";
     listenAddress = "127.0.0.1";
-    noAnalytics = true;
+    settings = {
+      env = "production";
+      no_analytics = true;
+    };
   };
 
   sops.secrets."sharkey.env" = {
