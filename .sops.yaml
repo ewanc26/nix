@@ -27,7 +27,7 @@ keys:
 creation_rules:
   # ── Secrets available on all machines ──────────────────────────────────────
   # ── Server-only secrets ─────────────────────────────────────────────────────
-  - path_regex: secrets/(pds\.env|cloudflare\.token|cloudflare-acme\.env|cloudflare-acme-croft-click\.env|cf-tunnel\.json|forgejo\.env|nextcloud-admin-pass|nextcloud-smtp-pass|vaultwarden\.env|sharkey\.env|meilisearch-master-key\.env)$
+  - path_regex: secrets/(pds\.env|cloudflare\.token|cloudflare-acme\.env|cloudflare-acme-croft-click\.env|cf-tunnel\.json|forgejo\.env|nextcloud-admin-pass|nextcloud-smtp-pass|vaultwarden\.env|sharkey\.env|meilisearch-master-key)$
     key_groups:
       - age:
           - *ewan

@@ -28,6 +28,7 @@ result-*
 !/secrets/nextcloud-smtp-pass
 !/secrets/forgejo-user-token
 !/secrets/smartd-smtp-pass
+!/secrets/meilisearch-master-key
 
 # 2.1 will need to re-auth on 29 May, 2026 as per Tailscale maximum 90-day window.
 !/secrets/tailscale-auth-key
