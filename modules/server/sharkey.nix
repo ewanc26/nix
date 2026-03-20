@@ -49,6 +49,24 @@ lib.mkIf cfg.services.sharkey.enable {
   };
   users.groups.sharkey = { };
 
+  # Meilisearch master key — file must contain: MEILI_MASTER_KEY=<value>
+  # Generate: openssl rand -base64 32
+  # Then: echo "MEILI_MASTER_KEY=$(openssl rand -base64 32)" | sops --encrypt --input-type dotenv --output-type dotenv /dev/stdin > secrets/meilisearch-master-key.env
+  sops.secrets."meilisearch-master-key.env" = {
+    sopsFile = ../../secrets/meilisearch-master-key.env;
+    format = "dotenv";
+    owner = "meilisearch";
+    group = "meilisearch";
+    mode = "0400";
+  };
+
+  services.meilisearch = {
+    masterKeyEnvironmentFile = config.sops.secrets."meilisearch-master-key.env".path;
+    environment = "production";
+    listenAddress = "127.0.0.1";
+    noAnalytics = true;
+  };
+
   sops.secrets."sharkey.env" = {
     sopsFile = ../../secrets/sharkey.env;
     format = "dotenv";
