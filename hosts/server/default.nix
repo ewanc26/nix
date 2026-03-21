@@ -30,16 +30,16 @@ in
   myConfig.services.nextcloud.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.immich.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.jellyfin.enable = true; # Tailnet-only — not in CF tunnel
-  myConfig.services.pds.enable = true;
+  myConfig.services.pds.enable = false;
   myConfig.pds.serviceHandleDomains = [
     ".pds.ewancroft.uk"
     ".pds.croft.click"
   ];
-  myConfig.services.pdsGatekeeper.enable = true;
+  myConfig.services.pdsGatekeeper.enable = false;
   myConfig.services.cloudflare.enable = true;
   myConfig.services.vaultwarden.enable = true; # Tailnet-only — password manager, never public
   myConfig.services.timemachine.enable = true; # Tailnet-only — Time Machine AFP target
-  myConfig.services.sharkey.enable = true;
+  myConfig.services.sharkey.enable = false;
 
   # Ignore laptop lid — treat as headless, never suspend.
   services.logind.settings.Login = {

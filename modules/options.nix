@@ -663,8 +663,8 @@ in
     sharkey = {
       hostname = mkOption {
         type = str;
-        default = "ap.ewancroft.uk";
-        description = "Public hostname for Sharkey (same as the old GTS host to preserve actor URLs).";
+        default = "sharkey.ewancroft.uk";
+        description = "Public hostname for Sharkey.";
       };
       port = mkOption {
         type = int;
