@@ -1,6 +1,6 @@
 # Nix Configuration
 
-v0.5.0
+v0.6.0
 
 Personal NixOS and nix-darwin configurations for managing multiple
 machines with a unified, centralized setup.
@@ -138,12 +138,12 @@ Service and interface information is extracted automatically from the NixOS conf
 
 ```bash
 # Examples of what to edit
-nano modules/options.nix           # Username, timezone, packages, themes, etc.
-nano hosts/laptop/default.nix      # Enable gaming, desktop mode, etc.
-nano hosts/server/default.nix      # Enable server services
-nano topology.nix                  # Physical network connections
-nano settings/darwin/default.nix   # macOS Dock, Finder, trackpad
-nano settings/plasma/default.nix   # KDE Plasma layout and behaviour
+nano modules/options.nix                      # Username, timezone, packages, themes, etc.
+nano hosts/laptop/default.nix                 # Enable gaming, desktop mode, etc.
+nano hosts/server/default.nix                 # Enable server services
+nano topology.nix                             # Physical network connections
+nano modules/darwin/settings/default.nix      # macOS Dock, Finder, trackpad
+nano home/settings/plasma.nix                 # KDE Plasma layout and behaviour
 ```
 
 See [`docs/settings.md`](docs/settings.md) for the full guide and
