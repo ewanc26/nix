@@ -24,6 +24,13 @@ in
 
   programs.zsh.enable = true;
 
+  # Allow the nixos-upgrade service (runs as root) to read the flake repo
+  # owned by the regular user. Without this, git 2.35.2+ refuses to open
+  # repos not owned by the calling user (CVE-2022-24765 mitigation).
+  system.activationScripts.nixosUpgradeGitSafeDir = ''
+    ${pkgs.git}/bin/git config --global --add safe.directory /home/${cfg.user.username}/.config/nix-config
+  '';
+
   # Symlink tracked hooks into .git/hooks so they're always up to date.
   system.activationScripts.installGitHooks = ''
     REPO="/home/${cfg.user.username}/.config/nix-config"
