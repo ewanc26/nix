@@ -219,6 +219,23 @@ lib.mkIf cfg.services.nextcloud.enable {
     "request_terminate_timeout" = "3600";
   };
 
+  # nextcloud-occ internally calls systemd-run to execute as the nextcloud user,
+  # which requires polkit permission to start transient units. On a headless
+  # server with no interactive session polkit denies this by default — this rule
+  # grants the nextcloud system user the minimum necessary permission.
+  security.polkit.enable = true;
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (
+        (action.id === "org.freedesktop.systemd1.manage-units" ||
+         action.id === "org.freedesktop.systemd1.manage-unit-files") &&
+        subject.user === "nextcloud"
+      ) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
+
   # Periodically scan the data directory so files added directly to /srv
   # or written by co-located services (Immich, Jellyfin) are picked up by Nextcloud.
   systemd.services.nextcloud-files-scan = {
