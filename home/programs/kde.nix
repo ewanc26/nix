@@ -14,21 +14,21 @@ let
 in
 {
   imports = [
-    ../../settings/plasma
+    ../settings/plasma.nix
   ];
 
   # ── Wallpaper systemd user service ─────────────────────────────────────────
   systemd.user.services.set-plasma-wallpaper = {
     Unit = {
       Description = "Apply KDE Plasma wallpaper";
-      After       = [ "plasma-plasmashell.service" ];
-      PartOf      = [ "graphical-session.target" ];
+      After = [ "plasma-plasmashell.service" ];
+      PartOf = [ "graphical-session.target" ];
     };
     Service = {
-      Type      = "oneshot";
+      Type = "oneshot";
       ExecStart = "${pkgs.kdePackages.plasma-workspace}/bin/plasma-apply-wallpaperimage ${wallpaper}";
       # Restart on failure in case plasmashell wasn't fully ready yet
-      Restart    = "on-failure";
+      Restart = "on-failure";
       RestartSec = "2s";
     };
     Install = {

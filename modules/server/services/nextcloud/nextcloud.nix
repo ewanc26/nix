@@ -52,7 +52,7 @@ in
 lib.mkIf cfg.services.nextcloud.enable {
 
   sops.secrets."nextcloud-smtp-pass" = {
-    sopsFile = ../../secrets/nextcloud-smtp-pass;
+    sopsFile = ../../../../secrets/nextcloud-smtp-pass;
     format = "binary";
     owner = "nextcloud";
     group = "nextcloud";
@@ -60,7 +60,7 @@ lib.mkIf cfg.services.nextcloud.enable {
   };
 
   sops.secrets."nextcloud-admin-pass" = {
-    sopsFile = ../../secrets/nextcloud-admin-pass;
+    sopsFile = ../../../../secrets/nextcloud-admin-pass;
     format = "binary";
     owner = "nextcloud";
     group = "nextcloud";

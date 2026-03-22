@@ -100,7 +100,7 @@ let
 in
 {
   sops.secrets."smartd-smtp-pass" = {
-    sopsFile = ../../secrets/smartd-smtp-pass;
+    sopsFile = ../../../../secrets/smartd-smtp-pass;
     format = "binary";
     owner = "root";
     mode = "0400";

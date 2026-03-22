@@ -2,9 +2,9 @@
 {
   imports = [
     ./server-base.nix
-    ../modules/server/ssh.nix
-    ../modules/server/intrusion.nix
-    ../modules/server/firewall.nix
+    ../server/infra/security/ssh.nix
+    ../server/infra/security/intrusion.nix
+    ../server/infra/network/firewall.nix
   ];
 
   # Headless — no display manager, no getty on tty1.

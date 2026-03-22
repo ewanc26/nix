@@ -1,12 +1,18 @@
 # Secrets Management
 
-Encrypted secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix) using [age](https://age-encryption.org/) as the encryption backend. Secrets are decrypted at activation time and referenced via `config.sops.secrets.<name>.path` (system-level) or `config.sops.secrets.<name>.path` inside home-manager.
+Encrypted secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix) using
+[age](https://age-encryption.org/) as the encryption backend. Secrets are decrypted at
+activation time and referenced via `config.sops.secrets.<name>.path`.
 
 ## How it works
 
-- Each secret file is committed to the repo **already encrypted** — it is useless without the private key.
-- `sops` uses the rules in `.sops.yaml` at the repo root to know which age keys can decrypt each file.
-- On NixOS hosts, `sops-nix` decrypts secrets at activation using the host's `/etc/ssh/ssh_host_ed25519_key` (automatically converted to an age key). No separate key file is needed on the system itself.
+- Each secret file is committed to the repo **already encrypted** — it is useless without
+  the private key.
+- `sops` uses the rules in `.sops.yaml` at the repo root to know which age keys can decrypt
+  each file.
+- On NixOS hosts, `sops-nix` decrypts secrets at activation using the host's
+  `/etc/ssh/ssh_host_ed25519_key` (automatically converted to an age key). No separate key
+  file is needed on the system itself.
 - On macOS, your personal age key (`~/.config/age/keys.txt`) is used.
 
 ## Key inventory
@@ -14,7 +20,7 @@ Encrypted secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix)
 Keys are declared in `.sops.yaml`:
 
 | Name | Type | Location |
-|---|---|---|
+| --- | --- | --- |
 | `ewan` | User (personal) | `~/.config/age/keys.txt` |
 | `macmini` | Host | `/etc/ssh/ssh_host_ed25519_key` on macmini |
 | `laptop` | Host | `/etc/ssh/ssh_host_ed25519_key` on laptop |
@@ -48,14 +54,15 @@ sops --encrypt /tmp/my-secret.env > secrets/my-secret.env
 rm /tmp/my-secret.env
 ```
 
-`sops` reads `.sops.yaml` automatically and encrypts for the correct recipients based on the filename.
+`sops` reads `.sops.yaml` automatically and encrypts for the correct recipients based on
+the filename.
 
 ### 2. Declare it in the NixOS module that uses it
 
 ```nix
-# e.g. modules/my-service.nix
+# e.g. modules/server/services/my-service/my-service.nix
 sops.secrets."my-secret.env" = {
-  sopsFile = ../secrets/my-secret.env;
+  sopsFile = ../../../../secrets/my-secret.env;
   format   = "binary";   # for env files / raw content
   owner    = "my-service";
   mode     = "0400";
@@ -66,7 +73,7 @@ For structured files (YAML/JSON/dotenv), you can also extract individual keys:
 
 ```nix
 sops.secrets."my-service/api-key" = {
-  sopsFile = ../secrets/my-service.yaml;
+  sopsFile = ../../../../secrets/my-service.yaml;
   # sops-nix extracts the "my-service/api-key" key automatically
 };
 ```
@@ -97,11 +104,13 @@ sops.secrets."claude-config" = {
 };
 ```
 
-The `path` field places the decrypted file at a specific location rather than `/run/user/<uid>/secrets/`.
+The `path` field places the decrypted file at a specific location rather than
+`/run/user/<uid>/secrets/`.
 
 ## Adding a new host
 
-When a new machine is provisioned, its SSH host key must be added to `.sops.yaml` so it can decrypt the secrets it needs.
+When a new machine is provisioned, its SSH host key must be added to `.sops.yaml` so it
+can decrypt the secrets it needs.
 
 ```bash
 # 1. Get the host's age public key from its SSH host key
@@ -121,35 +130,48 @@ sops updatekeys secrets/cf-tunnel.json
 ## Existing secrets
 
 | File | Purpose | Accessible by |
-|---|---|---|
-| `secrets/docker-config.json` | Docker Hub credentials | all hosts |
-| `secrets/claude.json` | Claude API / config | all hosts |
-| `secrets/duckdns.tar.gz` | DuckDNS config bundle | all hosts |
+| --- | --- | --- |
 | `secrets/pds.env` | Bluesky PDS runtime secrets | ewan + server |
-| `secrets/matrix.env` | Matrix Synapse secrets | ewan + server |
 | `secrets/forgejo.env` | Forgejo `SECRET_KEY` etc. | ewan + server |
 | `secrets/cf-tunnel.json` | Cloudflare tunnel credentials | ewan + server |
+| `secrets/cloudflare-acme.env` | Cloudflare DNS-01 token (ewancroft.uk) | ewan + server |
+| `secrets/cloudflare-acme-croft-click.env` | Cloudflare DNS-01 token (croft.click) | ewan + server |
+| `secrets/cloudflare.token` | Cloudflare API token | ewan + server |
+| `secrets/forgejo-user-token` | Forgejo user API token | ewan + server |
+| `secrets/meilisearch-master-key` | Meilisearch master key | ewan + server |
+| `secrets/nextcloud-admin-pass` | Nextcloud initial admin password | ewan + server |
+| `secrets/nextcloud-smtp-pass` | Nextcloud SMTP (Resend) API key | ewan + server |
+| `secrets/smartd-smtp-pass` | smartd alert SMTP (Resend) API key | ewan + server |
+| `secrets/tailscale-auth-key` | Tailscale auth key | ewan + server |
+| `secrets/vaultwarden.env` | Vaultwarden admin token + SMTP key | ewan + server |
 
 ## Security rules
 
-1. `~/.config/age/keys.txt` is your personal private key — treat it like an SSH private key. Never commit it.
-2. Sync it to other machines via `scp` over Tailscale: `scp ~/.config/age/keys.txt ewan@laptop:~/.config/age/keys.txt`
-3. Encrypted secret files (in `secrets/`) **are** committed to git — they are useless without a matching private key.
-4. Host keys are derived from the host's SSH `ed25519` host key and are never stored anywhere beyond the key itself.
+1. `~/.config/age/keys.txt` is your personal private key — treat it like an SSH private
+   key. Never commit it.
+2. Sync it to other machines via `scp` over Tailscale:
+   `scp ~/.config/age/keys.txt ewan@laptop:~/.config/age/keys.txt`
+3. Encrypted secret files (in `secrets/`) **are** committed to git — they are useless
+   without a matching private key.
+4. Host keys are derived from the host's SSH `ed25519` host key and are never stored
+   anywhere beyond the key itself.
 
 ## Troubleshooting
 
 | Error | Cause | Fix |
-|---|---|---|
+| --- | --- | --- |
 | `no matching keys` | Secret not encrypted for this key | Add key to `.sops.yaml`, run `sops updatekeys <file>` |
 | `key not found` | Missing `~/.config/age/keys.txt` or host SSH key | Restore key or re-derive host key |
 | `failed to decrypt` | Wrong key or corrupted file | Verify key with `age-keygen --to-public-key` |
 | Secret path is empty | sops-nix activation failed | Check `journalctl -b \| grep sops` |
-| `attribute '<user>' missing` at eval time | Secret has `owner = "<user>"` but the service uses `DynamicUser` in its systemd unit, so no static entry exists in `config.users.users` | Declare the user/group explicitly (see below) |
+| `attribute '<user>' missing` at eval time | Secret owner uses `DynamicUser` — no static user entry exists | Declare the user/group explicitly (see below) |
 
 ### DynamicUser services and sops-nix
 
-Some NixOS services (including `cloudflared`) use systemd's `DynamicUser = true`, which means they do **not** create a static entry in `config.users.users`. sops-nix tries to derive `group` from that attribute at evaluation time and fails with `attribute '<user>' missing`.
+Some NixOS services (including `cloudflared`) use systemd's `DynamicUser = true`, which
+means they do **not** create a static entry in `config.users.users`. sops-nix tries to
+derive `group` from that attribute at evaluation time and fails with
+`attribute '<user>' missing`.
 
 Fix: explicitly declare the user and group alongside the secret:
 
@@ -161,7 +183,7 @@ users.users.cloudflared = {
 users.groups.cloudflared = { };
 
 sops.secrets."cf-tunnel.json" = {
-  sopsFile = ../secrets/cf-tunnel.json;
+  sopsFile = ../../../../secrets/cf-tunnel.json;
   format   = "binary";
   owner    = "cloudflared";
   group    = "cloudflared"; # must be set explicitly — cannot be derived from DynamicUser
@@ -169,4 +191,4 @@ sops.secrets."cf-tunnel.json" = {
 };
 ```
 
-This pattern is already applied in `modules/cloudflare-tunnel.nix`.
+This pattern is already applied in `modules/server/infra/network/cloudflare-tunnel.nix`.

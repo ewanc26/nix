@@ -55,7 +55,7 @@ in
   # containing the raw token value only (no KEY= prefix, no trailing newline).
   # The token needs Zone.DNS edit permission for ewancroft.uk.
   sops.secrets."cloudflare-acme.env" = lib.mkIf hasTailnet {
-    sopsFile = ../../secrets/cloudflare-acme.env;
+    sopsFile = ../../../../secrets/cloudflare-acme.env;
     format = "binary";
     owner = "acme";
     mode = "0440";
@@ -63,7 +63,7 @@ in
 
   # Separate token for the croft.click zone — needed to issue *.pds.croft.click.
   sops.secrets."cloudflare-acme-croft-click.env" = {
-    sopsFile = ../../secrets/cloudflare-acme-croft-click.env;
+    sopsFile = ../../../../secrets/cloudflare-acme-croft-click.env;
     format = "binary";
     owner = "acme";
     mode = "0440";

@@ -5,7 +5,7 @@
 }:
 let
   cfg = config.myConfig;
-  resolvePackages = (import ../../lib).resolveFrom pkgs;
+  resolvePackages = (import ../../../../lib).resolveFrom pkgs;
 in
 {
   environment.systemPackages =

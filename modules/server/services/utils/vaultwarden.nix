@@ -45,7 +45,7 @@ lib.mkIf cfg.services.vaultwarden.enable {
 
   # ── Secrets ───────────────────────────────────────────────────────────────
   sops.secrets."vaultwarden.env" = {
-    sopsFile = ../../secrets/vaultwarden.env;
+    sopsFile = ../../../../secrets/vaultwarden.env;
     format = "dotenv";
     owner = "vaultwarden";
     group = "vaultwarden";

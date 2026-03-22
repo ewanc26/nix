@@ -9,20 +9,20 @@ in
   imports = [
     ./minimal-hardware.nix
     ../../modules/users.nix
-    ../../modules/server/caddy.nix
-    ../../modules/server/split-dns.nix
-    ../../modules/server/cloudflare-tunnel.nix
-    ../../modules/server/pds.nix
-    ../../modules/server/pds-gatekeeper.nix
-    ../../modules/server/forgejo.nix
-    ../../modules/server/nextcloud.nix
-    ../../modules/server/immich.nix
-    ../../modules/server/jellyfin.nix
-    ../../modules/server/grafana.nix
-    ../../modules/server/vaultwarden.nix
-    ../../modules/server/timemachine.nix
-    ../../modules/server/sharkey.nix
-    ../../profiles/server-hardened.nix
+    ../../modules/server/infra/network/caddy.nix
+    ../../modules/server/infra/network/split-dns.nix
+    ../../modules/server/infra/network/cloudflare-tunnel.nix
+    ../../modules/server/services/atproto/pds.nix
+    ../../modules/server/services/atproto/pds-gatekeeper.nix
+    ../../modules/server/services/forge/forgejo.nix
+    ../../modules/server/services/nextcloud/nextcloud.nix
+    ../../modules/server/services/media/immich.nix
+    ../../modules/server/services/media/jellyfin.nix
+    ../../modules/server/services/observability/grafana.nix
+    ../../modules/server/services/utils/vaultwarden.nix
+    ../../modules/server/services/utils/timemachine.nix
+    ../../modules/server/services/fediverse/sharkey.nix
+    ../../modules/profiles/server-hardened.nix
   ];
 
   # Service toggles

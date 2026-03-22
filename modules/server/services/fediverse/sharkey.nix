@@ -402,7 +402,7 @@ in
         users.groups.meilisearch = { };
 
         sops.secrets."meilisearch-master-key" = {
-          sopsFile = ../../secrets/meilisearch-master-key;
+          sopsFile = ../../../../secrets/meilisearch-master-key;
           format = "binary";
           owner = "meilisearch";
           group = "meilisearch";

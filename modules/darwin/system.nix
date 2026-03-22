@@ -7,7 +7,7 @@ let
 in
 {
   imports = [
-    ../../settings/darwin
+    ./settings
   ];
 
   # Keyboard – driven from myConfig.darwin.keyboard
