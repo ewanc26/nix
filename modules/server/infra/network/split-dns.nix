@@ -70,6 +70,22 @@ lib.mkIf (tsIP != "") {
     '';
   };
 
+  # CoreDNS systemd ordering and restart config.
+  # Bind address is the Tailscale IP, so we must wait for both tailscaled
+  # and network-online.target before starting. RestartSec gives Tailscale
+  # enough time to bring up the interface before CoreDNS retries.
+  systemd.services.coredns = {
+    after = [
+      "tailscaled.service"
+      "network-online.target"
+    ];
+    wants = [ "network-online.target" ];
+    serviceConfig = {
+      Restart = lib.mkForce "on-failure";
+      RestartSec = lib.mkDefault "10s";
+    };
+  };
+
   # Allow DNS from tailnet devices on the Tailscale interface only.
   # Port 53 is NOT added to the global allowedTCPPorts/allowedUDPPorts,
   # so it remains inaccessible from the public internet.
