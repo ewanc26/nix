@@ -49,7 +49,11 @@ in
       "network-online.target"
     ]
     ++ lib.optional hasTailnet "acme-ewancroft.uk.service";
-    wants = [ "network-online.target" ] ++ lib.optional hasTailnet "acme-ewancroft.uk.service";
+    wants = [
+      "tailscaled.service"
+      "network-online.target"
+    ]
+    ++ lib.optional hasTailnet "acme-ewancroft.uk.service";
   };
 
   # ── ACME wildcard cert for tailnet vhosts ─────────────────────────────────
