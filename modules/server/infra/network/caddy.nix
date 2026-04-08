@@ -37,11 +37,11 @@ in
 
   # ── Wait for Tailscale interface to be ready ───────────────────────────────
   # tailscaled.service starting doesn't mean the interface has its IP yet.
-  # This service blocks until the Tailscale interface is up and has the expected IP.
+  # This service waits for the interface, but doesn't fail if it times out —
+  # Caddy has Restart=always and will retry until the interface is available.
   systemd.services.tailscale-ready = lib.mkIf hasTailnet {
     description = "Wait for Tailscale interface to be ready";
     after = [ "tailscaled.service" ];
-    bindsTo = [ "tailscaled.service" ];
     wantedBy = [ "multi-user.target" ];
     before = [ "caddy.service" ];
     serviceConfig = {
@@ -50,22 +50,15 @@ in
     };
     script = ''
       echo "Waiting for Tailscale interface to be ready..."
-      for i in $(seq 1 60); do
-        # Check if tailscale0 exists with the expected IP
+      for i in $(seq 1 30); do
         if ip addr show tailscale0 2>/dev/null | grep -q "${cfg.server.tailscaleIP}"; then
           echo "Tailscale interface ready with IP ${cfg.server.tailscaleIP}"
           exit 0
         fi
-        # If tailscaled is still starting/restarting, wait for it
-        if systemctl is-active --quiet tailscaled.service; then
-          echo "tailscaled is active, waiting for interface..."
-        else
-          echo "tailscaled not yet active, waiting..."
-        fi
         sleep 1
       done
-      echo "Timed out waiting for Tailscale interface"
-      exit 1
+      echo "Timed out waiting for Tailscale interface — Caddy will retry"
+      exit 0
     '';
   };
 
