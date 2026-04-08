@@ -71,15 +71,18 @@ lib.mkIf (tsIP != "") {
   };
 
   # CoreDNS systemd ordering and restart config.
-  # Bind address is the Tailscale IP, so we must wait for both tailscaled
-  # and network-online.target before starting. RestartSec gives Tailscale
-  # enough time to bring up the interface before CoreDNS retries.
+  # Bind address is the Tailscale IP, so we must wait for the Tailscale
+  # interface to be ready before starting.
   systemd.services.coredns = {
     after = [
       "tailscaled.service"
       "network-online.target"
+      "tailscale-ready.service"
     ];
-    wants = [ "network-online.target" ];
+    wants = [
+      "network-online.target"
+      "tailscale-ready.service"
+    ];
     serviceConfig = {
       Restart = lib.mkForce "on-failure";
       RestartSec = lib.mkDefault "10s";

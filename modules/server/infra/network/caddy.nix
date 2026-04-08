@@ -35,6 +35,33 @@ in
     '';
   };
 
+  # ── Wait for Tailscale interface to be ready ───────────────────────────────
+  # tailscaled.service starting doesn't mean the interface has its IP yet.
+  # This service blocks until the Tailscale interface is up and has the expected IP.
+  systemd.services.tailscale-ready = lib.mkIf hasTailnet {
+    description = "Wait for Tailscale interface to be ready";
+    after = [ "tailscaled.service" ];
+    wants = [ "tailscaled.service" ];
+    wantedBy = [ "multi-user.target" ];
+    before = [ "caddy.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      echo "Waiting for Tailscale interface to be ready..."
+      for i in $(seq 1 30); do
+        if ip addr show tailscale0 2>/dev/null | grep -q "${cfg.server.tailscaleIP}"; then
+          echo "Tailscale interface ready with IP ${cfg.server.tailscaleIP}"
+          exit 0
+        fi
+        sleep 1
+      done
+      echo "Timed out waiting for Tailscale interface"
+      exit 1
+    '';
+  };
+
   # ── Caddy systemd service tweaks ──────────────────────────────────────────
   systemd.services.caddy = {
     serviceConfig = {
@@ -42,18 +69,23 @@ in
       RestartSec = lib.mkDefault "5s";
     };
     # Ensure the ACME wildcard cert exists before Caddy starts, that
-    # Tailscaled is up, and that network-online.target has been reached so
-    # the Tailscale interface (and its bind address) actually exists.
+    # Tailscaled is up, and that the Tailscale interface is ready with its IP.
     after = [
       "tailscaled.service"
       "network-online.target"
     ]
-    ++ lib.optional hasTailnet "acme-ewancroft.uk.service";
+    ++ lib.optionals hasTailnet [
+      "tailscale-ready.service"
+      "acme-ewancroft.uk.service"
+    ];
     wants = [
       "tailscaled.service"
       "network-online.target"
     ]
-    ++ lib.optional hasTailnet "acme-ewancroft.uk.service";
+    ++ lib.optionals hasTailnet [
+      "tailscale-ready.service"
+      "acme-ewancroft.uk.service"
+    ];
   };
 
   # ── ACME wildcard cert for tailnet vhosts ─────────────────────────────────
