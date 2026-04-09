@@ -68,6 +68,13 @@ in
     wheelNeedsPassword = true;
   };
 
+  # Global git config for root (needed by nixos-upgrade to commit lock files)
+  environment.etc."gitconfig".text = ''
+    [user]
+      name = NixOS Upgrade
+      email = root@server.local
+  '';
+
   # Don't commit flake.lock on the server — it never pushes, so local commits
   # would just diverge from the laptop's pushed updates.
   system.autoUpgrade.flags = [
