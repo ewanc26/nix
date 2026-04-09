@@ -30,7 +30,8 @@ print_error() {
 if [[ "$OSTYPE" == "darwin"* ]]; then
     IS_DARWIN=true
     PLATFORM="macOS"
-    HOSTNAME=$(scutil --get ComputerName 2>/dev/null || hostname)
+    # Use explicit hostname to match darwinConfiguration name in flake.nix
+    HOSTNAME="macmini"
 else
     IS_DARWIN=false
     PLATFORM="NixOS"

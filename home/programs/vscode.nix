@@ -31,6 +31,7 @@ let
     "jnoortheen.nix-ide"
     "ms-python.python"
     "ms-python.debugpy"
+    "charliermarsh.ruff"
     "rust-lang.rust-analyzer"
     "ms-dotnettools.csharp"
     "ms-dotnettools.csdevkit"
@@ -60,8 +61,7 @@ in
     enable = cfg.development.vscode.enable;
 
     profiles.default = {
-      extensions =
-        map toNixpkgsExt nixpkgsExtensions ++ map toMarketplaceExt marketplaceExtensions;
+      extensions = map toNixpkgsExt nixpkgsExtensions ++ map toMarketplaceExt marketplaceExtensions;
 
       userSettings = {
         "workbench.colorTheme" = lib.mkDefault cfg.development.vscode.colorTheme;
