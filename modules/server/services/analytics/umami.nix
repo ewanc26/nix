@@ -11,7 +11,7 @@
 #    User-Agent for daily unique visitor counting, then discards the hash.
 #
 #  Storage:
-#    SQLite database at /srv/umami/umami.db (on the /srv volume).
+#    PostgreSQL database (local, peer auth via unix socket).
 #
 #  Secrets (sops-encrypted, age backend):
 #    secrets/umami.env — KEY=value env file, must contain:
@@ -55,18 +55,36 @@ lib.mkIf cfg.services.umami.enable {
     mode = "0400";
   };
 
+  # ── PostgreSQL database ───────────────────────────────────────────────────
+  services.postgresql = {
+    enable = lib.mkDefault true;
+    ensureDatabases = [ "umami" ];
+    ensureUsers = [
+      {
+        name = "umami";
+        ensureDBOwnership = true;
+      }
+    ];
+  };
+
   # ── Umami service (native) ────────────────────────────────────────────────
   systemd.services.umami = {
     description = "Umami Web Analytics";
     wantedBy = [ "multi-user.target" ];
     after = [
       "network.target"
+      "postgresql.service"
       "srv.mount"
     ];
-    wants = [ "srv.mount" ];
+    wants = [
+      "postgresql.service"
+      "srv.mount"
+    ];
+    requires = [ "postgresql.service" ];
 
     environment = {
-      DATABASE_URL = "file:${dataDir}/umami.db";
+      # PostgreSQL via unix socket (peer auth, no password needed)
+      DATABASE_URL = "postgresql:///umami?host=/run/postgresql";
       HOSTNAME = "127.0.0.1";
       PORT = umamiPort;
       DISABLE_TELEMETRY = "1";
