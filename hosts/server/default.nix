@@ -45,6 +45,7 @@ in
   # ── Umami (native nixpkgs module) ───────────────────────────────────────────
   sops.secrets."umami-app-secret" = {
     sopsFile = ../../secrets/umami-app-secret;
+    format = "binary";
     owner = "umami";
     group = "umami";
     mode = "0400";
