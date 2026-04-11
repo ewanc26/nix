@@ -65,6 +65,9 @@ let
     }
     // lib.optionalAttrs cfg.services.sharkey.enable {
       ${cfg.sharkey.hostname} = "http://127.0.0.1:${toString cfg.sharkey.caddyPort}";
+    }
+    // lib.optionalAttrs cfg.services.umami.enable {
+      ${cfg.umami.hostname} = "http://127.0.0.1:${toString cfg.umami.caddyPort}";
     };
 in
 lib.mkIf cfg.services.cloudflare.enable {
