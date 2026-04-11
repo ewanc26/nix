@@ -445,18 +445,6 @@ in
           description = "Enable Time Machine backup target via Samba vfs_fruit (SMB, Tailscale only).";
         };
       };
-      umami = {
-        enable = mkOption {
-          type = bool;
-          default = false;
-          description = "Enable Umami web analytics.";
-        };
-        public = mkOption {
-          type = bool;
-          default = true;
-          description = "Expose Umami via Cloudflare Tunnel (public). If false, Tailscale only.";
-        };
-      };
     };
 
     # ── Nextcloud ─────────────────────────────────────────────────────────────
@@ -694,31 +682,6 @@ in
         description = "Directory for Sharkey uploaded media (avatars, attachments, etc.)";
       };
     };
-
-    # ── Umami ─────────────────────────────────────────────────────────────────
-    umami = {
-      hostname = mkOption {
-        type = str;
-        default = "analytics.ewancroft.uk";
-        description = "Public hostname for Umami analytics dashboard.";
-      };
-      port = mkOption {
-        type = int;
-        default = 3010;
-        description = "Internal Umami HTTP port.";
-      };
-      caddyPort = mkOption {
-        type = int;
-        default = 3011;
-        description = "Caddy virtual host port — used by the Cloudflare tunnel.";
-      };
-      dataDir = mkOption {
-        type = str;
-        default = "/srv/umami";
-        description = "Directory for Umami database files.";
-      };
-    };
-
     # ── Cloudflare ────────────────────────────────────────────────────────────
     cloudflare = {
       tunnelId = mkOption {

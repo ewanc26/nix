@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   ...
 }:
 let
@@ -22,7 +23,6 @@ in
     ../../modules/server/services/utils/vaultwarden.nix
     ../../modules/server/services/utils/timemachine.nix
     ../../modules/server/services/fediverse/sharkey.nix
-    ../../modules/server/services/analytics/umami.nix
     ../../modules/profiles/server-hardened.nix
   ];
 
@@ -41,7 +41,51 @@ in
   myConfig.services.vaultwarden.enable = true; # Tailnet-only — password manager, never public
   myConfig.services.timemachine.enable = true; # Tailnet-only — Time Machine AFP target
   myConfig.services.sharkey.enable = false;
-  myConfig.services.umami.enable = true;
+
+  # ── Umami (native nixpkgs module) ───────────────────────────────────────────
+  sops.secrets."umami-app-secret" = {
+    sopsFile = ../../secrets/umami-app-secret;
+    owner = "umami";
+    group = "umami";
+    mode = "0400";
+  };
+
+  # Create system user for PostgreSQL peer auth (native module uses DynamicUser)
+  users.users.umami = {
+    isSystemUser = true;
+    group = "umami";
+  };
+  users.groups.umami = { };
+
+  services.umami = {
+    enable = true;
+    settings = {
+      APP_SECRET_FILE = "/run/secrets/umami-app-secret";
+      HOSTNAME = "127.0.0.1";
+      PORT = 3010;
+      DISABLE_TELEMETRY = true;
+    };
+  };
+
+  # Override DynamicUser with static user for PostgreSQL peer auth
+  systemd.services.umami.serviceConfig = {
+    DynamicUser = lib.mkForce false;
+    User = "umami";
+    Group = "umami";
+    LoadCredential = "appSecret:/run/secrets/umami-app-secret";
+  };
+
+  # Caddy reverse proxy for Cloudflare tunnel
+  services.caddy.virtualHosts."http://analytics.ewancroft.uk:3011" = {
+    extraConfig = ''
+      encode zstd gzip
+      reverse_proxy http://127.0.0.1:3010 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+      }
+    '';
+  };
 
   # Ignore laptop lid — treat as headless, never suspend.
   services.logind.settings.Login = {
