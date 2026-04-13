@@ -2,10 +2,9 @@
 #  Split DNS — CoreDNS resolver for *.ewancroft.uk on the Tailscale interface.
 #
 #  Why this exists:
-#    Services like Immich, Jellyfin, and Nextcloud are only accessible via
-#    the Cloudflare Tunnel publicly. Cloudflare imposes a ~100 MiB upload
-#    limit. For tailnet-connected clients (phones, laptops) we want to reach
-#    these services *directly* over the tailnet, bypassing Cloudflare.
+#    Services like Immich and Jellyfin are only accessible via the tailnet.
+#    For tailnet-connected clients (phones, laptops) we want to reach these
+#    services *directly* over the tailnet.
 #
 #  How it works:
 #    CoreDNS listens on the server's Tailscale IP (port 53). When a tailnet
@@ -32,10 +31,9 @@ let
 
   # Build host entries for all enabled Tailnet-routed services.
   # Only services accessed directly over the tailnet belong here — externally
-  # accessible services (Forgejo, PDS) must resolve via public DNS to Cloudflare.
+  # accessible services (Forgejo, PDS, Nextcloud) must resolve via public DNS to Cloudflare.
   hostEntries = lib.concatStringsSep "\n        " (
     lib.optional cfg.services.immich.enable "${tsIP} ${cfg.immich.hostname}"
-    ++ lib.optional cfg.services.nextcloud.enable "${tsIP} ${cfg.nextcloud.hostname}"
     ++ lib.optional cfg.services.jellyfin.enable "${tsIP} ${cfg.jellyfin.hostname}"
     ++ lib.optional cfg.services.vaultwarden.enable "${tsIP} ${cfg.vaultwarden.hostname}"
     ++ [ "${tsIP} ${cfg.server.grafana.hostname}" ]

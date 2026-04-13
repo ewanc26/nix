@@ -90,7 +90,7 @@ in
 
   # ── ACME wildcard cert for tailnet vhosts ─────────────────────────────────
   # Uses Cloudflare DNS-01 so no port needs to be opened. Covers all
-  # *.ewancroft.uk tailnet services (Nextcloud, Immich, Jellyfin, Grafana).
+  # *.ewancroft.uk tailnet services (Immich, Jellyfin, Grafana, Vaultwarden).
   #
   # Prerequisite: create and sops-encrypt secrets/cloudflare-acme.env
   # containing the raw token value only (no KEY= prefix, no trailing newline).

@@ -31,7 +31,7 @@ let
 
   # Build ingress routes based on enabled services.
   # Only route publicly-accessible services through the CF tunnel.
-  # Nextcloud, Immich, and Jellyfin are tailnet-only — they are reachable
+  # Immich and Jellyfin are tailnet-only — they are reachable
   # via split DNS (CoreDNS) directly over the Tailscale network.
   ingressRoutes =
     lib.optionalAttrs cfg.services.pds.enable (
@@ -65,6 +65,9 @@ let
     }
     // lib.optionalAttrs cfg.services.sharkey.enable {
       ${cfg.sharkey.hostname} = "http://127.0.0.1:${toString cfg.sharkey.caddyPort}";
+    }
+    // lib.optionalAttrs cfg.services.nextcloud.enable {
+      ${cfg.nextcloud.hostname} = "http://127.0.0.1:${toString cfg.nextcloud.caddyPort}";
     }
     // lib.optionalAttrs config.services.umami.enable {
       "analytics.ewancroft.uk" = "http://127.0.0.1:3011";

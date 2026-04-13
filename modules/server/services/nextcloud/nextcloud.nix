@@ -26,6 +26,10 @@
 #
 #    The admin password is only used on first install. After that you can
 #    rotate it via the Nextcloud web UI and the file is no longer read.
+#
+#  DNS / Cloudflare:
+#    Route traffic via Cloudflare tunnel. Add a CNAME record in Cloudflare
+#    DNS pointing cloud.ewancroft.uk to <tunnel-id>.cfargotunnel.com.
 ##############################################################################
 {
   config,
@@ -73,8 +77,7 @@ lib.mkIf cfg.services.nextcloud.enable {
     # Store all Nextcloud state (config, apps, data) on the /srv volume.
     home = nc.dataDir;
 
-    # Nextcloud is tailnet-only — TLS is provided by Tailscale's WireGuard.
-    # https = false suppresses nginx SSL config; URLs are plain HTTP.
+    # Cloudflare tunnel terminates TLS — nginx serves plain HTTP.
     https = false;
 
     # Nginx listens on localhost only — Caddy is the only external entry point.
@@ -97,8 +100,7 @@ lib.mkIf cfg.services.nextcloud.enable {
     };
 
     settings = {
-      # Serve over HTTPS — Caddy terminates TLS with a self-signed cert;
-      # Tailscale/WireGuard provides end-to-end encryption on the tailnet.
+      # Serve over HTTPS — Cloudflare tunnel terminates TLS.
       overwriteprotocol = "https";
       "overwrite.cli.url" = "https://${nc.hostname}";
 
@@ -106,9 +108,33 @@ lib.mkIf cfg.services.nextcloud.enable {
 
       # Trust localhost (nginx) and Cloudflare tunnel as reverse proxies.
       # Fixes the "reverse proxy header configuration is incorrect" warning.
+      # Cloudflare IP ranges are documented at:
+      # https://www.cloudflare.com/ips-v4/ and https://www.cloudflare.com/ips-v6/
       trusted_proxies = [
         "127.0.0.1"
         "::1"
+        "173.245.48.0/20"
+        "103.21.244.0/22"
+        "103.22.200.0/22"
+        "103.31.4.0/22"
+        "141.101.64.0/18"
+        "108.162.192.0/18"
+        "190.93.240.0/20"
+        "188.114.96.0/20"
+        "197.234.240.0/22"
+        "198.41.128.0/17"
+        "162.158.0.0/15"
+        "104.16.0.0/13"
+        "104.24.0.0/14"
+        "172.64.0.0/13"
+        "131.0.72.0/22"
+        "2400:cb00::/32"
+        "2606:4700::/32"
+        "2803:f800::/32"
+        "2405:b500::/32"
+        "2405:8100::/32"
+        "2a06:98c0::/29"
+        "2c0f:f248::/32"
       ];
 
       # Run heavy background jobs (cleanup, preview generation etc.) at 2am.
@@ -146,8 +172,6 @@ lib.mkIf cfg.services.nextcloud.enable {
   };
 
   # Pin nginx to localhost — Caddy is the sole external entry point.
-  # forceSSL/addSSL disabled; HSTS header explicitly removed since we serve
-  # plain HTTP over the tailnet (WireGuard handles encryption).
   services.nginx.virtualHosts."${nc.hostname}" = {
     listen = [
       {
@@ -179,21 +203,10 @@ lib.mkIf cfg.services.nextcloud.enable {
     };
   };
 
-  # Tailscale direct route — bypasses Cloudflare (no upload size limit).
-  # Let's Encrypt wildcard cert (*.ewancroft.uk) via Cloudflare DNS-01.
-  # Reachable at https://${nc.hostname} from any tailnet device once split-dns
-  # is configured (see modules/split-dns.nix).
-  services.caddy.virtualHosts."http://${nc.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
+  # Caddy vhost — plain HTTP on caddyPort, proxied via Cloudflare tunnel.
+  # TLS is terminated by Cloudflare; Caddy never sees HTTPS.
+  services.caddy.virtualHosts.":${caddyPort}" = {
     extraConfig = ''
-      bind ${cfg.server.tailscaleIP}
-      redir https://${nc.hostname}{uri} permanent
-    '';
-  };
-
-  services.caddy.virtualHosts."https://${nc.hostname}" = lib.mkIf (cfg.server.tailscaleIP != "") {
-    extraConfig = ''
-      bind ${cfg.server.tailscaleIP}
-      tls ${cfg.server.acmeCertDir}/fullchain.pem ${cfg.server.acmeCertDir}/key.pem
       handle /.meta/* {
         uri strip_prefix /.meta
         root * ${metaFiles}
