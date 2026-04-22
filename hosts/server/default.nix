@@ -28,7 +28,7 @@ in
 
   # Service toggles
   myConfig.services.forgejo.enable = true;
-  myConfig.services.nextcloud.enable = true; # Tailnet-only — not in CF tunnel
+  myConfig.services.nextcloud.enable = true; # Cloudflare tunnel — cloud.ewancroft.uk
   myConfig.services.immich.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.jellyfin.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.pds.enable = false;
