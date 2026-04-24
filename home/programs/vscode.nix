@@ -2,12 +2,14 @@
 {
   pkgs,
   lib,
+  config,
   osConfig,
   ...
 }:
 let
   cfg = osConfig.myConfig;
   d = cfg.desktop;
+  isDarwin = pkgs.stdenv.isDarwin;
 
   # Font strings derived from desktop options — single source of truth.
   editorFont = d.monoFontBase; # "FiraCode"
@@ -55,6 +57,15 @@ let
     "svelte.svelte-vscode"
     "ms-vscode.makefile-tools"
   ];
+
+  # Settings path differs by platform:
+  #   macOS: ~/Library/Application Support/Code/User/settings.json
+  #   NixOS: ~/.config/Code/User/settings.json
+  settingsPath =
+    if isDarwin then
+      "Library/Application Support/Code/User/settings.json"
+    else
+      ".config/Code/User/settings.json";
 in
 {
   programs.vscode = {
@@ -67,8 +78,8 @@ in
     };
   };
 
-  # Writable VS Code settings — symlinked directly from nix-config repo.
+  # Writable VS Code settings — symlinked from nix-config repo.
   # Edit at ~/.config/nix-config/home/programs/vscode/settings.json
-  home.file."Library/Application Support/Code/User/settings.json".source =
-    lib.file.mkOutOfStoreSymlink "${builtins.getEnv "HOME"}/.config/nix-config/home/programs/vscode/settings.json";
+  home.file."${settingsPath}".source =
+    config.lib.file.mkOutOfStoreSymlink "${builtins.getEnv "HOME"}/.config/nix-config/home/programs/vscode/settings.json";
 }
