@@ -460,8 +460,8 @@ in
       };
       caddyPort = mkOption {
         type = int;
-        default = 3003;
-        description = "Caddy virtual host port — used by the Cloudflare tunnel.";
+        default = 3005;
+        description = "Caddy virtual host port — used by the Cloudflare tunnel, kept separate from Immich ML.";
       };
       adminUser = mkOption {
         type = str;
