@@ -215,6 +215,7 @@ in
           "parsec-bin"
           "prismlauncher"
           "bitwarden-desktop"
+          "blender"
         ];
       };
 
@@ -952,6 +953,7 @@ in
             "microsoft-word"
             "nextcloud-vfs"
             "bitwarden"
+            "blender"
           ];
         };
         masApps = mkOption {
