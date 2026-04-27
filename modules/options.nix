@@ -954,6 +954,7 @@ in
             "nextcloud-vfs"
             "bitwarden"
             "blender"
+            "obsidian"
           ];
         };
         masApps = mkOption {
