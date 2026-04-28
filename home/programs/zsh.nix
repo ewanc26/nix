@@ -83,7 +83,14 @@ in
             "sudo darwin-rebuild test --flake ~/.config/nix-config#macmini --verbose"
           else
             "sudo nixos-rebuild test --flake ~/.config/nix-config";
-        hms = "home-manager switch --flake ~/.config/nix-config";
+        hms =
+          if isDarwin then
+            "sudo darwin-rebuild switch --flake ~/.config/nix-config#macmini --verbose"
+          else
+            "home-manager switch --flake ~/.config/nix-config";
+
+        # ── Backup aliases ────────────────────────────────────────────────────
+        obsidian-backup = "cd /Users/ewan/Documents/Obsidian && git add -A && git commit -m \"backup: vault sync $(date +%Y-%m-%d)\" && git push origin && cd -";
 
         # ── Platform-specific extras ──────────────────────────────────────────
         cleanup =
