@@ -923,6 +923,7 @@ in
             "github"
             # Media
             "spotify"
+            "vlc"
             "obs"
             "handbrake-app"
             "transmission"
