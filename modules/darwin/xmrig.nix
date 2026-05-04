@@ -79,7 +79,7 @@ let
   );
 in
 {
-  imports = [ ../../modules/xmrig-options.nix ];
+  imports = [ ../xmrig-options.nix ];
 
   config = lib.mkIf cfg.enable {
     # Make xmrig available system-wide

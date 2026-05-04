@@ -10,7 +10,7 @@ let
   jsonExporterPort = 9399;
 in
 {
-  imports = [ ../../modules/xmrig-options.nix ];
+  imports = [ ../../../xmrig-options.nix ];
 
   config = lib.mkIf cfg.enable {
     services.xmrig = {

