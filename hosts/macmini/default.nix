@@ -24,8 +24,8 @@ in
   myConfig.forgejo.userApiTokenFile = "/Users/${config.myConfig.user.username}/.config/forgejo-user-token";
 
   myConfig.services.xmrig.enable = true;
-  myConfig.services.xmrig.threadsPercent = 50; # M2 thermals are fine
-  myConfig.services.xmrig.randomxMode = "light";
+  myConfig.services.xmrig.threadsPercent = 75; # M2 thermals are fine; pauseOnActive means no contention
+  myConfig.services.xmrig.randomxMode = "fast"; # 16GB RAM — full 2GB dataset fits easily
   myConfig.services.xmrig.pauseOnActive = true;
   myConfig.services.xmrig.pool.user =
     "44yH2LpkSsrSmWQC3SVmrABw2MUhNjNCE365hG7Rr7veJYNPBD1f6dNgXNr2nc6ZcP3jEyj9vXnqmg7VBBPeS8uwMhJ4yXW";

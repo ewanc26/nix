@@ -33,7 +33,7 @@ let
         "1gb-pages" = false;
         rdmsr = false; # macOS doesn't support MSR
         wrmsr = false;
-        numa = true;
+        numa = false; # Apple Silicon has no NUMA topology
         scratchpad_prefetch_mode = 1;
       };
 
@@ -43,7 +43,7 @@ let
         "huge-pages-jit" = false;
         priority = 0; # lowest possible (0–5 scale in xmrig; maps to nice 19 via launchd)
         yield = true;
-        "memory-pool" = false;
+        "memory-pool" = true;
         "max-threads-hint" = cfg.threadsPercent;
         "pause-on-active" = cfg.pauseOnActive;
       };
@@ -79,70 +79,7 @@ let
   );
 in
 {
-  options.myConfig.services.xmrig = {
-    enable = lib.mkEnableOption "XMRig Monero miner";
-
-    threadsPercent = lib.mkOption {
-      type = lib.types.ints.between 1 100;
-      default = 50;
-      description = ''
-        Percentage of CPU threads xmrig may use (1–100).
-        xmrig detects thread count at runtime and applies this cap.
-      '';
-    };
-
-    randomxMode = lib.mkOption {
-      type = lib.types.enum [
-        "auto"
-        "light"
-        "fast"
-      ];
-      default = "light";
-      description = ''
-        RandomX dataset mode.
-          light — ~256 MB RAM, lower hashrate.
-          auto  — picks fast if RAM is available, light otherwise.
-          fast  — ~2 GB RAM, full hashrate.
-      '';
-    };
-
-    pauseOnActive = lib.mkOption {
-      type = lib.types.bool;
-      default = true; # sensible default for a desktop/workstation Mac
-      description = "Pause mining while the machine is actively used.";
-    };
-
-    pool = {
-      url = lib.mkOption {
-        type = lib.types.str;
-        default = "pool.supportxmr.com:443";
-        description = "Stratum pool URL including port.";
-      };
-
-      user = lib.mkOption {
-        type = lib.types.str;
-        description = "Monero wallet address.";
-      };
-
-      pass = lib.mkOption {
-        type = lib.types.str;
-        default = "x";
-        description = "Pool password / worker label.";
-      };
-
-      rigId = lib.mkOption {
-        type = lib.types.str;
-        default = config.networking.hostName;
-        description = "Rig identifier shown on pool dashboard. Defaults to hostname.";
-      };
-
-      tls = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Enable TLS for the pool connection.";
-      };
-    };
-  };
+  imports = [ ../../modules/xmrig-options.nix ];
 
   config = lib.mkIf cfg.enable {
     # Make xmrig available system-wide
