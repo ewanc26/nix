@@ -42,6 +42,11 @@ in
   myConfig.services.vaultwarden.enable = true; # Tailnet-only — password manager, never public
   myConfig.services.timemachine.enable = true; # Tailnet-only — Time Machine AFP target
   myConfig.services.xmrig.enable = true;
+  myConfig.services.xmrig.threadsPercent = 25; # Inspiron thermals — tops out at 95°C
+  myConfig.services.xmrig.randomxMode = "light";
+  myConfig.services.xmrig.pool.user =
+    "44yH2LpkSsrSmWQC3SVmrABw2MUhNjNCE365hG7Rr7veJYNPBD1f6dNgXNr2nc6ZcP3jEyj9vXnqmg7VBBPeS8uwMhJ4yXW";
+  myConfig.services.xmrig.pool.pass = "server";
   myConfig.services.sharkey.enable = false;
 
   # ── Umami (native nixpkgs module) ───────────────────────────────────────────

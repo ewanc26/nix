@@ -12,6 +12,73 @@ in
 {
   options.myConfig.services.xmrig = {
     enable = lib.mkEnableOption "XMRig Monero miner";
+
+    threadsPercent = lib.mkOption {
+      type = lib.types.ints.between 1 100;
+      default = 50;
+      description = ''
+        Percentage of CPU threads xmrig may use (1–100).
+        xmrig detects the thread count at runtime and applies this cap.
+        Lower values reduce thermal load — use 25 on thermally constrained
+        machines (e.g. laptops already running hot).
+      '';
+      example = 25;
+    };
+
+    randomxMode = lib.mkOption {
+      type = lib.types.enum [
+        "auto"
+        "light"
+        "fast"
+      ];
+      default = "light";
+      description = ''
+        RandomX dataset mode.
+          light — ~256 MB RAM, lower hashrate. Best for memory-constrained hosts.
+          auto  — uses fast mode if enough free RAM, light otherwise.
+          fast  — ~2 GB RAM, full hashrate. Only worthwhile on dedicated miners.
+      '';
+    };
+
+    pauseOnActive = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Pause mining while the machine is actively used (desktop sessions).
+        Set true on workstations/laptops, leave false on headless servers.
+      '';
+    };
+
+    pool = {
+      url = lib.mkOption {
+        type = lib.types.str;
+        default = "pool.supportxmr.com:443";
+        description = "Stratum pool URL including port.";
+      };
+
+      user = lib.mkOption {
+        type = lib.types.str;
+        description = "Monero wallet address.";
+      };
+
+      pass = lib.mkOption {
+        type = lib.types.str;
+        default = "x";
+        description = "Pool password / worker label.";
+      };
+
+      rigId = lib.mkOption {
+        type = lib.types.str;
+        default = config.networking.hostName;
+        description = "Rig identifier shown on the pool dashboard. Defaults to hostname.";
+      };
+
+      tls = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Enable TLS for the pool connection.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -26,7 +93,7 @@ in
 
         api = {
           id = null;
-          "worker-id" = "nixos-server";
+          "worker-id" = cfg.pool.rigId;
         };
 
         http = {
@@ -38,7 +105,7 @@ in
         };
 
         randomx = {
-          mode = "light";
+          mode = cfg.randomxMode;
           "1gb-pages" = false;
           rdmsr = true;
           wrmsr = false;
@@ -50,52 +117,13 @@ in
           enabled = true;
           "huge-pages" = true;
           "huge-pages-jit" = false;
-          priority = 1;
+          priority = 1; # idle class
           yield = true;
           "memory-pool" = false;
-          # 2 threads only — Inspiron thermals top out at 95°C
-          argon2 = [
-            0
-            2
-          ];
-          cn = [
-            0
-            2
-          ];
-          "cn-heavy" = [ 0 ];
-          "cn-lite" = [
-            0
-            2
-          ];
-          "cn-pico" = [
-            0
-            2
-          ];
-          "cn/upx2" = [
-            0
-            2
-          ];
-          ghostrider = [
-            [
-              8
-              0
-            ]
-            [
-              8
-              2
-            ]
-          ];
-          rx = [
-            0
-            2
-          ];
-          "rx/wow" = [
-            0
-            2
-          ];
-          "cn-lite/0" = false;
-          "cn/0" = false;
-          "rx/arq" = "rx/wow";
+          # Let xmrig detect thread count at runtime and cap by percentage.
+          # Avoids hardcoded core indices that break on different hardware.
+          "max-threads-hint" = cfg.threadsPercent;
+          "pause-on-active" = cfg.pauseOnActive;
         };
 
         opencl.enabled = false;
@@ -105,15 +133,15 @@ in
           {
             algo = "rx/0";
             coin = "XMR";
-            url = "pool.supportxmr.com:443";
-            user = "44yH2LpkSsrSmWQC3SVmrABw2MUhNjNCE365hG7Rr7veJYNPBD1f6dNgXNr2nc6ZcP3jEyj9vXnqmg7VBBPeS8uwMhJ4yXW";
-            pass = "server";
-            "rig-id" = "nixos-server";
+            url = cfg.pool.url;
+            user = cfg.pool.user;
+            pass = cfg.pool.pass;
+            "rig-id" = cfg.pool.rigId;
             nicehash = false;
             keepalive = true;
             enabled = true;
-            tls = true;
-            sni = true;
+            tls = cfg.pool.tls;
+            sni = cfg.pool.tls;
             daemon = false;
           }
         ];
@@ -128,13 +156,14 @@ in
       };
     };
 
+    # Idle scheduling — xmrig never competes with real workloads
     systemd.services.xmrig.serviceConfig = {
       Nice = 19;
       IOSchedulingClass = "idle";
       CPUSchedulingPolicy = "idle";
     };
 
-    # ── Observability ────────────────────────────────────────────────────────
+    # ── Observability ──────────────────────────────────────────────────────
     services.prometheus.exporters.json = {
       enable = true;
       port = jsonExporterPort;

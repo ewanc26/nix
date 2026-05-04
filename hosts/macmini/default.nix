@@ -14,6 +14,7 @@ in
     ../../modules/darwin/system.nix
     ../../modules/darwin/launch-services.nix
     ../../modules/darwin/gatekeeper.nix
+    ../../modules/darwin/xmrig.nix
   ];
 
   # Primary user for homebrew and user-specific options
@@ -21,6 +22,14 @@ in
 
   myConfig.isDesktop = true;
   myConfig.forgejo.userApiTokenFile = "/Users/${config.myConfig.user.username}/.config/forgejo-user-token";
+
+  myConfig.services.xmrig.enable = true;
+  myConfig.services.xmrig.threadsPercent = 50; # M2 thermals are fine
+  myConfig.services.xmrig.randomxMode = "light";
+  myConfig.services.xmrig.pauseOnActive = true;
+  myConfig.services.xmrig.pool.user =
+    "44yH2LpkSsrSmWQC3SVmrABw2MUhNjNCE365hG7Rr7veJYNPBD1f6dNgXNr2nc6ZcP3jEyj9vXnqmg7VBBPeS8uwMhJ4yXW";
+  myConfig.services.xmrig.pool.pass = "macmini";
 
   networking = {
     hostName = "macmini";
