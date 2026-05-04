@@ -51,7 +51,7 @@
     pool = {
       url = lib.mkOption {
         type = lib.types.str;
-        default = "pool.supportxmr.com:443";
+        default = "gulf.moneroocean.stream:20128";
         description = "Stratum pool URL including port.";
       };
 

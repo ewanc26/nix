@@ -26,7 +26,7 @@ in
   myConfig.services.xmrig.threadsPercent = 75; # M2 thermals are fine; pauseOnActive means no contention
   myConfig.services.xmrig.randomxMode = "fast"; # 16GB RAM — full 2GB dataset fits easily
   myConfig.services.xmrig.pauseOnActive = true;
-  myConfig.services.xmrig.pool.pass = "macmini";
+  myConfig.services.xmrig.pool.pass = "x+macmini";
 
   networking = {
     hostName = "macmini";

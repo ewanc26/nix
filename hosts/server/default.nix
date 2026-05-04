@@ -44,7 +44,7 @@ in
   myConfig.services.xmrig.enable = false;
   myConfig.services.xmrig.threadsPercent = 25; # Inspiron thermals — tops out at 95°C
   myConfig.services.xmrig.randomxMode = "light";
-  myConfig.services.xmrig.pool.pass = "server";
+  myConfig.services.xmrig.pool.pass = "x+server";
   myConfig.services.sharkey.enable = false;
 
   # ── Umami (native nixpkgs module) ───────────────────────────────────────────
