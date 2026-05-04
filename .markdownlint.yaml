@@ -11,3 +11,6 @@ MD013:
 
 # MD033: Inline HTML — allowed for badges and image floats in README
 MD033: false
+
+# MD060: Table column style — disabled for flexibility in table formatting
+MD060: false
