@@ -24,7 +24,8 @@ sh <(curl -L https://nixos.org/nix/install)
 ### 3. Enable Flakes
 
 Add to `~/.config/nix/nix.conf`:
-```
+
+```bash
 experimental-features = nix-command flakes
 ```
 
@@ -66,9 +67,17 @@ sudo darwin-rebuild switch --flake .#macmini
 brew update && brew upgrade && brew cleanup
 ```
 
+### Nix cleanup
+
+Automatic Nix garbage collection now runs daily on the macmini via a launchd daemon.
+
+```bash
+sudo nix-collect-garbage --delete-older-than 30d
+```
+
 ## Configuration Structure
 
-```
+```bash
 hosts/macmini/
 └── default.nix             # host-specific imports and myConfig.* overrides
 
@@ -87,9 +96,11 @@ settings/darwin/
 ## Package Management
 
 ### What goes in Nix (`modules/options.nix` → `packages.darwin`)
+
 CLI tools, development tools, languages — anything with good Nix packaging.
 
 ### What goes in Homebrew (`modules/options.nix` → `darwin.homebrew`)
+
 - **`casks`** — GUI apps
 - **`brews`** — Complex media codecs and libraries that work better via brew
 - **`masApps`** — Mac App Store apps
@@ -99,11 +110,14 @@ Edit `modules/options.nix` (the `darwin.homebrew` defaults) to add packages to e
 ## System Settings
 
 High-level toggles are options in `modules/options.nix`:
+
 - `darwin.keyboard.*` — key mapping, Caps Lock
 - `darwin.startup.chime` — boot chime
 - `darwin.security.touchIdForSudo` — Touch ID for sudo
 
-Fine-grained defaults (Dock, Finder, trackpad, login window, etc.) live in `settings/darwin/default.nix`. Edit them directly in Nix rather than exporting from System Settings.
+Fine-grained defaults (Dock, Finder, trackpad, login window, etc.) live in
+`settings/darwin/default.nix`. Edit them directly in Nix rather than exporting
+from System Settings.
 
 ## Architecture
 
@@ -116,17 +130,20 @@ system = "x86_64-darwin";
 ## Troubleshooting
 
 **Homebrew not in PATH:**
+
 ```bash
 eval "$(/opt/homebrew/bin/brew shellenv)"   # Apple Silicon
 eval "$(/usr/local/bin/brew shellenv)"      # Intel
 ```
 
 **Permission issues:**
+
 ```bash
 sudo chown -R $(whoami) /nix
 ```
 
 **Full rebuild:**
+
 ```bash
 sudo darwin-rebuild switch --flake .#macmini --recreate-lock-file
 ```

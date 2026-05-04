@@ -1,20 +1,22 @@
 # Hosts Overview
 
-This document provides a comprehensive overview of all hosts in this configuration, their purposes, and how they relate to each other.
+This document provides a comprehensive overview of all hosts in this
+configuration, their purposes, and how they relate to each other.
 
 ## Quick Reference
 
-| Host | Type | OS | Purpose | Desktop | Status |
-|---|---|---|---|---|---|
-| **macmini** | Desktop | macOS Tahoe | Primary workstation | macOS GUI | ✅ Active (Main) |
-| **laptop** | Desktop/Laptop | NixOS | Secondary workstation | KDE Plasma 6 | ✅ Active |
-| **server** | Server | NixOS | Headless server + PDS | None | 🔧 Config complete, pending deploy |
+| Host       | Type           | OS           | Purpose              | Desktop       | Status               |
+|------------|----------------|--------------|----------------------|---------------|----------------------|
+| **macmini**| Desktop        | macOS Tahoe  | Primary workstation | macOS GUI     | ✅ Active (Main)     |
+| **laptop** | Desktop/Laptop | NixOS        | Secondary workstation| KDE Plasma 6  | ✅ Active            |
+| **server** | Server         | NixOS        | Headless server + PDS| None           | 🔧 Config complete, pending deploy |
 
 ## Detailed Comparison
 
 ### macmini (PRIMARY)
 
 **Hardware**: Apple Silicon Mac Mini (M2)
+
 - Apple M2 chip (8-core CPU, 10-core GPU)
 - 16 GB unified memory
 - macOS Tahoe 26.3
@@ -22,6 +24,7 @@ This document provides a comprehensive overview of all hosts in this configurati
 **Purpose**: Primary daily driver for all computing tasks
 
 **Use Cases**:
+
 - Main development workstation
 - macOS/iOS app development (when needed)
 - Web browsing, email, communication
@@ -31,6 +34,7 @@ This document provides a comprehensive overview of all hosts in this configurati
 - Unix development with native macOS apps
 
 **Features**:
+
 - ✅ nix-darwin for declarative macOS config
 - ✅ Homebrew integration (GUI apps + formulae)
 - ✅ macOS system defaults management
@@ -45,6 +49,7 @@ This document provides a comprehensive overview of all hosts in this configurati
 ### laptop (SECONDARY)
 
 **Hardware**: Dell Inspiron 3501
+
 - Intel i3-1115G4 (2C/4T, 3.0-4.1 GHz)
 - 8 GB DDR4-3200
 - 256 GB NVMe SSD
@@ -53,6 +58,7 @@ This document provides a comprehensive overview of all hosts in this configurati
 **Purpose**: Secondary workstation for Linux-specific tasks and testing
 
 **Use Cases**:
+
 - Linux-specific development and testing
 - KDE Plasma 6 experimentation
 - Gaming (Steam, native Linux games)
@@ -60,6 +66,7 @@ This document provides a comprehensive overview of all hosts in this configurati
 - NixOS testing and learning
 
 **Features**:
+
 - ✅ Full KDE Plasma 6 desktop
 - ✅ Audio (PipeWire)
 - ✅ Gaming (Steam, Gamemode)
@@ -78,11 +85,13 @@ This document provides a comprehensive overview of all hosts in this configurati
 **Purpose**: Minimal headless server — Bluesky ATProto PDS + hardened security
 
 **Use Cases**:
+
 - Bluesky PDS (via Caddy + Cloudflare tunnel, no open HTTP/HTTPS ports)
 - SSH remote access over Tailscale
 - Always-on home lab
 
 **Features**:
+
 - ✅ Hardened security profile (`profiles/server-hardened.nix`)
 - ✅ SSH key-based auth only
 - ✅ Fail2ban intrusion prevention
@@ -97,13 +106,12 @@ This document provides a comprehensive overview of all hosts in this configurati
 
 **Documentation**: [hosts-server.md](hosts-server.md)
 
-
-
 ## Configuration Philosophy
 
 ### Unified Core, Specialized Edges
 
 All three hosts share:
+
 - **User configuration** (username, email, shell)
 - **Shell environment** (zsh, aliases, prompt)
 - **Git configuration**
@@ -112,13 +120,14 @@ All three hosts share:
 - **Secrets management**
 
 Each host specializes:
+
 - **laptop**: Full desktop experience + gaming
 - **server**: Minimal, security-hardened
 - **macmini**: macOS-native + Homebrew ecosystem
 
 ### Configuration Layers
 
-```
+```bash
 ┌─────────────────────────────────────────┐
 │        modules/options.nix              │  ← All option declarations + defaults
 └─────────────────────────────────────────┘
@@ -138,46 +147,46 @@ Each host specializes:
 
 Which modules does each host use?
 
-| Module | laptop | server | macmini | Purpose |
-|---|:---:|:---:|:---:|---|
-| `common.nix` | ✅ | ✅ | ❌ | Base NixOS settings |
-| `users.nix` | ✅ | ✅ | ❌ | User account creation |
-| `desktop.nix` | ✅ | ❌ | ❌ | KDE Plasma 6 setup |
-| `packages.nix` | ✅ | ❌ | ❌ | Desktop applications |
-| `services.nix` | ✅ | ❌ | ❌ | Printing, Bluetooth |
-| `gaming.nix` | ✅ | ❌ | ❌ | Steam, Gamemode |
-| `caddy.nix` | ❌ | ✅ | ❌ | Caddy web server |
-| `pds.nix` | ❌ | ✅ | ❌ | Bluesky PDS |
-| `matrix.nix` | ❌ | ✅ | ❌ | Matrix Synapse |
-| `forgejo.nix` | ❌ | ✅ | ❌ | Forgejo git forge |
-| `cloudflare-tunnel.nix` | ❌ | ✅ | ❌ | Cloudflare tunnel |
-| `cockpit.nix` | ❌ | ✅ | ❌ | Cockpit web console |
-| `server/default.nix` | ❌ | ✅ | ❌ | Server sub-modules (firewall, fail2ban, sshd, ...) |
-| `profiles/server-hardened.nix` | ❌ | ✅ | ❌ | Security hardening |
-| `darwin/common.nix` | ❌ | ❌ | ✅ | macOS Nix settings |
-| `darwin/packages.nix` | ❌ | ❌ | ✅ | macOS CLI tools |
-| `darwin/homebrew.nix` | ❌ | ❌ | ✅ | Homebrew management |
-| `darwin/system.nix` | ❌ | ❌ | ✅ | macOS system defaults |
+| Module                    | laptop | server | macmini | Purpose                                    |
+|---------------------------|--------|--------|---------|--------------------------------------------|
+| `common.nix`              | ✅      | ✅      | ❌       | Base NixOS settings                        |
+| `users.nix`               | ✅      | ✅      | ❌       | User account creation                      |
+| `desktop.nix`             | ✅      | ❌      | ❌       | KDE Plasma 6 setup                         |
+| `packages.nix`            | ✅      | ❌      | ❌       | Desktop applications                       |
+| `services.nix`            | ✅     | ❌     | ❌      | Printing, Bluetooth                        |
+| `gaming.nix`              | ✅     | ❌     | ❌      | Steam, Gamemode                            |
+| `caddy.nix`               | ❌     | ✅     | ❌      | Caddy web server                           |
+| `pds.nix`                 | ❌     | ✅     | ❌      | Bluesky PDS                                |
+| `matrix.nix`              | ❌     | ✅     | ❌      | Matrix Synapse                             |
+| `forgejo.nix`             | ❌     | ✅     | ❌      | Forgejo git forge                          |
+| `cloudflare-tunnel.nix`   | ❌     | ✅     | ❌      | Cloudflare tunnel                          |
+| `cockpit.nix`             | ❌     | ✅     | ❌      | Cockpit web console                        |
+| `server/default.nix`      | ❌     | ✅     | ❌      | Server sub-modules (firewall, fail2ban, sshd, ...) |
+| `profiles/server-hardened.nix` | ❌ | ✅ | ❌      | Security hardening                         |
+| `darwin/common.nix`       | ❌     | ❌     | ✅      | macOS Nix settings                         |
+| `darwin/packages.nix`     | ❌     | ❌     | ✅      | macOS CLI tools                            |
+| `darwin/homebrew.nix`     | ❌     | ❌     | ✅      | Homebrew management                        |
+| `darwin/system.nix`       | ❌     | ❌     | ✅      | macOS system defaults                      |
 
 ## Option Scope
 
 Which `myConfig.*` option categories are active on each host:
 
-| Option category | laptop | server | macmini | Notes |
-|---|:---:|:---:|:---:|---|
-| `user.*` | ✅ | ✅ | ✅ | Used everywhere |
-| `stateVersion`, `timeZone`, `locale` | ✅ | ✅ | Partial | NixOS-specific |
-| `packages.common` / `.development` | ✅ | ✅ | ✅ | All hosts |
-| `packages.desktop` / `.linux` | ✅ | ❌ | ❌ | `isDesktop = true` hosts |
-| `packages.darwin` | ❌ | ❌ | ✅ | macOS only |
-| `desktop.*` | ✅ | ❌ | ❌ | Desktop-only |
-| `audio.*` | ✅ | ❌ | ❌ | Desktop-only |
-| `gaming.*` | ✅ | ❌ | ❌ | `gaming.enable = true` on laptop |
-| `server.*` | ❌ | ✅ | ❌ | Server-only |
-| `services.*` | ❌ | ✅ | ❌ | Toggled in `hosts/server/default.nix` |
-| `darwin.*` | ❌ | ❌ | ✅ | macOS-only |
-| `secrets.*` | ✅ | ✅ | ✅ | All hosts (via sops-nix) |
-| `development.vscode` | ✅ | ❌ | ✅ | Development hosts |
+| Option category               | laptop | server | macmini | Notes                                      |
+|-------------------------------|--------|--------|---------|--------------------------------------------|
+| `user.*`                      | ✅     | ✅     | ✅      | Used everywhere                            |
+| `stateVersion`, `timeZone`, `locale` | ✅ | ✅ | Partial | NixOS-specific                            |
+| `packages.common` / `.development` | ✅ | ✅ | ✅ | All hosts                                 |
+| `packages.desktop` / `.linux` | ✅ | ❌ | ❌ | `isDesktop = true` hosts                  |
+| `packages.darwin`             | ❌     | ❌     | ✅      | macOS only                                 |
+| `desktop.*`                   | ✅     | ❌     | ❌      | Desktop-only                               |
+| `audio.*`                     | ✅     | ❌     | ❌      | Desktop-only                               |
+| `gaming.*`                    | ✅     | ❌     | ❌      | `gaming.enable = true` on laptop          |
+| `server.*`                    | ❌     | ✅     | ❌      | Server-only                                |
+| `services.*`                  | ❌     | ✅     | ❌      | Toggled in `hosts/server/default.nix`     |
+| `darwin.*`                    | ❌     | ❌     | ✅      | macOS-only                                 |
+| `secrets.*`                   | ✅     | ✅     | ✅      | All hosts (via sops-nix)                  |
+| `development.vscode`          | ✅     | ❌     | ✅      | Development hosts                         |
 
 ## Network Architecture
 
@@ -185,7 +194,7 @@ Which `myConfig.*` option categories are active on each host:
 
 All hosts have SSH keys registered in `modules/ssh-keys.nix`:
 
-```
+```text
 laptop  → can SSH to: server, macmini
 macmini → can SSH to: laptop, server
 server  ← SSH connections go into it only
@@ -195,26 +204,29 @@ Each host's `~/.ssh/authorized_keys` contains keys from all OTHER hosts.
 
 ### SSH Agent / Key Loading
 
-| Host | Mechanism |
-|---|---|
+| Host      | Mechanism |
+|-----------|-----------|
 | **macmini** | LaunchAgent runs `ssh-add --apple-load-keychain` at login (replaces removed `UseKeychain yes`) |
-| **laptop** | systemd user service + ksshaskpass loads keys from KWallet at graphical session start |
-| **server** | None needed — only receives inbound SSH connections |
+| **laptop**  | systemd user service + ksshaskpass loads keys from KWallet at graphical session start |
+| **server**  | None needed — only receives inbound SSH connections |
 
 ### Secrets Distribution
 
 Secrets are encrypted with age and distributed via:
-```
+
+```text
 secrets/age/*.age  (encrypted, committed to git)
     ↓
 config.age.secrets.<name>.path  (decrypted at runtime)
 ```
 
-The host's `/etc/ssh/ssh_host_ed25519_key` is used as the age decryption key. Recipients and creation rules are declared in `.sops.yaml`.
+The host's `/etc/ssh/ssh_host_ed25519_key` is used as the age decryption key.
+Recipients and creation rules are declared in `.sops.yaml`.
 
 ## Unified Home Manager
 
 All three hosts share the same home-manager configuration:
+
 - Same shell (zsh)
 - Same prompt (Starship)
 - Same Git config
@@ -222,6 +234,7 @@ All three hosts share the same home-manager configuration:
 - Same VSCode settings
 
 Platform-specific modules are conditionally imported:
+
 ```nix
 # home/default.nix
 imports = [
@@ -370,6 +383,7 @@ nixos-rebuild switch --flake .#server \
 ### Garbage Collection
 
 **NixOS hosts** (laptop, server):
+
 ```bash
 # Auto-runs weekly (configured in modules/common.nix)
 sudo nix-collect-garbage -d
@@ -379,26 +393,31 @@ sudo nix-collect-garbage --delete-older-than 30d
 ```
 
 **macOS host** (macmini):
+
 ```bash
-# Manual only
-sudo nix-collect-garbage -d
+# Automatic daily cleanup is now configured on macmini.
+# Manual command if needed:
+sudo nix-collect-garbage --delete-older-than 30d
 darwin-rebuild switch --flake .#macmini
 ```
 
 ### Updates
 
 **Automated** (laptop, server):
+
 - Configured in `modules/common.nix` via `system.autoUpgrade`
 - Daily auto-upgrades (if enabled)
 - Weekly garbage collection
 
 **Manual** (macmini):
+
 - `nix flake update && nrs`
 - No auto-upgrade in nix-darwin (macOS best practice)
 
 ### Health Checks
 
 All hosts can use the health-check tool:
+
 ```bash
 # Compile once
 nix run .#tools -- --help
@@ -412,7 +431,8 @@ health-check
 
 ## When to Use Which Host
 
-### Use **macmini** for (PRIMARY):
+### Use **macmini** for (PRIMARY)
+
 - Daily computing and primary workstation
 - All general development work
 - Web browsing, communication, productivity
@@ -422,7 +442,8 @@ health-check
 - Apple ecosystem integration
 - Any task that doesn't require Linux specifically
 
-### Use **laptop** for:
+### Use **laptop** for
+
 - Linux-specific development
 - Testing NixOS configurations
 - KDE Plasma 6 customization and experimentation
@@ -430,7 +451,8 @@ health-check
 - When you need a portable Linux workstation
 - Learning and experimenting with Linux
 
-### Use **server** for (when deployed):
+### Use **server** for (when deployed)
+
 - Self-hosted services
 - Home lab projects
 - Always-on availability
@@ -443,6 +465,7 @@ health-check
 ### Moving laptop → server
 
 If you want to repurpose laptop as a server:
+
 ```nix
 # hosts/laptop/default.nix
 {
@@ -481,9 +504,10 @@ sudo nixos-rebuild switch --flake .#vm
 ### Same Username, Different Home Directories
 
 Already handled via platform detection:
-```nix
+
+```bash
 # home/home.nix
-homeDir = if isDarwin 
+homeDir = if isDarwin
   then "/Users/${cfg.user.username}"
   else "/home/${cfg.user.username}";
 ```
@@ -491,6 +515,7 @@ homeDir = if isDarwin
 ### SSH Between Hosts Not Working
 
 Check ssh-keys.nix and authorized_keys:
+
 ```bash
 # Verify keys are registered
 cat modules/ssh-keys.nix
@@ -505,6 +530,7 @@ ssh -v ewan@other-host
 ### Config Change Affects Wrong Host
 
 Check which modules import the setting:
+
 ```bash
 # Find references
 grep -r "cfg.gaming.enable" modules/
@@ -514,6 +540,7 @@ grep -r "../../modules/gaming.nix" hosts/
 ### Secrets Not Available on Host
 
 Secrets are managed via sops-nix. Check that:
+
 - The host's age key is listed in `.sops.yaml` as a recipient for that secret
 - The secret has been re-encrypted with `sops updatekeys secrets/<file>` after adding the key
 - Check activation logs: `journalctl -b | grep sops`

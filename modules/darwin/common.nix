@@ -2,6 +2,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -13,6 +14,27 @@ in
   # NOTE: Set `nix.enable = false` if you use Determinate Nix, which manages
   # the nix daemon itself and conflicts with nix-darwin's native management.
   nix.enable = false;
+
+  nix.settings.auto-optimise-store = true;
+
+  launchd.daemons.nix-collect-garbage = {
+    enable = true;
+    config = {
+      Label = "org.nix-darwin.nix-collect-garbage";
+      ProgramArguments = [
+        "${pkgs.nix}/bin/nix-collect-garbage"
+        "--delete-older-than"
+        "30d"
+      ];
+      StartCalendarInterval = {
+        Hour = 3;
+        Minute = 0;
+      };
+      RunAtLoad = true;
+      StandardOutPath = "/tmp/nix-collect-garbage.log";
+      StandardErrorPath = "/tmp/nix-collect-garbage.err";
+    };
+  };
 
   # NOTE: system.autoUpgrade does not exist in nix-darwin.
   # Run manually: darwin-rebuild switch --flake ~/.config/nix-config#macmini
