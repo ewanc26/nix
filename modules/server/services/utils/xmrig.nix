@@ -19,7 +19,7 @@ in
       enable = true;
       package = pkgs.xmrig;
       settings = {
-        autosave = false; # declarative — never let xmrig overwrite config
+        autosave = false;
         background = false;
         colors = false;
         title = false;
@@ -34,11 +34,11 @@ in
           host = "127.0.0.1";
           port = xmrigApiPort;
           "access-token" = null;
-          restricted = true; # read-only
+          restricted = true;
         };
 
         randomx = {
-          mode = "light"; # ~256MB RAM, lower hashrate — acceptable for background
+          mode = "light";
           "1gb-pages" = false;
           rdmsr = true;
           wrmsr = false;
@@ -50,43 +50,30 @@ in
           enabled = true;
           "huge-pages" = true;
           "huge-pages-jit" = false;
-          priority = 1; # idle class — OS always wins
+          priority = 1;
           yield = true;
           "memory-pool" = false;
-          # 4 threads on even cores — leaves headroom for services
+          # 2 threads only — Inspiron thermals top out at 95°C
           argon2 = [
             0
             2
-            4
-            6
           ];
           cn = [
             0
             2
-            4
-            6
           ];
-          "cn-heavy" = [
-            0
-            2
-          ];
+          "cn-heavy" = [ 0 ];
           "cn-lite" = [
             0
             2
-            4
-            6
           ];
           "cn-pico" = [
             0
             2
-            4
-            6
           ];
           "cn/upx2" = [
             0
             2
-            4
-            6
           ];
           ghostrider = [
             [
@@ -97,26 +84,14 @@ in
               8
               2
             ]
-            [
-              8
-              4
-            ]
-            [
-              8
-              6
-            ]
           ];
           rx = [
             0
             2
-            4
-            6
           ];
           "rx/wow" = [
             0
             2
-            4
-            6
           ];
           "cn-lite/0" = false;
           "cn/0" = false;
@@ -149,11 +124,10 @@ in
         retries = 5;
         "retry-pause" = 5;
         verbose = 0;
-        watch = false; # no config file to watch — declarative
+        watch = false;
       };
     };
 
-    # Keep it truly idle — drop below normal niceness and use idle I/O
     systemd.services.xmrig.serviceConfig = {
       Nice = 19;
       IOSchedulingClass = "idle";
@@ -161,7 +135,6 @@ in
     };
 
     # ── Observability ────────────────────────────────────────────────────────
-    # json_exporter bridges xmrig's HTTP JSON API → Prometheus metrics.
     services.prometheus.exporters.json = {
       enable = true;
       port = jsonExporterPort;
@@ -200,8 +173,6 @@ in
       '';
     };
 
-    # Scrape xmrig via json_exporter — merged into Prometheus alongside
-    # the existing node/caddy/nextcloud/postgres jobs in grafana.nix.
     services.prometheus.scrapeConfigs = [
       {
         job_name = "xmrig";
