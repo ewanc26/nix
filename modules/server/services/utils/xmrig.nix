@@ -6,6 +6,8 @@
 }:
 let
   cfg = config.myConfig.services.xmrig;
+  xmrigApiPort = 18080;
+  jsonExporterPort = 9399;
 in
 {
   options.myConfig.services.xmrig = {
@@ -21,6 +23,19 @@ in
         background = false;
         colors = false;
         title = false;
+
+        api = {
+          id = null;
+          "worker-id" = "nixos-server";
+        };
+
+        http = {
+          enabled = true;
+          host = "127.0.0.1";
+          port = xmrigApiPort;
+          "access-token" = null;
+          restricted = true; # read-only
+        };
 
         randomx = {
           mode = "light"; # ~256MB RAM, lower hashrate — acceptable for background
@@ -144,5 +159,59 @@ in
       IOSchedulingClass = "idle";
       CPUSchedulingPolicy = "idle";
     };
+
+    # ── Observability ────────────────────────────────────────────────────────
+    # json_exporter bridges xmrig's HTTP JSON API → Prometheus metrics.
+    services.prometheus.exporters.json = {
+      enable = true;
+      port = jsonExporterPort;
+      configFile = pkgs.writeText "xmrig-json-exporter.yaml" ''
+        modules:
+          xmrig:
+            metrics:
+              - name: xmrig_hashrate
+                type: gauge
+                help: "Current hashrate in H/s (10s average)"
+                path: '{ .hashrate.total[0] }'
+              - name: xmrig_hashrate_1m
+                type: gauge
+                help: "Current hashrate in H/s (1m average)"
+                path: '{ .hashrate.total[1] }'
+              - name: xmrig_uptime_seconds
+                type: counter
+                help: "XMRig uptime in seconds"
+                path: '{ .uptime }'
+              - name: xmrig_shares_accepted
+                type: counter
+                help: "Accepted shares"
+                path: '{ .results.shares_good }'
+              - name: xmrig_shares_rejected
+                type: counter
+                help: "Rejected shares"
+                path: '{ .connection.rejected }'
+              - name: xmrig_difficulty
+                type: gauge
+                help: "Current share difficulty"
+                path: '{ .results.diff_current }'
+              - name: xmrig_avg_share_time_seconds
+                type: gauge
+                help: "Average time per share in seconds"
+                path: '{ .results.avg_time }'
+      '';
+    };
+
+    # Scrape xmrig via json_exporter — merged into Prometheus alongside
+    # the existing node/caddy/nextcloud/postgres jobs in grafana.nix.
+    services.prometheus.scrapeConfigs = [
+      {
+        job_name = "xmrig";
+        metrics_path = "/probe";
+        params = {
+          module = [ "xmrig" ];
+          target = [ "http://127.0.0.1:${toString xmrigApiPort}/1/summary" ];
+        };
+        static_configs = [ { targets = [ "127.0.0.1:${toString jsonExporterPort}" ]; } ];
+      }
+    ];
   };
 }
