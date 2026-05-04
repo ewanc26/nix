@@ -18,7 +18,6 @@ in
   nix.settings.auto-optimise-store = true;
 
   launchd.daemons.nix-collect-garbage = {
-    enable = true;
     serviceConfig = {
       Label = "org.nix-darwin.nix-collect-garbage";
       ProgramArguments = [

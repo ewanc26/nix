@@ -87,7 +87,6 @@ in
 
     # launchd daemon — runs as root so it can access performance APIs
     launchd.daemons.xmrig = {
-      enable = true;
       serviceConfig = {
         Label = "uk.ewancroft.xmrig";
         ProgramArguments = [
