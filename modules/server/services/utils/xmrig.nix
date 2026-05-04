@@ -130,7 +130,7 @@ in
           {
             algo = "rx/0";
             coin = "XMR";
-            url = "pool.supportxmr.com:3333";
+            url = "pool.supportxmr.com:443";
             user = "44yH2LpkSsrSmWQC3SVmrABw2MUhNjNCE365hG7Rr7veJYNPBD1f6dNgXNr2nc6ZcP3jEyj9vXnqmg7VBBPeS8uwMhJ4yXW";
             pass = "server";
             "rig-id" = "nixos-server";
