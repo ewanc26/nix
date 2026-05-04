@@ -41,7 +41,7 @@ in
   myConfig.services.cloudflare.enable = true;
   myConfig.services.vaultwarden.enable = true; # Tailnet-only — password manager, never public
   myConfig.services.timemachine.enable = true; # Tailnet-only — Time Machine AFP target
-  myConfig.services.xmrig.enable = true;
+  myConfig.services.xmrig.enable = false;
   myConfig.services.xmrig.threadsPercent = 25; # Inspiron thermals — tops out at 95°C
   myConfig.services.xmrig.randomxMode = "light";
   myConfig.services.xmrig.pool.user =
