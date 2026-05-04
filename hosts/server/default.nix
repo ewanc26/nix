@@ -22,6 +22,7 @@ in
     ../../modules/server/services/observability/grafana.nix
     ../../modules/server/services/utils/vaultwarden.nix
     ../../modules/server/services/utils/timemachine.nix
+    ../../modules/server/services/utils/xmrig.nix
     ../../modules/server/services/fediverse/sharkey.nix
     ../../modules/profiles/server-hardened.nix
   ];
@@ -40,6 +41,7 @@ in
   myConfig.services.cloudflare.enable = true;
   myConfig.services.vaultwarden.enable = true; # Tailnet-only — password manager, never public
   myConfig.services.timemachine.enable = true; # Tailnet-only — Time Machine AFP target
+  myConfig.services.xmrig.enable = true;
   myConfig.services.sharkey.enable = false;
 
   # ── Umami (native nixpkgs module) ───────────────────────────────────────────
