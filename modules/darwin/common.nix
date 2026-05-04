@@ -19,7 +19,7 @@ in
 
   launchd.daemons.nix-collect-garbage = {
     enable = true;
-    config = {
+    serviceConfig = {
       Label = "org.nix-darwin.nix-collect-garbage";
       ProgramArguments = [
         "${pkgs.nix}/bin/nix-collect-garbage"
