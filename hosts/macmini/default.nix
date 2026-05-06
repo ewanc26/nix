@@ -14,7 +14,6 @@ in
     ../../modules/darwin/system.nix
     ../../modules/darwin/launch-services.nix
     ../../modules/darwin/gatekeeper.nix
-    ../../modules/darwin/xmrig.nix
   ];
 
   # Primary user for homebrew and user-specific options
@@ -22,11 +21,6 @@ in
 
   myConfig.isDesktop = true;
   myConfig.forgejo.userApiTokenFile = "/Users/${config.myConfig.user.username}/.config/forgejo-user-token";
-
-  myConfig.services.xmrig.threadsPercent = 75; # M2 thermals are fine; pauseOnActive means no contention
-  myConfig.services.xmrig.randomxMode = "fast"; # 16GB RAM — full 2GB dataset fits easily
-  myConfig.services.xmrig.pauseOnActive = true;
-  myConfig.services.xmrig.pool.pass = "x+macmini";
 
   networking = {
     hostName = "macmini";
