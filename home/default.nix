@@ -115,6 +115,17 @@ in
   manual.html.enable = false;
   manual.json.enable = false;
 
+  # ── npm global packages ──────────────────────────────────────────────────────
+  # Packages not in nixpkgs installed via npm. Each entry is idempotent —
+  # skipped if the binary is already present.
+  home.activation.npmGlobalPackages = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _npm="$(npm prefix -g)/bin/npm"
+    if ! command -v letta &>/dev/null; then
+      echo "npm: installing @letta-ai/letta-code..."
+      $DRY_RUN_CMD "$_npm" install -g @letta-ai/letta-code
+    fi
+  '';
+
   # ── nix-config git repo ────────────────────────────────────────────────────
   # Ensures ~/.config/nix-config is always a git repo with the correct remotes.
   # Server hosts only use origin (GitHub) — Tangled is for desktop hosts only.

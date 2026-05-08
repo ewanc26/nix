@@ -107,6 +107,9 @@ in
       mkdir -p "$PNPM_HOME"
       export PATH="$PNPM_HOME:$PATH"
 
+      # npm global bin dir — same reasoning as above.
+      export PATH="$(npm prefix -g)/bin:$PATH"
+
       # Display system info on new shell
       ${lib.optionalString cfg.isDesktop "fastfetch"}
 
