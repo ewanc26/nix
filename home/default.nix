@@ -235,6 +235,11 @@ in
       while true; do
         page_data=$(${pkgs.curl}/bin/curl --silent \
           "https://${cfg.forgejo.hostname}/api/v1/repos/search?limit=50&page=$page$forgejo_token_arg")
+        # Bail out if the API returned an error or non-JSON response.
+        if ! echo "$page_data" | ${pkgs.jq}/bin/jq -e 'type == "object" and (.data | type == "array")' > /dev/null 2>&1; then
+          echo "developer: forgejo API returned non-array response (server error?), stopping"
+          break
+        fi
         count=$(echo "$page_data" | ${pkgs.jq}/bin/jq '.data | length')
         [ "$count" = "0" ] && break
 
