@@ -39,7 +39,7 @@ let
     ++ [ "${tsIP} ${cfg.server.grafana.hostname}" ]
   );
 in
-lib.mkIf (tsIP != "") {
+lib.mkIf (tsIP != "" && cfg.services.splitDns.enable) {
 
   services.coredns = {
     enable = true;

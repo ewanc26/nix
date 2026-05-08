@@ -103,6 +103,7 @@ in
   # Set to the output of `tailscale ip -4` on the server.
   # This enables split-dns.nix (CoreDNS) and the tailnet Caddy vhosts.
   myConfig.server.tailscaleIP = "100.78.91.100";
+  myConfig.services.splitDns.enable = false;
 
   networking.hostName = "server";
 

@@ -446,6 +446,11 @@ in
           description = "Enable Time Machine backup target via Samba vfs_fruit (SMB, Tailscale only).";
         };
       };
+      splitDns.enable = mkOption {
+        type = bool;
+        default = true;
+        description = "Enable CoreDNS split DNS for *.ewancroft.uk on the Tailscale interface. Disable when the server is offline to let public DNS handle all resolution.";
+      };
     };
 
     # ── Nextcloud ─────────────────────────────────────────────────────────────
