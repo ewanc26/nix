@@ -370,6 +370,16 @@ in
 
   fonts.fontconfig.enable = true;
 
+  # ── rbw (Bitwarden CLI) ──────────────────────────────────────────────────
+  # Configured to talk to the self-hosted Vaultwarden instance.
+  # First run: `rbw login` — then `rbw get`, `rbw list`, `rbw edit` etc.
+  xdg.configFile."rbw/config.json".text = builtins.toJSON {
+    base_url = "https://${cfg.vaultwarden.hostname}";
+    email = cfg.user.email;
+    lock_timeout = 3600;
+    pinentry = "pinentry-mac";
+  };
+
   # ── Linux-only theming ────────────────────────────────────────────────────
   gtk = lib.mkIf (!isDarwin && cfg.isDesktop) {
     enable = true;

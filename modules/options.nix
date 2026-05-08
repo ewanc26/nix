@@ -250,6 +250,8 @@ in
           "pcre"
           "pcre2"
           "libffi"
+          # Bitwarden CLI — Vaultwarden-compatible
+          "rbw"
           # NOTE: GUI apps (discord, signal, obsidian, vscode, spotify,
           # transmission) are intentionally absent here. On a 256 GB Mac
           # they are better installed as Homebrew casks: Homebrew stores
