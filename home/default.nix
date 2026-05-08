@@ -119,8 +119,9 @@ in
   # Packages not in nixpkgs installed via npm. Each entry is idempotent —
   # skipped if the binary is already present.
   home.activation.npmGlobalPackages = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    _npm="$(npm prefix -g)/bin/npm"
-    if ! command -v letta &>/dev/null; then
+    _npm="${pkgs.nodejs_22}/bin/npm"
+    _prefix=$("$_npm" prefix -g)
+    if [ ! -f "$_prefix/bin/letta" ]; then
       echo "npm: installing @letta-ai/letta-code..."
       $DRY_RUN_CMD "$_npm" install -g @letta-ai/letta-code
     fi
