@@ -371,10 +371,12 @@ in
   fonts.fontconfig.enable = true;
 
   # ── rbw (Bitwarden CLI) ──────────────────────────────────────────────────
-  # Configured to talk to the self-hosted Vaultwarden instance.
+  # Configured to talk to Bitwarden's hosted EU server.
+  # Switch base_url back to "https://${cfg.vaultwarden.hostname}" when the
+  # server is back online.
   # First run: `rbw login` — then `rbw get`, `rbw list`, `rbw edit` etc.
   xdg.configFile."rbw/config.json".text = builtins.toJSON {
-    base_url = "https://${cfg.vaultwarden.hostname}";
+    base_url = "https://vault.bitwarden.eu";
     email = cfg.user.email;
     lock_timeout = 3600;
     pinentry = "pinentry-mac";
