@@ -384,7 +384,7 @@ in
     base_url = "https://vault.bitwarden.eu";
     email = cfg.user.email;
     lock_timeout = 3600;
-    pinentry = "pinentry-mac";
+    pinentry = "${pkgs.pinentry_mac}/bin/pinentry-mac";
   };
 
   # ── Linux-only theming ────────────────────────────────────────────────────
