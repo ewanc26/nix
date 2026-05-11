@@ -159,8 +159,6 @@ in
       # that without meaningfully affecting smaller evaluations.
       GC_INITIAL_HEAP_SIZE = toString (1 * 1024 * 1024 * 1024);
 
-      # Resend API key for Faol (digital person email).
-      RESEND_API_KEY = "re_KCyDTvEo_NUP8ND8vZWNemQNzguRUpayF";
     };
 
     profileExtra = ''
