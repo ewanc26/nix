@@ -110,6 +110,11 @@ in
       # npm global bin dir — same reasoning as above.
       export PATH="$(npm prefix -g)/bin:$PATH"
 
+      # Telegram bot token for Faol (decrypted from sops at activation time).
+      if [ -f "$HOME/.config/telegram-bot-token" ]; then
+        export TELEGRAM_BOT_TOKEN="$(cat "$HOME/.config/telegram-bot-token" | tr -d '\n' | sed 's/^TELEGRAM_BOT_TOKEN=//')"
+      fi
+
       # Display system info on new shell
       ${lib.optionalString cfg.isDesktop "fastfetch"}
 

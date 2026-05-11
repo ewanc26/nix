@@ -56,6 +56,21 @@ in
       chmod +x "$REPO/hooks/pre-commit"
     fi
 
+    # Decrypt sops secrets to local files for shell env vars.
+    # macOS doesn't have sops-nix (NixOS-only), so we decrypt at activation time.
+    SECRETS_DIR="$REPO/secrets"
+    AGE_KEY="/Users/${cfg.user.username}/.config/age/keys.txt"
+    if [ -f "$AGE_KEY" ]; then
+      # Telegram bot token for Faol
+      SOPS_AGE_KEY_FILE="$AGE_KEY" ${pkgs.sops}/bin/sops --decrypt \
+        --input-type binary --output-type binary \
+        "$SECRETS_DIR/telegram-bot-token" \
+        > "/Users/${cfg.user.username}/.config/telegram-bot-token" 2>/dev/null \
+        && chmod 600 "/Users/${cfg.user.username}/.config/telegram-bot-token" \
+        && echo "postActivation: decrypted telegram-bot-token" \
+        || echo "postActivation: failed to decrypt telegram-bot-token"
+    fi
+
     # Reload the Dock after activation so any Homebrew-installed apps
     # (e.g. Element, Spotify) that were absent when the dock plist was
     # written are picked up cleanly.
