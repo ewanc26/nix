@@ -58,13 +58,14 @@ in
 
     # Decrypt sops secrets to local files for shell env vars.
     # macOS doesn't have sops-nix (NixOS-only), so we decrypt at activation time.
-    SECRETS_DIR="$REPO/secrets"
+    # Faol secrets live in the lettabot faol config directory.
+    FAOL_DIR="/Volumes/Storage/Developer/Local/lettabot/faol"
     AGE_KEY="/Users/${cfg.user.username}/.config/age/keys.txt"
     if [ -f "$AGE_KEY" ]; then
       # Telegram bot token for Faol
       SOPS_AGE_KEY_FILE="$AGE_KEY" ${pkgs.sops}/bin/sops --decrypt \
         --input-type binary --output-type binary \
-        "$SECRETS_DIR/telegram-bot-token" \
+        "$FAOL_DIR/telegram-bot-token" \
         > "/Users/${cfg.user.username}/.config/telegram-bot-token" 2>/dev/null \
         && chmod 600 "/Users/${cfg.user.username}/.config/telegram-bot-token" \
         && echo "postActivation: decrypted telegram-bot-token" \
@@ -73,7 +74,7 @@ in
       # Bluesky app password for Faol
       SOPS_AGE_KEY_FILE="$AGE_KEY" ${pkgs.sops}/bin/sops --decrypt \
         --input-type binary --output-type binary \
-        "$SECRETS_DIR/bluesky-app-password" \
+        "$FAOL_DIR/bluesky-app-password" \
         > "/Users/${cfg.user.username}/.config/bluesky-app-password" 2>/dev/null \
         && chmod 600 "/Users/${cfg.user.username}/.config/bluesky-app-password" \
         && echo "postActivation: decrypted bluesky-app-password" \
