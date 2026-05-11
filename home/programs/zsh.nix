@@ -120,6 +120,11 @@ in
         export BLUESKY_APP_PASSWORD="$(cat "$HOME/.config/bluesky-app-password" | tr -d '\n')"
       fi
 
+      # Letta API key for Faol (decrypted from sops at activation time).
+      if [ -f "$HOME/.config/letta-api-key" ]; then
+        export LETTA_API_KEY="$(cat "$HOME/.config/letta-api-key" | tr -d '\n')"
+      fi
+
       # Display system info on new shell
       ${lib.optionalString cfg.isDesktop "fastfetch"}
 

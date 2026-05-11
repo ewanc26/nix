@@ -79,6 +79,15 @@ in
         && chmod 600 "/Users/${cfg.user.username}/.config/bluesky-app-password" \
         && echo "postActivation: decrypted bluesky-app-password" \
         || echo "postActivation: failed to decrypt bluesky-app-password"
+
+      # Letta API key for Faol
+      SOPS_AGE_KEY_FILE="$AGE_KEY" ${pkgs.sops}/bin/sops --decrypt \
+        --input-type binary --output-type binary \
+        "$FAOL_DIR/letta-api-key" \
+        > "/Users/${cfg.user.username}/.config/letta-api-key" 2>/dev/null \
+        && chmod 600 "/Users/${cfg.user.username}/.config/letta-api-key" \
+        && echo "postActivation: decrypted letta-api-key" \
+        || echo "postActivation: failed to decrypt letta-api-key"
     fi
 
     # Reload the Dock after activation so any Homebrew-installed apps
