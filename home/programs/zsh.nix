@@ -115,6 +115,11 @@ in
         export TELEGRAM_BOT_TOKEN="$(cat "$HOME/.config/telegram-bot-token" | tr -d '\n' | sed 's/^TELEGRAM_BOT_TOKEN=//')"
       fi
 
+      # Bluesky app password for Faol (decrypted from sops at activation time).
+      if [ -f "$HOME/.config/bluesky-app-password" ]; then
+        export BLUESKY_APP_PASSWORD="$(cat "$HOME/.config/bluesky-app-password" | tr -d '\n')"
+      fi
+
       # Display system info on new shell
       ${lib.optionalString cfg.isDesktop "fastfetch"}
 

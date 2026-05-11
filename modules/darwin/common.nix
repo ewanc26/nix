@@ -69,6 +69,15 @@ in
         && chmod 600 "/Users/${cfg.user.username}/.config/telegram-bot-token" \
         && echo "postActivation: decrypted telegram-bot-token" \
         || echo "postActivation: failed to decrypt telegram-bot-token"
+
+      # Bluesky app password for Faol
+      SOPS_AGE_KEY_FILE="$AGE_KEY" ${pkgs.sops}/bin/sops --decrypt \
+        --input-type binary --output-type binary \
+        "$SECRETS_DIR/bluesky-app-password" \
+        > "/Users/${cfg.user.username}/.config/bluesky-app-password" 2>/dev/null \
+        && chmod 600 "/Users/${cfg.user.username}/.config/bluesky-app-password" \
+        && echo "postActivation: decrypted bluesky-app-password" \
+        || echo "postActivation: failed to decrypt bluesky-app-password"
     fi
 
     # Reload the Dock after activation so any Homebrew-installed apps
