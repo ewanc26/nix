@@ -17,6 +17,7 @@ let
     "signal"
     "obsidian"
     "claude"
+    "docker"
     "firefox"
     "github"
     "steam"
