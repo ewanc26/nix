@@ -914,6 +914,8 @@ in
             "mas"
             # SDL2 — required by Mesen (NES/SNES emulator) and other SDL apps
             "sdl2"
+            # .NET SDK — required by Godot C# projects (~600 MB, too large for Nix store)
+            "dotnet-sdk"
           ];
         };
         casks = mkOption {
@@ -941,7 +943,9 @@ in
             # Gaming
             "steam"
             "prismlauncher"
+            "godot-mono"
             # Virtualisation
+            "docker"
             "utm"
             # Networking / remote
             "cloudflare-warp"
