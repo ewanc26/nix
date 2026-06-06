@@ -100,8 +100,8 @@ in
             "sudo nix-collect-garbage -d && nix-collect-garbage -d";
       });
 
-    initContent = ''
-      # pnpm global bin dir — set unconditionally in initContent since
+    initExtra = ''
+      # pnpm global bin dir — set unconditionally in initExtra since
       # home.sessionVariables/sessionPath are not reliably sourced on macOS.
       export PNPM_HOME="$HOME/.local/share/pnpm"
       mkdir -p "$PNPM_HOME"
@@ -132,6 +132,24 @@ in
       ${lib.optionalString (!isDarwin) ''
         if [ -z "$SSH_AUTH_SOCK" ]; then
           export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+        fi
+      ''}
+
+      # macOS Specific Binary/CLI Support Paths
+      ${lib.optionalString isDarwin ''
+        # LM Studio CLI local binaries path
+        if [ -d "$HOME/.lmstudio/bin" ]; then
+          export PATH="$HOME/.lmstudio/bin:$PATH"
+        fi
+
+        # OpenCode standard CLI binary directory
+        if [ -d "$HOME/.opencode/bin" ]; then
+          export PATH="$HOME/.opencode/bin:$PATH"
+        fi
+
+        # OpenCode Desktop App bundled binary fallback
+        if [ -d "/Applications/OpenCode.app/Contents/Resources/app/bin" ]; then
+          export PATH="/Applications/OpenCode.app/Contents/Resources/app/bin:$PATH"
         fi
       ''}
 
@@ -173,7 +191,6 @@ in
       # --all-systems`), causing repeated GC expansion warnings. 1 GiB avoids
       # that without meaningfully affecting smaller evaluations.
       GC_INITIAL_HEAP_SIZE = toString (1 * 1024 * 1024 * 1024);
-
     };
 
     profileExtra = ''
