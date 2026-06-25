@@ -1,3 +1,5 @@
+# Starship prompt — cross-shell, minimal, fast.
+# Settings are loaded from the companion starship.toml config file.
 { config, pkgs, lib, ... }:
 
 {

@@ -1,3 +1,6 @@
+# Server hardened profile — extends server-base with SSH, intrusion detection,
+# firewall, and headless optimisations. Disables getty and boots faster by
+# not waiting for network-online. All interaction is via SSH only.
 { ... }:
 {
   imports = [

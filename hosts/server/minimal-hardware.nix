@@ -1,3 +1,6 @@
+# Minimal hardware config for the NixOS server.
+# Auto-detected by nixos-generate-config; safe to regenerate.
+# Common to both x86_64-linux and aarch64-linux server builds.
 { config, lib, modulesPath, ... }:
 
 {

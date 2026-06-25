@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Verify Tailscale SSH configuration
+# Verify Tailscale SSH connectivity between all hosts.
+# Checks that Tailscale is running, expected hosts are online, SSH config
+# has the ProxyCommand block, and each online host is reachable via SSH.
 
 set -euo pipefail
 

@@ -1,3 +1,6 @@
+# Server base services — Tailscale VPN and SSH daemon.
+# Tailscale provides encrypted WireGuard tunnels between all hosts.
+# SSH is configured by the hardened profile separately (modules/server/ssh.nix).
 {
   config,
   lib,

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# check-darwin.sh — validate all darwin.nix entries before running nrs
-# Usage: ./tools/check-darwin.sh
+# check-darwin.sh — validate all darwin module entries before running nrs.
+# Checks that Homebrew formulas, casks, Mac App Store apps, and nixpkgs
+# packages listed in the config actually exist upstream.
 # Exits 0 if everything looks good, 1 if any issues found.
 
 set -euo pipefail

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Update all systems remotely over Tailscale
+# Update all systems remotely over Tailscale — runs nix flake update + rebuild
+# on each online host (laptop, server, macmini) in sequence.
+# Checks Tailscale connectivity first and skips offline hosts.
 
 set -e
 

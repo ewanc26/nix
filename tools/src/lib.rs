@@ -1,3 +1,10 @@
+/// Shared utilities for the nix-config management tools.
+///
+/// Provides common helpers: git root detection, timestamps, hostname lookup,
+/// nix command capture to file, and git commit+push for auto-generated changes.
+///
+/// Each binary in src/bin/ imports this via `use tools_common::{self, *};`.
+
 pub use std::env;
 pub use std::fs::{self, File};
 pub use std::io::{self, Write};

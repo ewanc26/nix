@@ -1,3 +1,5 @@
+# fastfetch — system info display on terminal startup.
+# Desktop hosts get the full logo+info config; server hosts get a minimal one.
 { osConfig, lib, ... }:
 let
   cfg = osConfig.myConfig;

@@ -1,3 +1,7 @@
+# Rust-based CLI tools for the nix-config repository.
+# Wraps the Cargo project into a flake so tools are accessible via
+# `nix run .#health-check`, `nix run .#flake-bump`, etc.
+# Builds with rustPlatform.buildRustPackage for all supported platforms.
 {
   description = "Nix config management tools";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

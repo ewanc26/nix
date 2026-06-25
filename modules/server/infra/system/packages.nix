@@ -1,14 +1,8 @@
-{
-  config,
-  pkgs,
-  ...
-}:
-let
-  cfg = config.myConfig;
-  resolvePackages = (import ../../../../lib).resolveFrom pkgs;
-in
-{
-  environment.systemPackages =
+# Server system packages — common + development + server-specific tooling.
+# Includes diagnostics (iotop, iftop, lsof), network tools (bind, mtr),
+# disk utilities (parted, smartmontools), compression, and Ghostty terminfo
+# for proper SSH sessions from the desktop terminal.
+# Restricts Nix daemon access to root+wheel — the server is fully declarative.
     # Common CLI utilities (shared with laptop via myConfig.packages.common)
     resolvePackages cfg.packages.common
     # Cross-platform development tools (shared with laptop)

@@ -1,4 +1,6 @@
-# Desktop system services (printing, avahi, SSH, locate, etc.).
+# Desktop system services — printing, avahi, SSH, locate, Tailscale.
+# Applied on all NixOS hosts that import this module (currently the laptop).
+# Server infra services are managed separately under modules/server/.
 {
   config,
   pkgs,

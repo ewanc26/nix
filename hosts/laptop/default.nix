@@ -1,3 +1,7 @@
+# Laptop host config — KDE Plasma desktop, PipeWire audio, gaming.
+# Overrides myConfig.isDesktop and myConfig.gaming.enable.
+# Passwordless sudo for nixos-rebuild via SSH.
+# After auto-upgrade, commits and pushes flake.lock upstream.
 {
   config,
   pkgs,

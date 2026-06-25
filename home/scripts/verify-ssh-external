@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Check SSH connectivity to external services
-# Usage: verify-ssh-external
+# Check SSH connectivity to external services — GitHub, Forgejo, Tangled.
+# Runs `ssh git@...` in batch mode and checks for the expected greeting.
+# Useful after a key rotation or host migration to confirm all remotes work.
 
 set -uo pipefail
 

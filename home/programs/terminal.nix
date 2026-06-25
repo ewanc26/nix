@@ -1,4 +1,6 @@
-# Konsole terminal profile — all non-Darwin hosts.
+# Konsole terminal profile — all non-Darwin (Linux) hosts.
+# Font family and size driven from myConfig.desktop options.
+# macOS uses Ghostty instead (handled in ghostty.nix).
 {
   osConfig,
   ...

@@ -1,4 +1,6 @@
-# Standard user configuration
+# Standard user definition for the primary system user (ewan).
+# Assigns groups, shell, and SSH authorized keys from ssh-keys.nix.
+# Each host automatically excludes its own SSH key from its own config.
 {
   config,
   pkgs,

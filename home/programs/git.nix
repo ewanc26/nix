@@ -1,4 +1,6 @@
-# Git configuration.
+# Git configuration — user identity, signing (SSH), safe.directory
+# for the managed /etc/nixos symlink, and shorthand aliases.
+# All values come from myConfig.* options.
 {
   pkgs,
   lib,

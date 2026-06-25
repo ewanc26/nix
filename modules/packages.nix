@@ -1,4 +1,7 @@
-# System-wide packages for Linux desktop hosts.
+# System-wide packages — common, development, and desktop lists.
+# On Linux desktop hosts (laptop), all three categories are installed.
+# Server and headless hosts only get common + development packages.
+# The actual package name lists live in options.nix (myConfig.packages.*).
 {
   config,
   pkgs,

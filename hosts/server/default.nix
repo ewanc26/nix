@@ -1,3 +1,7 @@
+# Server host config — headless NixOS running PDS, Forgejo, Caddy, etc.
+# Imports all server infra modules and enables the hardened security profile.
+# Tailscale-only services (Jellyfin, Immich, Vaultwarden) never see the
+# public internet — only the Cloudflare tunnel services are externally visible.
 {
   config,
   lib,

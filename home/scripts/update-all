@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Update everything: flake inputs, system configuration, and packages
+# Update everything on the current host: flake inputs, system rebuild,
+# Homebrew (macOS), and optional garbage collection.
+# Run this instead of chaining nix flake update + nrs by hand.
 
 set -e
 

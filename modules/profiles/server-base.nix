@@ -1,3 +1,6 @@
+# Server base profile — foundational infra modules for any headless NixOS host.
+# Imports packages, storage, services, maintenance, hardware health, and
+# the disable-noise module. Extended by server-hardened.nix below.
 { ... }:
 {
   imports = [

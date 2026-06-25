@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Repository history analyser for the nix-config repo.
+# Dumps structured commit data per git tag, produces summary output
+# in Markdown and JSON. Used for release note generation.
 
 import subprocess
 import re

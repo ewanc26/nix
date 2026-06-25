@@ -1,3 +1,7 @@
+# Mac Mini host config — nix-darwin primary daily driver (Apple M2).
+# Imports all darwin modules: common, packages, homebrew, system settings,
+# launch services management, and gatekeeper automation.
+# External disk mount and Time Machine volume UUID configured here.
 {
   config,
   pkgs,
