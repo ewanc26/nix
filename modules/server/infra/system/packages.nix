@@ -3,6 +3,17 @@
 # disk utilities (parted, smartmontools), compression, and Ghostty terminfo
 # for proper SSH sessions from the desktop terminal.
 # Restricts Nix daemon access to root+wheel — the server is fully declarative.
+{
+  config,
+  pkgs,
+  ...
+}:
+let
+  cfg = config.myConfig;
+  resolvePackages = (import ../../../../lib).resolveFrom pkgs;
+in
+{
+  environment.systemPackages =
     # Common CLI utilities (shared with laptop via myConfig.packages.common)
     resolvePackages cfg.packages.common
     # Cross-platform development tools (shared with laptop)

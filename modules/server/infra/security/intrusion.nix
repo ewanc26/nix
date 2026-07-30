@@ -1,5 +1,15 @@
 # fail2ban — SSH brute-force protection using systemd journal backend.
 # Settings (maxretry, bantime, findtime) driven from myConfig.server.fail2ban.*.
+{
+  config,
+  lib,
+  ...
+}:
+let
+  cfg = config.myConfig;
+in
+{
+  services.fail2ban = {
     enable = lib.mkDefault cfg.server.fail2ban.enable;
     maxretry = cfg.server.fail2ban.maxRetry;
 
