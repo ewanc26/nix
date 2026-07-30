@@ -19,15 +19,14 @@ in
   users.users.${cfg.user.username} = {
     isNormalUser = true;
     description = cfg.user.fullName;
-    extraGroups =
-      [
-        "networkmanager"
-        "wheel"
-      ]
-      ++ lib.optionals config.services.pipewire.enable [
-        "audio"
-        "video"
-      ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ]
+    ++ lib.optionals config.services.pipewire.enable [
+      "audio"
+      "video"
+    ];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = authorizedKeys;
   };

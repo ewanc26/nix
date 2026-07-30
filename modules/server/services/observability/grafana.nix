@@ -29,28 +29,33 @@ let
   grafanaPort = gf.port;
 
   # Scrape configs built conditionally per enabled service
-  scrapeConfigs =
-    [
-      # ── System ──────────────────────────────────────────────────────────────
-      {
-        job_name = "node";
-        static_configs = [ { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.node.port}" ]; } ];
-      }
-      # ── Caddy ───────────────────────────────────────────────────────────────
-      {
-        job_name = "caddy";
-        static_configs = [ { targets = [ "127.0.0.1:2019" ]; } ];
-        metrics_path = "/metrics";
-      }
-    ]
-    ++ lib.optional (cfg.services.nextcloud.enable && cfg.server.grafana.nextcloudMetrics) {
-      job_name = "nextcloud";
-      static_configs = [ { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.nextcloud.port}" ]; } ];
+  scrapeConfigs = [
+    # ── System ──────────────────────────────────────────────────────────────
+    {
+      job_name = "node";
+      static_configs = [
+        { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.node.port}" ]; }
+      ];
     }
-    ++ lib.optional config.services.postgresql.enable {
-      job_name = "postgres";
-      static_configs = [ { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.postgres.port}" ]; } ];
-    };
+    # ── Caddy ───────────────────────────────────────────────────────────────
+    {
+      job_name = "caddy";
+      static_configs = [ { targets = [ "127.0.0.1:2019" ]; } ];
+      metrics_path = "/metrics";
+    }
+  ]
+  ++ lib.optional (cfg.services.nextcloud.enable && cfg.server.grafana.nextcloudMetrics) {
+    job_name = "nextcloud";
+    static_configs = [
+      { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.nextcloud.port}" ]; }
+    ];
+  }
+  ++ lib.optional config.services.postgresql.enable {
+    job_name = "postgres";
+    static_configs = [
+      { targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.postgres.port}" ]; }
+    ];
+  };
 in
 lib.mkIf hasTailnet {
 
@@ -94,12 +99,14 @@ lib.mkIf hasTailnet {
   # Nextcloud metrics token — generate in Nextcloud admin → Monitoring app,
   # then: sops secrets/nextcloud-metrics-token (binary, raw token).
   # Only activated when myConfig.server.grafana.nextcloudMetrics = true.
-  sops.secrets."nextcloud-metrics-token" = lib.mkIf (cfg.services.nextcloud.enable && cfg.server.grafana.nextcloudMetrics) {
-    sopsFile = ../../../../secrets/nextcloud-metrics-token;
-    format = "binary";
-    owner = "nextcloud-exporter";
-    mode = "0440";
-  };
+  sops.secrets."nextcloud-metrics-token" =
+    lib.mkIf (cfg.services.nextcloud.enable && cfg.server.grafana.nextcloudMetrics)
+      {
+        sopsFile = ../../../../secrets/nextcloud-metrics-token;
+        format = "binary";
+        owner = "nextcloud-exporter";
+        mode = "0440";
+      };
 
   # ── Caddy metrics ────────────────────────────────────────────────────────
   # Expose /metrics on the admin API port (2019, localhost only by default).

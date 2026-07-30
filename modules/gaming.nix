@@ -20,8 +20,11 @@ in
 
   hardware.graphics.enable32Bit = lib.mkIf cfg.gaming.enable true;
 
-  environment.systemPackages = lib.optionals cfg.gaming.enable (with pkgs; [
-    mangohud
-    gamescope
-  ]);
+  environment.systemPackages = lib.optionals cfg.gaming.enable (
+    with pkgs;
+    [
+      mangohud
+      gamescope
+    ]
+  );
 }
