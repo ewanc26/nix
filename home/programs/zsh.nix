@@ -90,7 +90,7 @@ in
             "home-manager switch --flake ~/.config/nix-config";
 
         # ── Backup aliases ────────────────────────────────────────────────────
-        obsidian-backup = "cd /Users/ewan/Documents/Obsidian && git add -A && git commit -m \"backup: vault sync $(date +%Y-%m-%d)\" && git push origin && cd -";
+        obsidian-backup = "cd ${config.home.homeDirectory}/Documents/Obsidian && git add -A && git commit -m \"backup: vault sync $(date +%Y-%m-%d)\" && git push origin && cd -";
 
         # ── Platform-specific extras ──────────────────────────────────────────
         cleanup =
@@ -100,8 +100,11 @@ in
             "sudo nix-collect-garbage -d && nix-collect-garbage -d";
       });
 
-    initExtra = ''
-      # pnpm global bin dir — set unconditionally in initExtra since
+    # initContent at the default order (1000) — the direct replacement for the
+    # deprecated initExtra. Use lib.mkBefore / lib.mkOrder 550 if anything ever
+    # needs to run earlier than this block.
+    initContent = ''
+      # pnpm global bin dir — set unconditionally here since
       # home.sessionVariables/sessionPath are not reliably sourced on macOS.
       export PNPM_HOME="$HOME/.local/share/pnpm"
       mkdir -p "$PNPM_HOME"
