@@ -8,7 +8,7 @@ Guidance for the personal Nix flake managing `macmini` (aarch64-darwin), `laptop
 - `modules/options.nix` is the typed source of shared defaults under `myConfig`. System modules consume `config.myConfig`; Home Manager consumes `osConfig.myConfig`. Declare new cross-host settings there and use ordinary module merging/`mkIf` rather than restoring the removed `cfgLib` abstraction.
 - `hosts/<name>/default.nix` selects modules and holds genuine machine overrides. Hardware files, hostnames, platform/state versions, disk UUIDs, Tailscale addresses, and service enablement stay host-specific.
 - `modules/darwin/`, `modules/server/`, shared `modules/`, and `home/` own platform/service and per-user configuration. Follow `lib/USAGE.md` for package resolution and module patterns.
-- `secrets/` contains SOPS-encrypted files tracked by Git; `.sops.yaml` defines recipients. Decryption uses the host SSH key during activation and the user's explicit age key for manual work.
+- `secrets/` contains SOPS-encrypted files tracked by Git; `.sops.yaml` defines recipients. Decryption uses the host SSH key (as an age key) during activation, and the user's PGP key for manual work. In `.sops.yaml`, `pgp:` and `age:` must remain in a single key group — separate groups would enable Shamir sharing and require both.
 - `topology.nix` adds physical/network facts to generated Linux topology. The embedded `modules/server/services/atproto/pds-landing/` is a separate pnpm/SvelteKit app with its own lockfile.
 - `tools/` is retained historical Rust source. Its README marks it deprecated in favour of the `pkgs-monorepo` input; use `nix run ~/Developer/Git/pkgs#<tool>` or the configured aliases, not the stale local tool flake, unless explicitly repairing history.
 

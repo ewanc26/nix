@@ -11,9 +11,15 @@
 #   3. Prompt interactively for values that cannot be derived.
 #   4. Encrypt the result with sops using the recipients in .sops.yaml.
 #
+# Secrets are encrypted to your PGP key (you) plus each host's age key (derived
+# from its SSH host key). See .sops.yaml for the recipient rules.
+#
 # Flags:
-#   --force    Re-generate and re-encrypt every file, even if already encrypted.
-#   --skip-cf  Skip the Cloudflare tunnel step.
+#   --force        Re-generate and re-encrypt every file, even if already encrypted.
+#   --skip-cf      Skip the Cloudflare tunnel step.
+#   --rekey-only   Skip generation entirely; just re-encrypt every existing
+#                  secret to the current recipients in .sops.yaml. This is what
+#                  you run after changing keys.
 
 set -euo pipefail
 
@@ -24,6 +30,7 @@ if [[ -z "${_NIX_SETUP_ENV:-}" ]]; then
     exec nix shell \
         nixpkgs#sops \
         nixpkgs#age \
+        nixpkgs#gnupg \
         nixpkgs#cloudflared \
         --command bash "$0" "$@"
 fi
@@ -42,15 +49,26 @@ ask()  { printf "  ${BOLD}?${RESET}  %s " "$*"; }
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(dirname "$SCRIPT_DIR")")"
 SECRETS_DIR="$ROOT/secrets"
+SOPS_YAML="$ROOT/.sops.yaml"
+
+# The user key is PGP, but the age keyfile is still exported deliberately.
+#
+# `sops updatekeys` has to DECRYPT a file before it can re-encrypt it to a new
+# recipient set. During the migration away from an age user key, the only key
+# that can still open the existing files is that age key — so it must remain
+# available for the first rekey run. It is harmless afterwards, and the Faol
+# secrets decrypted at activation on macOS still use it.
 AGE_KEY="$HOME/.config/age/keys.txt"
-export SOPS_AGE_KEY_FILE="$AGE_KEY"
+[[ -s "$AGE_KEY" ]] && export SOPS_AGE_KEY_FILE="$AGE_KEY"
 
 # ── Flags ──────────────────────────────────────────────────────────────────────
 FORCE=false
 SKIP_CF=false
+REKEY_ONLY=false
 for arg in "$@"; do case "$arg" in
-    --force)   FORCE=true ;;
-    --skip-cf) SKIP_CF=true ;;
+    --force)      FORCE=true ;;
+    --skip-cf)    SKIP_CF=true ;;
+    --rekey-only) REKEY_ONLY=true ;;
 esac; done
 
 # openssl ships on both macOS and Linux.
@@ -104,21 +122,50 @@ prompt_secret() {
     printf '%s' "$value"
 }
 
-# ── 0. Age key ─────────────────────────────────────────────────────────────────
-bootstrap_age_key() {
-    log "Age key"
-    mkdir -p "$(dirname "$AGE_KEY")"
-    if [[ ! -s "$AGE_KEY" ]]; then
-        warn "No key at $AGE_KEY — generating..."
-        age-keygen -o "$AGE_KEY"
-        chmod 600 "$AGE_KEY"
+# ── 0. PGP key preflight ───────────────────────────────────────────────────────
+# The user recipient in .sops.yaml is a PGP fingerprint. Verify before touching
+# anything that (a) it has actually been filled in, and (b) the matching secret
+# key is in this machine's keyring — otherwise sops fails partway through with a
+# far less obvious error.
+preflight_pgp_key() {
+    log "PGP key"
+
+    [[ -f "$SOPS_YAML" ]] || fail "No .sops.yaml at $SOPS_YAML"
+
+    if grep -q 'REPLACE_WITH_YOUR_PGP_FINGERPRINT' "$SOPS_YAML"; then
+        echo
+        fail "$(cat <<'EOM'
+.sops.yaml still contains the placeholder fingerprint.
+
+Replace it with your own long-form PGP fingerprint (40 hex characters):
+
+    gpg --list-secret-keys --with-colons --fingerprint \
+      | awk -F: '/^fpr:/{print $10; exit}'
+
+then edit the `&ewan_pgp` anchor near the top of .sops.yaml.
+EOM
+)"
     fi
-    local pub
-    pub=$(grep "# public key:" "$AGE_KEY" 2>/dev/null | awk '{print $4}' || true)
-    [[ -z "$pub" ]] && pub=$(age -y "$AGE_KEY" 2>/dev/null || true)
-    [[ -z "$pub" ]] && fail "Could not read public key from $AGE_KEY"
-    ok "User age key: $pub"
-    USER_AGE_PUB="$pub"
+
+    local fpr
+    fpr=$(awk '/&ewan_pgp/{print $3; exit}' "$SOPS_YAML")
+    [[ -n "$fpr" ]] || fail "Could not read the &ewan_pgp fingerprint from .sops.yaml"
+
+    if ! gpg --list-secret-keys "$fpr" &>/dev/null; then
+        fail "No secret key for $fpr in this keyring — import it before continuing."
+    fi
+
+    ok "User PGP key: $fpr"
+    USER_PGP_FPR="$fpr"
+
+    # Warn, but do not fail: the age key is only needed to open secrets that
+    # have not been rekeyed to PGP yet.
+    if [[ -s "$AGE_KEY" ]]; then
+        ok "Age key present at $AGE_KEY (used to decrypt not-yet-rekeyed secrets)"
+    else
+        warn "No age key at $AGE_KEY — fine once every secret is rekeyed to PGP,"
+        warn "but a first-time migration cannot decrypt the old files without it."
+    fi
 }
 
 # ── 1. forgejo.env ─────────────────────────────────────────────────────────────
@@ -313,7 +360,16 @@ rekey_all() {
         local name="${f#"$SECRETS_DIR/"}"
         local err
         if err=$(sops updatekeys --yes --input-type binary "$f" 2>&1); then
-            ok "$name"
+            # Confirm the PGP recipient actually landed in the file's metadata.
+            # sops records it as an `fp` field; a rule that failed to match
+            # would otherwise leave the file silently PGP-less.
+            if grep -qi "$USER_PGP_FPR" "$f"; then
+                ok "$name"
+            else
+                warn "$name — rekeyed, but your PGP fingerprint is not among the"
+                warn "    recipients. Check the path_regex rules in .sops.yaml."
+                (( failures++ )) || true
+            fi
         else
             warn "$name — updatekeys failed:"
             echo "$err" | sed 's/^/      /'
@@ -335,15 +391,19 @@ main() {
     # All tools are available — we're running inside `nix shell` at this point.
     [[ "$FORCE" == true ]] && warn "--force: existing encrypted secrets will be regenerated"
 
-    bootstrap_age_key
+    preflight_pgp_key
 
     mkdir -p "$SECRETS_DIR"
 
-    secret_forgejo
-    secret_pds
-    secret_cf_tunnel
-    secret_docker
-    secret_claude
+    if [[ "$REKEY_ONLY" == true ]]; then
+        warn "--rekey-only: skipping secret generation"
+    else
+        secret_forgejo
+        secret_pds
+        secret_cf_tunnel
+        secret_docker
+        secret_claude
+    fi
 
     rekey_all
 

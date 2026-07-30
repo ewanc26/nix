@@ -392,7 +392,7 @@ in
       # Meilisearch master key — file must contain the raw key value only (no KEY= prefix).
       # Generate and encrypt:
       #   openssl rand -base64 32 > secrets/meilisearch-master-key
-      #   SOPS_AGE_KEY_FILE=~/.config/age/keys.txt sops --encrypt --in-place \
+      #   sops --encrypt --in-place \
       #     --input-type binary --output-type binary secrets/meilisearch-master-key
       (lib.mkIf skcfg.meilisearch.createLocally {
         users.users.meilisearch = {

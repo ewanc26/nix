@@ -63,6 +63,13 @@ in
     # Decrypt sops secrets to local files for shell env vars.
     # macOS doesn't have sops-nix (NixOS-only), so we decrypt at activation time.
     # Faol secrets live in the lettabot faol config directory.
+    #
+    # These stay on the age key on purpose, even though the user recipient for
+    # this repo's secrets/ is now a PGP key (see .sops.yaml). Activation runs as
+    # root with no controlling terminal, so gpg-agent has nowhere to prompt for
+    # a passphrase; an age keyfile decrypts unattended. These files live outside
+    # the repo and are not covered by .sops.yaml's creation rules, so they are
+    # unaffected by the PGP migration.
     FAOL_DIR="/Volumes/Storage/Developer/Local/lettabot/faol"
     AGE_KEY="/Users/${cfg.user.username}/.config/age/keys.txt"
     if [ -f "$AGE_KEY" ]; then

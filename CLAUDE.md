@@ -90,20 +90,35 @@ Service/interface data is extracted automatically from the NixOS module.
 
 ## Secrets
 
-Uses [sops-nix](https://github.com/Mic92/sops-nix) with age encryption.
+Uses [sops-nix](https://github.com/Mic92/sops-nix). Every secret is encrypted to two
+kinds of recipient:
+
+- **Your PGP key** — for reading, editing and re-keying secrets by hand.
+- **Each host's age key** — derived from its `/etc/ssh/ssh_host_ed25519_key`, used by
+  sops-nix to decrypt at activation. Hosts stay on age because activation runs as root
+  with no terminal, so a PGP passphrase could never be entered.
+
+Other notes:
 
 - Encrypted files in `secrets/` are safe to commit.
-- Rules defined in `.sops.yaml`.
-- Decrypted at activation using `/etc/ssh/ssh_host_ed25519_key`.
-- Age key must exist at `~/.config/age/keys.txt`.
+- Recipients are defined in `.sops.yaml`. `pgp:` and `age:` must stay in a **single** key
+  group — two groups would enable Shamir sharing and require both keys.
+- `~/.config/age/keys.txt` is still live: the macOS activation script uses it for the
+  Faol secrets (which live outside this repo), and it opens any secret not yet re-keyed.
 
-When running `sops` manually, always pass the key file explicitly — sops does not pick it up automatically:
+Manual use needs no key file — sops finds your PGP key via `gpg-agent`:
 
 ```bash
-SOPS_AGE_KEY_FILE=~/.config/age/keys.txt nix run nixpkgs#sops -- secrets/pds.env
+nix run nixpkgs#sops -- secrets/pds.env
 ```
 
-See `docs/secrets.md` for full details.
+Re-key every secret after changing `.sops.yaml`:
+
+```bash
+./secrets/setup.sh --rekey-only && ./scripts/check-secrets.sh
+```
+
+See `docs/secrets.md` for the full migration runbook.
 
 ## Flake Inputs
 

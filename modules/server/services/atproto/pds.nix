@@ -7,7 +7,7 @@
 #    Caddy (127.0.0.1:cfg.pds.caddyPort — internal only, no TLS here)
 #      ↑ Cloudflare tunnel (outbound only, no firewall ports needed)
 #
-#  Secrets (sops-encrypted, age backend):
+#  Secrets (sops-encrypted; your PGP key + the host's age key):
 #    secrets/pds.env — KEY=value env file, must contain:
 #      PDS_JWT_SECRET                              openssl rand --hex 16
 #      PDS_ADMIN_PASSWORD                          openssl rand --hex 16

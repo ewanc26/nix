@@ -1,11 +1,25 @@
 #!/usr/bin/env bash
 # Audits all sops secrets in the nix-config repo.
-# Reports: format, recipient count, whether server key is present, and decryptability.
+#
+# Secrets are encrypted to two kinds of recipient (see .sops.yaml): your PGP key
+# and each host's age key. This reports both, plus decryptability.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)"
 cd "$REPO_ROOT"
 
 SERVER_KEY="age1xvny7h8cahajamj4lz9cew5w0dqlge0yy6tys7szj42grcrl95jqsrutsu"
+
+# User PGP fingerprint, read from .sops.yaml so there is one source of truth.
+USER_PGP_FPR="$(awk '/&ewan_pgp/{print $3; exit}' .sops.yaml 2>/dev/null)"
+if [ -z "$USER_PGP_FPR" ] || [ "$USER_PGP_FPR" = "REPLACE_WITH_YOUR_PGP_FINGERPRINT" ]; then
+  echo "✗ .sops.yaml has no usable PGP fingerprint for &ewan_pgp."
+  echo "  Fill in the placeholder before auditing — see docs/secrets.md."
+  exit 1
+fi
+
+# The age key is only needed to open secrets not yet rekeyed to PGP.
+[ -s "$HOME/.config/age/keys.txt" ] && export SOPS_AGE_KEY_FILE="$HOME/.config/age/keys.txt"
+
 PASS=0
 FAIL=0
 
@@ -32,9 +46,18 @@ check_secret() {
     fi
   fi
 
-  local count
-  count=$(echo "$sops_json" | jq '.age | length' 2>/dev/null || echo "0")
-  echo "  Recipients: $count"
+  local age_count pgp_count
+  age_count=$(echo "$sops_json" | jq '.age | length' 2>/dev/null || echo "0")
+  pgp_count=$(echo "$sops_json" | jq '.pgp | length' 2>/dev/null || echo "0")
+  echo "  Recipients: ${age_count:-0} age, ${pgp_count:-0} pgp"
+
+  if echo "$sops_json" | jq -r '.pgp[].fp' 2>/dev/null \
+      | grep -qi "$USER_PGP_FPR"; then
+    echo "  ✓ User PGP key present"
+  else
+    echo "  ✗ User PGP key MISSING — run ./secrets/setup.sh --rekey-only"
+    ((FAIL++))
+  fi
 
   if echo "$sops_json" | jq -r '.age[].recipient' 2>/dev/null | grep -q "$SERVER_KEY"; then
     echo "  ✓ Server key present"
@@ -47,9 +70,10 @@ check_secret() {
   modified=$(echo "$sops_json" | jq -r '.lastmodified' 2>/dev/null || echo "unknown")
   echo "  Last modified: $modified"
 
+  # sops tries every recipient it holds a key for, so this exercises the PGP
+  # path on a rekeyed file and the age path on one that has not been rekeyed.
   local plaintext
-  plaintext=$(SOPS_AGE_KEY_FILE=~/.config/age/keys.txt \
-    nix run nixpkgs#sops -- decrypt --output-type binary "$file" 2>&1)
+  plaintext=$(nix run nixpkgs#sops -- decrypt --output-type binary "$file" 2>&1)
   local exit_code=$?
 
   if [ $exit_code -eq 0 ]; then

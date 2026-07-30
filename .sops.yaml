@@ -1,52 +1,72 @@
-# sops configuration — defines which age keys can decrypt each secret file.
+# sops configuration — defines which keys can decrypt each secret file.
 #
-# Key derivation:
-#   User key    : age-keygen (stored at ~/.config/age/keys.txt)
-#   Host keys   : derived from each host's SSH ed25519 host key at deploy time:
-#                   ssh-keyscan <host> | ssh-to-age
+# There are two kinds of recipient:
 #
-# To add a new host:
-#   1. nix-shell -p ssh-to-age --run 'ssh-keyscan <host-ip> | ssh-to-age'
-#   2. Add the result below and uncomment the server reference in creation_rules.
-#   3. Re-encrypt all secrets: sops updatekeys secrets/<file>
+#   User key   : your PGP key. This is what lets you read, edit and re-key any
+#                secret from any machine that has your private key in its
+#                GnuPG keyring.
 #
-# To encrypt a new secret:
-#   sops --encrypt secrets/mysecret.env > secrets/mysecret.env  (in-place)
-#   or: sops secrets/mysecret.env  (opens $EDITOR)
+#   Host keys  : age keys derived from each machine's SSH ed25519 host key:
+#                  ssh-keyscan <host> | ssh-to-age
+#                sops-nix uses these to decrypt at activation time, as root and
+#                unattended. They stay on age deliberately — nothing has to be
+#                provisioned or rotated by hand, and a boot-time decryption
+#                cannot prompt for a PGP passphrase.
+#
+# ── IMPORTANT: key group structure ───────────────────────────────────────────
+# `pgp:` and `age:` are listed inside a SINGLE key group. Within one key group
+# every recipient can decrypt the file independently, which is what we want.
+#
+# Splitting them into two key groups (a second `- ` at the key_groups level)
+# would switch sops to Shamir secret sharing and require BOTH a PGP key and a
+# host key to be present before anything decrypts. Do not do that here.
+#
+# ── Adding a new host ────────────────────────────────────────────────────────
+#   1. nix run nixpkgs#ssh-to-age -- -i <(ssh-keyscan <host-ip>)
+#   2. Add the result under `keys:` and reference it in the relevant rule below.
+#   3. Re-encrypt: ./secrets/setup.sh --rekey-only
+#
+# ── Editing a secret ─────────────────────────────────────────────────────────
+#   sops secrets/pds.env            # opens $EDITOR with decrypted content
+#   sops --encrypt --in-place secrets/new-secret.env
 
 keys:
-  # User key — always included so secrets can be edited from any machine.
-  - &ewan age17ulnk7akn9zfwtc87vsexrr809xj6gkkcp2rkez6xtzyrqclpshqfew5wy
+  # ── User key (PGP) ─────────────────────────────────────────────────────────
+  # Long-form fingerprint, 40 hex characters, no spaces. Find yours with:
+  #   gpg --list-secret-keys --with-colons --fingerprint \
+  #     | awk -F: '/^fpr:/{print $10; exit}'
+  - &ewan_pgp REPLACE_WITH_YOUR_PGP_FINGERPRINT
 
-  # Host keys — derived from /etc/ssh/ssh_host_ed25519_key on each machine.
-  # sops-nix decrypts at activation time using the host's own key.
+  # ── Host keys (age, derived from each host's SSH ed25519 host key) ─────────
   - &macmini age10ysmz3603uupz0043mpznchtnh6jsnk5cu3eg05xalma4xjacppsgupgvj
   - &laptop age1s4exn5venvd2rkrvw9g6g9rua05quut62m6le8k79st0dryhcy3qq4n55k
   - &server age1xvny7h8cahajamj4lz9cew5w0dqlge0yy6tys7szj42grcrl95jqsrutsu
 
 creation_rules:
-  # ── Secrets available on all machines ──────────────────────────────────────
-  # ── Server-only secrets ─────────────────────────────────────────────────────
+  # ── Server-only secrets ────────────────────────────────────────────────────
   - path_regex: secrets/(pds\.env|cloudflare\.token|cloudflare-acme\.env|cloudflare-acme-croft-click\.env|cf-tunnel\.json|forgejo\.env|nextcloud-admin-pass|nextcloud-smtp-pass|vaultwarden\.env|sharkey\.env|meilisearch-master-key|umami-app-secret)$
     key_groups:
-      - age:
-          - *ewan
+      - pgp:
+          - *ewan_pgp
+        age:
           - *server
 
-  # ── Desktop-only secrets ─────────────────────────────────────────────────────
+  # ── Desktop-only secrets ───────────────────────────────────────────────────
   # tailscale-auth-key: used by the NixOS tailscale module on the laptop to
   # automatically authenticate on first boot without a manual `tailscale up`.
   - path_regex: secrets/tailscale-auth-key$
     key_groups:
-      - age:
-          - *ewan
+      - pgp:
+          - *ewan_pgp
+        age:
           - *laptop
 
-  # ── Fallback: any other file under secrets/ ─────────────────────────────────
+  # ── Fallback: any other file under secrets/ ────────────────────────────────
   - path_regex: secrets/.*
     key_groups:
-      - age:
-          - *ewan
+      - pgp:
+          - *ewan_pgp
+        age:
           - *macmini
           - *laptop
           - *server

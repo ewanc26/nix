@@ -7,12 +7,12 @@
 #    Caddy (127.0.0.1:cfg.forgejo.caddyPort — internal only, no TLS here)
 #      ↑ Cloudflare tunnel (outbound only, no firewall ports needed)
 #
-#  Secrets (sops-encrypted, age backend):
+#  Secrets (sops-encrypted; your PGP key + the host's age key):
 #    secrets/forgejo.env — KEY=value env file, must contain:
 #      SECRET_KEY      # openssl rand -hex 32
 #      INTERNAL_TOKEN  # openssl rand -hex 32
 #
-#    Encrypt: sops --encrypt --age <host-age-pubkey> secrets/forgejo.env > secrets/forgejo.env
+#    Encrypt: sops --encrypt --in-place secrets/forgejo.env
 #    (Use .sops.yaml at the repo root to configure recipients automatically.)
 ##############################################################################
 {

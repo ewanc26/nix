@@ -216,12 +216,19 @@ in
         _token_file="${cfg.forgejo.userApiTokenFile}"
         # On Darwin, sops-nix decrypts via a launchd agent after activation,
         # so the pre-decrypted file may not exist yet. Fall back to decrypting
-        # directly with the user age key if available.
-        if [ ! -f "$_token_file" ] && [ -f "$HOME/.config/age/keys.txt" ]; then
+        # the committed copy directly.
+        #
+        # No key is pinned here on purpose. forgejo-user-token lives under
+        # secrets/, so after the migration to a PGP user key the age key can no
+        # longer open it — sops has to be free to pick whichever backend this
+        # machine actually has. Failure is non-fatal: private repos are skipped.
+        if [ ! -f "$_token_file" ]; then
           _raw="${builtins.toString ../secrets/forgejo-user-token}"
           _token_file=$(mktemp)
-          SOPS_AGE_KEY_FILE="$HOME/.config/age/keys.txt" \
-            ${pkgs.sops}/bin/sops --decrypt --input-type binary --output-type binary \
+          if [ -f "$HOME/.config/age/keys.txt" ]; then
+            export SOPS_AGE_KEY_FILE="$HOME/.config/age/keys.txt"
+          fi
+          ${pkgs.sops}/bin/sops --decrypt --input-type binary --output-type binary \
             "$_raw" > "$_token_file" 2>/dev/null || { rm -f "$_token_file"; _token_file=""; }
         fi
         if [ -n "$_token_file" ] && [ -f "$_token_file" ]; then

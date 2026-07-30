@@ -15,7 +15,7 @@
 #    SMARTD_ADDRESS       — recipient address
 #    SMARTD_TFIRST        — human-readable time of first failure
 #
-#  Secret (sops-encrypted, age backend):
+#  Secret (sops-encrypted; your PGP key + the host's age key):
 #    secrets/smartd-smtp-pass — raw Resend API key (no KEY= prefix, no newline)
 #
 #    Create and encrypt:

@@ -16,7 +16,7 @@
 #    custom systemd timer (the built-in backupDir option is not used because
 #    it hardcodes /var/lib/vaultwarden as source and ignores DATA_FOLDER).
 #
-#  Secrets (sops-encrypted, age backend):
+#  Secrets (sops-encrypted; your PGP key + the host's age key):
 #    secrets/vaultwarden.env — KEY=value env file, must contain:
 #      ADMIN_TOKEN   # argon2 hash — generate with:
 #                    #   nix run nixpkgs#vaultwarden -- hash --preset owasp

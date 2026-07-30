@@ -15,14 +15,13 @@
 #  Database:
 #    PostgreSQL, created and managed locally by NixOS.
 #
-#  Secrets (sops-encrypted, age backend):
+#  Secrets (sops-encrypted; your PGP key + the host's age key):
 #    secrets/nextcloud-admin-pass — raw plaintext file containing only the
 #    initial admin password (no KEY=value, just the password string).
 #
 #    Create and encrypt:
 #      echo -n "$(openssl rand -base64 24)" > secrets/nextcloud-admin-pass
-#      SOPS_AGE_KEY_FILE=~/.config/age/keys.txt \
-#        nix run nixpkgs#sops -- --encrypt --in-place secrets/nextcloud-admin-pass
+#      nix run nixpkgs#sops -- --encrypt --in-place secrets/nextcloud-admin-pass
 #
 #    The admin password is only used on first install. After that you can
 #    rotate it via the Nextcloud web UI and the file is no longer read.

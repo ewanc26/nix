@@ -13,7 +13,7 @@
 #    1. cloudflared tunnel login
 #    2. cloudflared tunnel create server
 #    3. Encrypt the resulting ~/.cloudflared/<UUID>.json with sops:
-#         sops --encrypt --age <age-pubkey> cf-tunnel.json > secrets/cf-tunnel.json
+#         sops --encrypt --in-place secrets/cf-tunnel.json
 #    4. Set myConfig.cloudflare.tunnelId to that UUID (modules/options.nix default
 #       or a per-host override).
 #    5. Add CNAME records in Cloudflare DNS for each service:
@@ -88,7 +88,7 @@ lib.mkIf cfg.services.cloudflare.enable {
 
   # ── Secret ──────────────────────────────────────────────────────────────────
   # JSON credentials file created by `cloudflared tunnel create server`.
-  # Encrypt with: sops --encrypt --age <age-pubkey> cf-tunnel.json > secrets/cf-tunnel.json
+  # Encrypt with: sops --encrypt --in-place secrets/cf-tunnel.json
   sops.secrets."cf-tunnel.json" = {
     sopsFile = ../../../../secrets/cf-tunnel.json;
     format = "binary";
