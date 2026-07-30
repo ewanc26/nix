@@ -39,6 +39,29 @@ _staged_files '\.(json|jsonc|yaml|yml|css|js|html)$'; PRETTIER_FILES=("${_FILES[
 
 FAILED=0
 
+# ── Nix parse check ───────────────────────────────────────────────────────────
+# Runs before nixfmt: a file that does not parse cannot be formatted either, and
+# `set -e` would abort the hook mid-run with nixfmt's error rather than a clear
+# message naming the file. This is the check that would have caught the
+# modules/server/infra/* breakage, where a comment block replaced a module
+# header and the server config stopped evaluating entirely.
+if [ "${#NIX_FILES[@]}" -gt 0 ]; then
+  echo "→ nix: parsing staged .nix files..."
+  PARSE_FAILED=0
+  for file in "${NIX_FILES[@]}"; do
+    if ! nix-instantiate --parse "$file" >/dev/null; then
+      echo "  ✗ $file does not parse"
+      PARSE_FAILED=1
+    fi
+  done
+  if [ "$PARSE_FAILED" -ne 0 ]; then
+    echo ""
+    echo "✗ syntax error in staged Nix files — commit blocked"
+    exit 1
+  fi
+  echo "  ✓ all .nix files parse"
+fi
+
 # ── Nix formatting ────────────────────────────────────────────────────────────
 if [ "${#NIX_FILES[@]}" -gt 0 ]; then
   echo "→ nixfmt: formatting staged .nix files..."

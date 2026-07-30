@@ -145,6 +145,26 @@
     {
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
+      # Every host, exposed so `nix flake check` covers all of them.
+      #
+      # With --no-build (what CI runs) this is eval-only: every module is
+      # imported and every option type-checked, but nothing is built, so it
+      # finishes in minutes on a free runner. Drop --no-build to actually build
+      # the closures. Evaluating the nix-darwin host does not require macOS.
+      #
+      # This exists because the failure mode that bit this repo was a module
+      # edited into a syntax error and a host that only breaks on an
+      # architecture nobody rebuilds by hand — both invisible for a month
+      # because nothing ever evaluated the configs except a manual rebuild.
+      checks = {
+        x86_64-linux = {
+          laptop = self.nixosConfigurations.laptop.config.system.build.toplevel;
+          server = self.nixosConfigurations.server.config.system.build.toplevel;
+        };
+        aarch64-linux.server-arm = self.nixosConfigurations.server-arm.config.system.build.toplevel;
+        aarch64-darwin.macmini = self.darwinConfigurations.macmini.system;
+      };
+
       # Render infrastructure diagrams: nix build .#topology.x86_64-linux.config.output
       topology.x86_64-linux = import nix-topology {
         pkgs = topologyPkgs;

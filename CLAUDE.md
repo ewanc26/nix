@@ -107,19 +107,34 @@ See `docs/secrets.md` for full details.
 
 ## Flake Inputs
 
-| Input                 | Pinned version   |
-| --------------------- | ---------------- |
-| nixpkgs               | nixos-25.11      |
-| home-manager          | release-25.11    |
-| nix-darwin            | nix-darwin-25.11 |
-| sops-nix              | latest           |
-| nix-topology          | latest           |
-| plasma-manager        | latest           |
-| catppuccin            | latest           |
-| nix-vscode-extensions | latest           |
-| mac-app-util          | latest           |
+| Input                 | Pinned version   | Notes                                          |
+| --------------------- | ---------------- | ---------------------------------------------- |
+| nixpkgs               | nixos-25.11      |                                                |
+| nixpkgs-unstable      | nixos-unstable   | passed to the server as `pkgs-unstable`        |
+| home-manager          | release-25.11    |                                                |
+| nix-darwin            | nix-darwin-25.11 |                                                |
+| sops-nix              | latest           |                                                |
+| nix-topology          | latest           |                                                |
+| plasma-manager        | latest           |                                                |
+| nix-vscode-extensions | latest           |                                                |
+| mac-app-util          | latest           |                                                |
+| pkgs-monorepo         | latest           | `ewanc26/pkgs` — maintenance tools             |
+| tgirlpkgs             | latest           | `tgirlcloud/pkgs` — provides `pds-gatekeeper`  |
 
 Run `nix flake update` to update all inputs, or `flake-bump --update <input>` to bump selectively.
+
+## Checks
+
+`nix flake check --all-systems` evaluates every host — `laptop`, `server`,
+`server-arm` and `macmini` — without building any of them. Evaluating the
+nix-darwin host does **not** require macOS, so this runs anywhere.
+
+CI (`.github/workflows/check.yml`) runs the same command on every push and pull
+request, plus a `nixfmt` check. Run it locally before pushing:
+
+```bash
+nix flake check --all-systems --no-build
+```
 
 ## Running Tools
 

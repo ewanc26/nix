@@ -1,0 +1,57 @@
+name: check
+
+# Evaluates every host configuration on every push and pull request.
+#
+# This is deliberately eval-only: it never builds a system closure, so it runs
+# in a couple of minutes on a free runner. That is enough to catch the class of
+# breakage this repo has actually suffered — a module edited into a syntax
+# error, or a host that only fails on an architecture nobody rebuilds by hand.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eval:
+    name: evaluate host configurations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      # Evaluating a nix-darwin configuration does not require macOS — only
+      # building it does — so the Mac host is covered from this Linux runner.
+      - name: nix flake check (all systems, eval only)
+        run: nix flake check --all-systems --no-build
+
+      - name: flake.lock is in sync with flake.nix
+        run: |
+          nix flake lock --no-update-lock-file
+          git diff --exit-code flake.lock
+
+  format:
+    name: nixfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: check formatting
+        run: |
+          find . -name '*.nix' -not -path './.git/*' -print0 \
+            | xargs -0 nix run .#formatter.x86_64-linux -- --check
