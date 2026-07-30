@@ -1,16 +1,35 @@
 # Minimal hardware config for the NixOS server.
 # Auto-detected by nixos-generate-config; safe to regenerate.
 # Common to both x86_64-linux and aarch64-linux server builds.
-{ config, lib, modulesPath, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
 
+let
+  # The server flake exposes both `server` (x86_64) and `server-arm` (aarch64)
+  # from this one hardware file, so anything Intel-specific has to be guarded.
+  # Without this, `server-arm` fails to evaluate outright: microcode-intel
+  # refuses to evaluate on aarch64-linux.
+  isX86 = pkgs.stdenv.hostPlatform.isx86;
+in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "uas" "sd_mod" ];
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "ahci"
+    "nvme"
+    "uas"
+    "sd_mod"
+  ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" ];
+  boot.kernelModules = lib.optionals isX86 [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   boot.loader.systemd-boot.enable = true;
@@ -24,7 +43,10 @@
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/CF37-9198";
     fsType = "vfat";
-    options = [ "fmask=0077" "dmask=0077" ];
+    options = [
+      "fmask=0077"
+      "dmask=0077"
+    ];
   };
 
   swapDevices = [
@@ -32,5 +54,7 @@
   ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault (
+    isX86 && config.hardware.enableRedistributableFirmware
+  );
 }
