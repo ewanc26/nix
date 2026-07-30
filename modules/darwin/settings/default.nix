@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 ##############################################################################
 #  macOS system.defaults — intentional settings only.
 #
@@ -12,6 +12,11 @@
 #  CustomUserPreferences is reserved for keys that have no native option yet.
 #
 ##############################################################################
+let
+  cfg = config.myConfig;
+  # home-manager stages GUI apps here; path must track myConfig.user.username.
+  hmApps = "/Users/${cfg.user.username}/Applications/Home Manager Apps";
+in
 {
   # ── Dock ─────────────────────────────────────────────────────────────────────
   system.defaults.dock = {
@@ -49,13 +54,13 @@
       { folder = "/System/Applications/Calendar.app"; }
       { folder = "/System/Applications/Reminders.app"; }
       { folder = "/Applications/Obsidian.app"; }
-      { folder = "/Users/ewan/Applications/Home Manager Apps/Visual Studio Code.app"; }
+      { folder = "${hmApps}/Visual Studio Code.app"; }
       { folder = "/Applications/Claude.app"; }
       # ── Media ─────────────────────────────────────────────
       { folder = "/Applications/Spotify.app"; }
       { folder = "/Applications/Firefox.app"; }
       # ── System ─────────────────────────────────────────────────────
-      { folder = "/Users/ewan/Applications/Home Manager Apps/Ghostty.app"; }
+      { folder = "${hmApps}/Ghostty.app"; }
     ];
   };
 

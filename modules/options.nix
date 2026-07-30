@@ -889,6 +889,23 @@ in
         default = true;
       };
 
+      gatekeeper = {
+        enable = mkOption {
+          type = bool;
+          default = true;
+          description = "Strip com.apple.quarantine from installed .app bundles on activation.";
+        };
+        checkSignatures = mkOption {
+          type = bool;
+          default = false;
+          description = ''
+            Additionally run `spctl` over /Applications on every activation and
+            warn about invalid code signatures. Off by default — it shells out
+            once per app and noticeably slows down darwin-rebuild.
+          '';
+        };
+      };
+
       security.touchIdForSudo = mkOption {
         type = bool;
         default = true;

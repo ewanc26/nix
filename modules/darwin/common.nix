@@ -15,7 +15,11 @@ in
   # the nix daemon itself and conflicts with nix-darwin's native management.
   nix.enable = false;
 
-  nix.settings.auto-optimise-store = true;
+  # With nix.enable = false, nix-darwin writes no /etc/nix/nix.conf at all, so
+  # every `nix.settings.*` here is silently discarded (verified: the darwin
+  # config emits no environment.etc."nix/nix.conf"). Daemon settings such as
+  # auto-optimise-store belong in Determinate's own config instead:
+  #   /etc/nix/nix.custom.conf
 
   launchd.daemons.nix-collect-garbage = {
     serviceConfig = {
