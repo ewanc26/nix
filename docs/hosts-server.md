@@ -142,11 +142,15 @@ creation_rules:
 
 ### 3. Re-encrypt secrets for the server
 
-From your macmini or laptop (you need your personal age key `~/.config/age/keys.txt`):
+From your macmini or laptop, with your PGP secret key in the local GnuPG keyring
+(sops finds it via `gpg-agent` — there is no key file to point at):
 
 ```bash
 cd ~/.config/nix-config
-# Re-encrypt each server secret with the new key added
+# Re-encrypt every secret to the current .sops.yaml recipients
+./secrets/setup.sh --rekey-only
+
+# Or one at a time
 sops updatekeys secrets/pds.env
 sops updatekeys secrets/cf-tunnel.json
 sops updatekeys secrets/cloudflare.token

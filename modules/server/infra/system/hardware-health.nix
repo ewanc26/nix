@@ -20,8 +20,7 @@
 #
 #    Create and encrypt:
 #      printf '%s' 're_xxxx...' > secrets/smartd-smtp-pass
-#      SOPS_AGE_KEY_FILE=~/.config/age/keys.txt \
-#        nix run nixpkgs#sops -- --encrypt --in-place secrets/smartd-smtp-pass
+#      nix run nixpkgs#sops -- --encrypt --in-place secrets/smartd-smtp-pass
 ##############################################################################
 {
   config,

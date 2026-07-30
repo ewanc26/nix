@@ -17,8 +17,11 @@ if [ -z "$USER_PGP_FPR" ] || [ "$USER_PGP_FPR" = "REPLACE_WITH_YOUR_PGP_FINGERPR
   exit 1
 fi
 
-# The age key is only needed to open secrets not yet rekeyed to PGP.
-[ -s "$HOME/.config/age/keys.txt" ] && export SOPS_AGE_KEY_FILE="$HOME/.config/age/keys.txt"
+# An age identity is only needed to open secrets not yet rekeyed to PGP. There
+# is no personal age key any more, so in practice this is a host identity passed
+# in explicitly — see "Recovering secrets" in docs/secrets.md.
+_age_key="${SOPS_AGE_KEY_FILE:-$HOME/.config/age/keys.txt}"
+[ -s "$_age_key" ] && export SOPS_AGE_KEY_FILE="$_age_key"
 
 PASS=0
 FAIL=0

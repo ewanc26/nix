@@ -47,29 +47,59 @@ Keys are declared in `.sops.yaml`:
 | `laptop` | Host (age) | `/etc/ssh/ssh_host_ed25519_key` on laptop |
 | `server` | Host (age) | `/etc/ssh/ssh_host_ed25519_key` on server |
 
-### The age key has not gone away entirely
+### The old personal age key is gone
 
-`~/.config/age/keys.txt` is still used in two places, both outside `secrets/`:
+There is no longer a personal age key. The only age identities that exist are the host
+keys, each derived from that machine's SSH host key. This matters because `sops
+updatekeys` has to **decrypt** a file before it can re-encrypt it to a new recipient set —
+so re-keying an existing secret requires a key that can still open it.
 
-- The Faol secrets decrypted by the macOS activation script
-  (`modules/darwin/common.nix`), which runs unattended as root.
-- As a fallback for any secret not yet re-keyed to PGP.
+## Recovering secrets encrypted to the old key
 
-Keep it until you are confident every secret has been migrated.
+Losing the personal age key does **not** mean the committed secrets are lost. Every file
+is also encrypted to one or more host keys (see the rules in `.sops.yaml`), and those keys
+still exist on the machines themselves:
 
-## Migrating to a new PGP key
+| Secrets | Also readable by |
+| --- | --- |
+| Server-only rule (`pds.env`, `forgejo.env`, Cloudflare, Nextcloud, …) | `server` |
+| `tailscale-auth-key` | `laptop` |
+| Everything else (fallback rule) | `macmini`, `laptop`, `server` |
 
-`sops updatekeys` must **decrypt** a file before re-encrypting it to new recipients, so the
-old key has to still be available during the migration. Run this on a machine that has
-both your old age key and your new PGP private key:
+So anything you would otherwise have to re-provision by hand — Cloudflare API tokens,
+Resend SMTP keys, the Tailscale auth key, the PDS PLC rotation key — can be recovered from
+a host rather than regenerated.
+
+On a host that is a recipient, derive its age identity from its SSH host key:
+
+```bash
+# On the server (root, since the host key is root-only)
+sudo nix run nixpkgs#ssh-to-age -- -private-key \
+  -i /etc/ssh/ssh_host_ed25519_key -o /tmp/host-age.txt
+
+# Read a secret
+SOPS_AGE_KEY_FILE=/tmp/host-age.txt \
+  nix run nixpkgs#sops -- --decrypt --input-type binary --output-type binary \
+  secrets/pds.env
+
+# Or re-key everything the host can open, to the current .sops.yaml recipients
+SOPS_AGE_KEY_FILE=/tmp/host-age.txt ./secrets/setup.sh --rekey-only
+
+shred -u /tmp/host-age.txt
+```
+
+The PLC rotation key in `pds.env` is worth calling out: it cannot be regenerated without
+re-signing the DID document, so recover that one rather than replacing it.
+
+## Migrating to your PGP key
 
 ```bash
 # 1. Put your fingerprint in .sops.yaml, replacing the placeholder.
 gpg --list-secret-keys --with-colons --fingerprint | awk -F: '/^fpr:/{print $10; exit}'
 $EDITOR .sops.yaml          # set the &ewan_pgp anchor
 
-# 2. Re-encrypt every secret to the new recipient set.
-./secrets/setup.sh --rekey-only
+# 2. Re-encrypt, using a host age identity to decrypt (see above).
+SOPS_AGE_KEY_FILE=/tmp/host-age.txt ./secrets/setup.sh --rekey-only
 
 # 3. Verify each file now lists your PGP key.
 ./scripts/check-secrets.sh
@@ -80,6 +110,10 @@ git add .sops.yaml secrets/ && git commit -m 'chore(secrets): re-key to PGP'
 
 `--rekey-only` skips all secret generation and refuses to run while the placeholder
 fingerprint is still in place or your secret key is missing from the keyring.
+
+If you would rather start clean, `./secrets/setup.sh --force` regenerates the secrets it
+can derive itself (Forgejo, PDS, Cloudflare tunnel, Docker, Claude) and prompts for the
+rest. Anything issued by a third party still has to be reissued there.
 
 Then rebuild each host so it picks up the re-encrypted files:
 
@@ -211,12 +245,12 @@ ssh-keyscan <host-ip> | ssh-to-age
    accordingly: passphrase-protected, backed up offline, never committed.
 2. To use it on another machine, export and import it rather than copying keyrings:
    `gpg --export-secret-keys --armor <fpr>` → `gpg --import` on the target.
-3. `~/.config/age/keys.txt` is still a live credential (see "The age key has not gone
-   away entirely" above). Never commit it.
-4. Encrypted secret files (in `secrets/`) **are** committed to git — they are useless
+3. Encrypted secret files (in `secrets/`) **are** committed to git — they are useless
    without a matching private key.
-5. Host keys are derived from the host's SSH `ed25519` host key and are never stored
-   anywhere beyond the key itself.
+4. Host keys are derived from the host's SSH `ed25519` host key and are never stored
+   anywhere beyond the key itself. An age identity derived from one (see "Recovering
+   secrets") is a full credential for everything that host can read — write it to a
+   tmpfs path and `shred -u` it when done.
 
 ## Troubleshooting
 

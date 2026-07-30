@@ -113,21 +113,6 @@ in
       # npm global bin dir — same reasoning as above.
       export PATH="$(npm prefix -g)/bin:$PATH"
 
-      # Telegram bot token for Faol (decrypted from sops at activation time).
-      if [ -f "$HOME/.config/telegram-bot-token" ]; then
-        export TELEGRAM_BOT_TOKEN="$(cat "$HOME/.config/telegram-bot-token" | tr -d '\n' | sed 's/^TELEGRAM_BOT_TOKEN=//')"
-      fi
-
-      # Bluesky app password for Faol (decrypted from sops at activation time).
-      if [ -f "$HOME/.config/bluesky-app-password" ]; then
-        export BLUESKY_APP_PASSWORD="$(cat "$HOME/.config/bluesky-app-password" | tr -d '\n')"
-      fi
-
-      # Letta API key for Faol (decrypted from sops at activation time).
-      if [ -f "$HOME/.config/letta-api-key" ]; then
-        export LETTA_API_KEY="$(cat "$HOME/.config/letta-api-key" | tr -d '\n')"
-      fi
-
       # Display system info on new shell
       ${lib.optionalString cfg.isDesktop "fastfetch"}
 

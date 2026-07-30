@@ -51,14 +51,21 @@ ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(dirname "$SCRIPT_DI
 SECRETS_DIR="$ROOT/secrets"
 SOPS_YAML="$ROOT/.sops.yaml"
 
-# The user key is PGP, but the age keyfile is still exported deliberately.
+# Rekeying needs a key that can still DECRYPT the existing files: `sops
+# updatekeys` decrypts before re-encrypting to the new recipient set.
 #
-# `sops updatekeys` has to DECRYPT a file before it can re-encrypt it to a new
-# recipient set. During the migration away from an age user key, the only key
-# that can still open the existing files is that age key — so it must remain
-# available for the first rekey run. It is harmless afterwards, and the Faol
-# secrets decrypted at activation on macOS still use it.
-AGE_KEY="$HOME/.config/age/keys.txt"
+# The old personal age key is gone, so the only age identities left are the
+# host keys. To rekey a secret that is still encrypted to a host, derive that
+# host's age identity from its SSH host key and point SOPS_AGE_KEY_FILE at it:
+#
+#   nix run nixpkgs#ssh-to-age -- -private-key \
+#     -i /etc/ssh/ssh_host_ed25519_key -o /tmp/host-age.txt
+#   SOPS_AGE_KEY_FILE=/tmp/host-age.txt ./secrets/setup.sh --rekey-only
+#
+# See "Recovering secrets" in docs/secrets.md. An externally supplied
+# SOPS_AGE_KEY_FILE always wins; otherwise fall back to a personal keyfile if
+# one happens to exist.
+AGE_KEY="${SOPS_AGE_KEY_FILE:-$HOME/.config/age/keys.txt}"
 [[ -s "$AGE_KEY" ]] && export SOPS_AGE_KEY_FILE="$AGE_KEY"
 
 # ── Flags ──────────────────────────────────────────────────────────────────────
@@ -158,13 +165,15 @@ EOM
     ok "User PGP key: $fpr"
     USER_PGP_FPR="$fpr"
 
-    # Warn, but do not fail: the age key is only needed to open secrets that
-    # have not been rekeyed to PGP yet.
+    # Warn, but do not fail: an age identity is only needed to open secrets that
+    # have not been rekeyed to PGP yet. Freshly generated secrets do not need one.
     if [[ -s "$AGE_KEY" ]]; then
-        ok "Age key present at $AGE_KEY (used to decrypt not-yet-rekeyed secrets)"
+        ok "age identity: $AGE_KEY"
     else
-        warn "No age key at $AGE_KEY — fine once every secret is rekeyed to PGP,"
-        warn "but a first-time migration cannot decrypt the old files without it."
+        warn "No age identity available."
+        warn "Any secret still encrypted only to keys you no longer hold cannot be"
+        warn "rekeyed from this machine — see 'Recovering secrets' in docs/secrets.md."
+        warn "Secrets generated fresh by this script are unaffected."
     fi
 }
 

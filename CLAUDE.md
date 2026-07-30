@@ -73,7 +73,11 @@ flake-bump            # show stale inputs / bump selectively
 gen-diff              # diff packages between generations
 ```
 
-Run `health-check` before rebuilding to catch common issues early (daemon, lock file, git cleanliness, age key, disk space).
+Run `health-check` before rebuilding to catch common issues early (daemon, lock file,
+git cleanliness, disk space).
+
+Note: `health-check` still probes for `~/.config/age/keys.txt`, which no longer exists —
+that check is stale and lives in the `pkgs-monorepo` input, not this repo.
 
 ## Infrastructure Diagrams (nix-topology)
 
@@ -103,8 +107,9 @@ Other notes:
 - Encrypted files in `secrets/` are safe to commit.
 - Recipients are defined in `.sops.yaml`. `pgp:` and `age:` must stay in a **single** key
   group — two groups would enable Shamir sharing and require both keys.
-- `~/.config/age/keys.txt` is still live: the macOS activation script uses it for the
-  Faol secrets (which live outside this repo), and it opens any secret not yet re-keyed.
+- There is no personal age key any more. The only age identities are the host keys, so
+  re-keying an existing secret needs one derived from a host's SSH key — see
+  "Recovering secrets" in `docs/secrets.md`.
 
 Manual use needs no key file — sops finds your PGP key via `gpg-agent`:
 

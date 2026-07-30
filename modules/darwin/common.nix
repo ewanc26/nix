@@ -60,47 +60,6 @@ in
       chmod +x "$REPO/hooks/pre-commit"
     fi
 
-    # Decrypt sops secrets to local files for shell env vars.
-    # macOS doesn't have sops-nix (NixOS-only), so we decrypt at activation time.
-    # Faol secrets live in the lettabot faol config directory.
-    #
-    # These stay on the age key on purpose, even though the user recipient for
-    # this repo's secrets/ is now a PGP key (see .sops.yaml). Activation runs as
-    # root with no controlling terminal, so gpg-agent has nowhere to prompt for
-    # a passphrase; an age keyfile decrypts unattended. These files live outside
-    # the repo and are not covered by .sops.yaml's creation rules, so they are
-    # unaffected by the PGP migration.
-    FAOL_DIR="/Volumes/Storage/Developer/Local/lettabot/faol"
-    AGE_KEY="/Users/${cfg.user.username}/.config/age/keys.txt"
-    if [ -f "$AGE_KEY" ]; then
-      # Telegram bot token for Faol
-      SOPS_AGE_KEY_FILE="$AGE_KEY" ${pkgs.sops}/bin/sops --decrypt \
-        --input-type binary --output-type binary \
-        "$FAOL_DIR/telegram-bot-token" \
-        > "/Users/${cfg.user.username}/.config/telegram-bot-token" 2>/dev/null \
-        && chmod 600 "/Users/${cfg.user.username}/.config/telegram-bot-token" \
-        && echo "postActivation: decrypted telegram-bot-token" \
-        || echo "postActivation: failed to decrypt telegram-bot-token"
-
-      # Bluesky app password for Faol
-      SOPS_AGE_KEY_FILE="$AGE_KEY" ${pkgs.sops}/bin/sops --decrypt \
-        --input-type binary --output-type binary \
-        "$FAOL_DIR/bluesky-app-password" \
-        > "/Users/${cfg.user.username}/.config/bluesky-app-password" 2>/dev/null \
-        && chmod 600 "/Users/${cfg.user.username}/.config/bluesky-app-password" \
-        && echo "postActivation: decrypted bluesky-app-password" \
-        || echo "postActivation: failed to decrypt bluesky-app-password"
-
-      # Letta API key for Faol
-      SOPS_AGE_KEY_FILE="$AGE_KEY" ${pkgs.sops}/bin/sops --decrypt \
-        --input-type binary --output-type binary \
-        "$FAOL_DIR/letta-api-key" \
-        > "/Users/${cfg.user.username}/.config/letta-api-key" 2>/dev/null \
-        && chmod 600 "/Users/${cfg.user.username}/.config/letta-api-key" \
-        && echo "postActivation: decrypted letta-api-key" \
-        || echo "postActivation: failed to decrypt letta-api-key"
-    fi
-
     # Reload the Dock after activation so any Homebrew-installed apps
     # (e.g. Element, Spotify) that were absent when the dock plist was
     # written are picked up cleanly.

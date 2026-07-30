@@ -10,9 +10,10 @@
 # Run secrets/setup.sh first.
 #
 # Prerequisites:
-#   - age key at ~/.config/age/keys.txt  (run: age-keygen -o ~/.config/age/keys.txt)
+#   - your PGP secret key in the local GnuPG keyring (the user recipient in
+#     .sops.yaml); sops finds it via gpg-agent
 #   - secrets/setup.sh already run (all secrets encrypted)
-#   - cloudflared, jq, curl in PATH (or installable via nix run)
+#   - cloudflared, jq, curl, gpg in PATH (or installable via nix run)
 #
 # Usage:
 #   ./scripts/pds-setup.sh             # full run
@@ -34,12 +35,11 @@ fail() { echo "${RED}  ✗${RESET} $*" >&2; exit 1; }
 # ── Configuration ──────────────────────────────────────────────────────────────
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$HOME/.config/nix-config")"
 SECRETS_DIR="$ROOT/secrets"
-AGE_KEY="$HOME/.config/age/keys.txt"
 DOMAIN="ewancroft.uk"
 
-# sops needs to find the age private key for decryption.
-# The public key is already in .sops.yaml for encryption.
-export SOPS_AGE_KEY_FILE="$AGE_KEY"
+# sops decrypts with your PGP key via gpg-agent — no key file to point at.
+# An age identity is only needed for secrets not yet rekeyed to PGP; pass one
+# in via SOPS_AGE_KEY_FILE if you need it (see docs/secrets.md).
 
 # Flags
 RESUME=false
@@ -59,6 +59,7 @@ run_cmd() {
             cloudflared) nix run nixpkgs#cloudflared -- "$@" ;;
             pwgen)       nix run nixpkgs#pwgen       -- "$@" ;;
             sops)        nix run nixpkgs#sops         -- "$@" ;;
+            gpg)         nix run nixpkgs#gnupg        -- "$@" ;;
             *)           fail "Command '$cmd' not found and no nix fallback configured." ;;
         esac
     fi
@@ -242,7 +243,11 @@ main() {
     echo "  └────────────────────────────────────────┘"
     echo "${RESET}"
 
-    [[ -f "$AGE_KEY" ]] || fail "Age key not found at $AGE_KEY. Run: age-keygen -o $AGE_KEY"
+    FPR=$(awk '/&ewan_pgp/{print $3; exit}' "$ROOT/.sops.yaml" 2>/dev/null || true)
+    [[ -n "$FPR" && "$FPR" != "REPLACE_WITH_YOUR_PGP_FINGERPRINT" ]] \
+        || fail "No PGP fingerprint set in .sops.yaml — see docs/secrets.md."
+    run_cmd gpg --list-secret-keys "$FPR" &>/dev/null \
+        || fail "No secret key for $FPR in this keyring — import it before continuing."
 
     load_cf_creds
     step_pds_secrets

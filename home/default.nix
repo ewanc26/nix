@@ -218,16 +218,14 @@ in
         # so the pre-decrypted file may not exist yet. Fall back to decrypting
         # the committed copy directly.
         #
-        # No key is pinned here on purpose. forgejo-user-token lives under
-        # secrets/, so after the migration to a PGP user key the age key can no
-        # longer open it — sops has to be free to pick whichever backend this
-        # machine actually has. Failure is non-fatal: private repos are skipped.
+        # No key is pinned here on purpose: sops picks whichever backend this
+        # machine has. In practice that means the PGP key via gpg-agent, since
+        # forgejo-user-token lives under secrets/ and the old personal age key
+        # is gone. Failure is non-fatal — private repos are simply skipped, so
+        # a non-interactive activation that cannot reach pinentry still works.
         if [ ! -f "$_token_file" ]; then
           _raw="${builtins.toString ../secrets/forgejo-user-token}"
           _token_file=$(mktemp)
-          if [ -f "$HOME/.config/age/keys.txt" ]; then
-            export SOPS_AGE_KEY_FILE="$HOME/.config/age/keys.txt"
-          fi
           ${pkgs.sops}/bin/sops --decrypt --input-type binary --output-type binary \
             "$_raw" > "$_token_file" 2>/dev/null || { rm -f "$_token_file"; _token_file=""; }
         fi
