@@ -30,10 +30,10 @@ in
     largesize = 82;
     # Hot corners
     # 1=None  2=MissionControl  3=AppWindows  4=Desktop  5=ScreenSaver  13=LockScreen
-    wvous-bl-corner = 2; # bottom-left  → Mission Control
+    wvous-bl-corner = 5; # bottom-left  → Screen Saver
     wvous-br-corner = 4; # bottom-right → Desktop
     wvous-tl-corner = 1; # top-left     → None
-    wvous-tr-corner = 13; # top-right   → Lock Screen
+    wvous-tr-corner = 13; # top-right    → Lock Screen
 
     # Persistent applications in the Dock (left to right).
     # Note: Finder is always shown and doesn't need to be listed here.
@@ -121,11 +121,15 @@ in
     ShowAMPM = true;
     ShowSeconds = true;
     ShowDate = 0; # 0 = never, 1 = when space allows, 2 = always
-    ShowDayOfWeek = false;
+    ShowDayOfWeek = true;
   };
 
   # ── CustomUserPreferences — settings with no native nix-darwin option yet ────
   system.defaults.CustomUserPreferences = {
+    # Login window fast user switching menu
+    "com.apple.loginwindow" = {
+      MiniBuddyLaunch = 1;
+    };
     # Prevent .DS_Store pollution on network / USB volumes
     "com.apple.desktopservices" = {
       DSDontWriteNetworkStores = true;
@@ -150,10 +154,29 @@ in
     "com.apple.ImageCapture" = {
       disableHotPlug = true;
     };
+    # Screen capture defaults (no native options yet)
+    "com.apple.screencapture" = {
+      style = "selection";
+      video = false;
+    };
     # Accent / highlight colour and mouse speed (no native options yet)
     NSGlobalDomain = {
       AppleAccentColor = 3; # 3=Green (0=Red 1=Orange 2=Yellow 4=Blue 5=Purple 6=Pink -1=Graphite)
       "com.apple.mouse.scaling" = 0.5;
+      "com.apple.mouse.doubleClickThreshold" = "1.1";
+      "com.apple.trackpad.forceClick" = 1;
+      "com.apple.springing.delay" = "0.5";
+      "com.apple.springing.enabled" = 1;
+    };
+    # Magic Mouse / multitouch mouse settings (no native nix-darwin options yet)
+    "com.apple.AppleMultitouchMouse" = {
+      MouseButtonMode = "OneButton";
+      MouseTwoFingerDoubleTapGesture = 3; # 3=Smart Zoom
+      MouseTwoFingerHorizSwipeGesture = 2; # 2=Swipe
+      MouseVerticalScroll = 1;
+      MouseHorizontalScroll = 1;
+      MouseMomentumScroll = 1;
+      MouseOneFingerDoubleTapGesture = 0;
     };
   };
 }
