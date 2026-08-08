@@ -168,6 +168,10 @@ in
           "libtool"
           "pkgconf"
           "m4"
+          "cloudflared"
+          "htop"
+          "lua"
+          "pre-commit"
           "ffmpeg"
           "exiftool"
           "atomicparsley"
@@ -951,58 +955,40 @@ in
             # Communication / social
             "discord"
             "signal"
-            "element"
-            # Productivity / notes
-            "obsidian"
-            "netnewswire"
-            # Development
-            "github"
-            # Media
-            "spotify"
-            "vlc"
-            "obs"
-            "handbrake-app"
-            "transmission"
-            # AI
-            "claude"
+            "whatsapp"
             # Browsers
-            "firefox"
-            # Gaming
-            "steam"
+            "google-chrome"
+            # Development
+            "android-studio"
+            "ghostty"
+            "vscodium"
+            # Media
+            "obs"
+            "transmission"
+            # Gaming / emulation
+            "cemu"
+            "dolphin"
             "prismlauncher"
-            "godot-mono"
+            "steam"
+            "whisky"
             # Virtualisation
-            "docker"
+            "orbstack"
             "utm"
             # Networking / remote
-            "cloudflare-warp"
+            "ngrok"
             "tailscale-app"
-            "parsec"
             # System utilities
-            "onyx"
-            "mos"
             "altserver"
-            # Logitech peripherals
-            "logitune"
-            "logi-options+"
-            # Microsoft Office
-            "microsoft-excel"
-            "microsoft-powerpoint"
-            "microsoft-teams"
-            "microsoft-word"
-            "nextcloud-vfs"
-            "bitwarden"
+            "stats"
+            # 3D / creative
             "blender"
+            "godot-mono"
           ];
         };
         masApps = mkOption {
           type = attrsInt;
           default = {
-            "Amphetamine" = 937984704;
-            "OneDrive" = 823766827;
-            # Steam Link removed — requires Rosetta 2, incompatible with Apple Silicon
             "TestFlight" = 899247664;
-            "The Unarchiver" = 425424353;
             "WhatsApp" = 310633997;
             "Zone Bar" = 6755328989;
           };
