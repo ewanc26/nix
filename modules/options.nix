@@ -139,13 +139,16 @@ in
           "gh"
           "go"
           "nodejs_22"
+          "typescript"
           "python313"
           "bun"
           "pnpm"
           "yarn"
           "rustup"
+          "kotlin"
           "dotnet-sdk"
           "gopls"
+          "kotlin-language-server"
           "golangci-lint"
           "delve"
           "pipx"
@@ -158,6 +161,9 @@ in
           "markdownlint-cli"
           "prettier"
           "cmake"
+          "clang"
+          "clang-tools"
+          "cppcheck"
           "autoconf"
           "libtool"
           "pkgconf"
@@ -177,6 +183,7 @@ in
           "sqlite"
           "tesseract"
           "openjdk21"
+          "gradle"
           "php"
           "ollama"
         ];
@@ -258,6 +265,9 @@ in
           # only one copy of the .app and Spotlight / Launch Services work
           # natively, whereas Nix would keep every old version in the store.
           # See myConfig.darwin.homebrew.casks below.
+          # Swift toolchain (macOS-native, Linux support is experimental)
+          "swift"
+          "swiftlint"
         ];
       };
     };

@@ -50,6 +50,8 @@ let
     "editorconfig.editorconfig"
     "streetsidesoftware.code-spell-checker"
     "christian-kohler.path-intellisense"
+    "sswg.swift-lang"
+    "ms-vscode.cpptools"
   ];
 
   marketplaceExtensions = [
