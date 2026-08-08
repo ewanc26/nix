@@ -73,7 +73,7 @@ in
   system.defaults.finder = {
     AppleShowAllExtensions = true;
     ShowPathbar = true;
-    ShowStatusBar = false;
+    ShowStatusBar = true;
     _FXShowPosixPathInTitle = true;
     FXEnableExtensionChangeWarning = false;
     QuitMenuItem = true;
