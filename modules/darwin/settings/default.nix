@@ -21,18 +21,19 @@ in
   # ── Dock ─────────────────────────────────────────────────────────────────────
   system.defaults.dock = {
     autohide = false;
-    tilesize = 46;
+    tilesize = 40;
     orientation = "bottom";
     show-recents = false;
     minimize-to-application = true;
     show-process-indicators = true;
-    magnification = false;
+    magnification = true;
+    largesize = 82;
     # Hot corners
     # 1=None  2=MissionControl  3=AppWindows  4=Desktop  5=ScreenSaver  13=LockScreen
     wvous-bl-corner = 2; # bottom-left  → Mission Control
     wvous-br-corner = 4; # bottom-right → Desktop
     wvous-tl-corner = 1; # top-left     → None
-    wvous-tr-corner = 5; # top-right    → Screen Saver
+    wvous-tr-corner = 13; # top-right   → Lock Screen
 
     # Persistent applications in the Dock (left to right).
     # Note: Finder is always shown and doesn't need to be listed here.
@@ -42,25 +43,29 @@ in
     persistent-apps = [
       # ── Communication ─────────────────────────────────────────────
       { folder = "/System/Applications/Mail.app"; }
-      { folder = "/Applications/WhatsApp.app"; }
       { folder = "/System/Applications/Messages.app"; }
+      { folder = "/Applications/WhatsApp.app"; }
+      { folder = "/Applications/Signal.app"; }
       { folder = "/System/Applications/FaceTime.app"; }
       { folder = "/System/Applications/Phone.app"; }
-      { folder = "/System/Applications/iPhone Mirroring.app"; }
-      { folder = "/Applications/Signal.app"; }
-      { folder = "/Applications/Element.app"; }
-      { folder = "/Applications/Discord.app"; }
       # ── Productivity ───────────────────────────────────────────────
       { folder = "/System/Applications/Calendar.app"; }
+      { folder = "/System/Applications/Podcasts.app"; }
+      { folder = "/System/Applications/Music.app"; }
+      { folder = "/System/Applications/Contacts.app"; }
       { folder = "/System/Applications/Reminders.app"; }
-      { folder = "/Applications/Obsidian.app"; }
-      { folder = "${hmApps}/Visual Studio Code.app"; }
-      { folder = "/Applications/Claude.app"; }
-      # ── Media ─────────────────────────────────────────────
-      { folder = "/Applications/Spotify.app"; }
-      { folder = "/Applications/Firefox.app"; }
-      # ── System ─────────────────────────────────────────────────────
+      { folder = "/System/Applications/Notes.app"; }
+      { folder = "/Applications/Discord.app"; }
+      { folder = "/System/Applications/Safari.app"; }
+      # ── Gaming / emulation ────────────────────────────────────────
+      { folder = "/Applications/Prism Launcher.app"; }
+      { folder = "/Applications/Steam.app"; }
+      # ── Development ───────────────────────────────────────────────
       { folder = "${hmApps}/Ghostty.app"; }
+      { folder = "/Applications/Xcode.app"; }
+      { folder = "/Applications/Android Studio.app"; }
+      { folder = "/Applications/VSCodium.app"; }
+      { folder = "/System/Applications/iPhone Mirroring.app"; }
     ];
   };
 
