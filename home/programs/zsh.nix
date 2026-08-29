@@ -98,7 +98,8 @@ in
             "sudo nix-collect-garbage -d"
           else
             "sudo nix-collect-garbage -d && nix-collect-garbage -d";
-      });
+      }
+    );
 
     # initContent at the default order (1000) — the direct replacement for the
     # deprecated initExtra. Use lib.mkBefore / lib.mkOrder 550 if anything ever
