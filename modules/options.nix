@@ -139,13 +139,16 @@ in
           "gh"
           "go"
           "nodejs_22"
+          "typescript"
           "python313"
           "bun"
           "pnpm"
           "yarn"
           "rustup"
+          "kotlin"
           "dotnet-sdk"
           "gopls"
+          "kotlin-language-server"
           "golangci-lint"
           "delve"
           "pipx"
@@ -158,10 +161,17 @@ in
           "markdownlint-cli"
           "prettier"
           "cmake"
+          "clang"
+          "clang-tools"
+          "cppcheck"
           "autoconf"
           "libtool"
           "pkgconf"
           "m4"
+          "cloudflared"
+          "htop"
+          "lua"
+          "pre-commit"
           "ffmpeg"
           "exiftool"
           "atomicparsley"
@@ -177,6 +187,7 @@ in
           "sqlite"
           "tesseract"
           "openjdk21"
+          "gradle"
           "php"
           "ollama"
         ];
@@ -258,6 +269,9 @@ in
           # only one copy of the .app and Spotlight / Launch Services work
           # natively, whereas Nix would keep every old version in the store.
           # See myConfig.darwin.homebrew.casks below.
+          # Swift toolchain (macOS-native, Linux support is experimental)
+          "swift"
+          "swiftlint"
         ];
       };
     };
@@ -941,58 +955,40 @@ in
             # Communication / social
             "discord"
             "signal"
-            "element"
-            # Productivity / notes
-            "obsidian"
-            "netnewswire"
-            # Development
-            "github"
-            # Media
-            "spotify"
-            "vlc"
-            "obs"
-            "handbrake-app"
-            "transmission"
-            # AI
-            "claude"
+            "whatsapp"
             # Browsers
-            "firefox"
-            # Gaming
-            "steam"
+            "google-chrome"
+            # Development
+            "android-studio"
+            "ghostty"
+            "vscodium"
+            # Media
+            "obs"
+            "transmission"
+            # Gaming / emulation
+            "cemu"
+            "dolphin"
             "prismlauncher"
-            "godot-mono"
+            "steam"
+            "whisky"
             # Virtualisation
-            "docker"
+            "orbstack"
             "utm"
             # Networking / remote
-            "cloudflare-warp"
+            "ngrok"
             "tailscale-app"
-            "parsec"
             # System utilities
-            "onyx"
-            "mos"
             "altserver"
-            # Logitech peripherals
-            "logitune"
-            "logi-options+"
-            # Microsoft Office
-            "microsoft-excel"
-            "microsoft-powerpoint"
-            "microsoft-teams"
-            "microsoft-word"
-            "nextcloud-vfs"
-            "bitwarden"
+            "stats"
+            # 3D / creative
             "blender"
+            "godot-mono"
           ];
         };
         masApps = mkOption {
           type = attrsInt;
           default = {
-            "Amphetamine" = 937984704;
-            "OneDrive" = 823766827;
-            # Steam Link removed — requires Rosetta 2, incompatible with Apple Silicon
             "TestFlight" = 899247664;
-            "The Unarchiver" = 425424353;
             "WhatsApp" = 310633997;
             "Zone Bar" = 6755328989;
           };

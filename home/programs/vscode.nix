@@ -1,4 +1,4 @@
-# VS Code configuration.
+# VS Code / VSCodium configuration.
 {
   pkgs,
   lib,
@@ -50,6 +50,8 @@ let
     "editorconfig.editorconfig"
     "streetsidesoftware.code-spell-checker"
     "christian-kohler.path-intellisense"
+    "sswg.swift-lang"
+    "ms-vscode.cpptools"
   ];
 
   marketplaceExtensions = [
@@ -58,18 +60,19 @@ let
     "ms-vscode.makefile-tools"
   ];
 
-  # Settings path differs by platform:
-  #   macOS: ~/Library/Application Support/Code/User/settings.json
-  #   NixOS: ~/.config/Code/User/settings.json
+  # Settings path differs by platform and editor:
+  #   macOS + VSCodium: ~/Library/Application Support/VSCodium/User/settings.json
+  #   Linux + VS Code:   ~/.config/Code/User/settings.json
   settingsPath =
     if isDarwin then
-      "Library/Application Support/Code/User/settings.json"
+      "Library/Application Support/VSCodium/User/settings.json"
     else
       ".config/Code/User/settings.json";
 in
 {
   programs.vscode = {
     enable = cfg.development.vscode.enable;
+    package = if isDarwin then pkgs.vscodium else pkgs.vscode;
 
     profiles.default = {
       extensions = map toNixpkgsExt nixpkgsExtensions ++ map toMarketplaceExt marketplaceExtensions;
@@ -78,7 +81,7 @@ in
     };
   };
 
-  # Writable VS Code settings — symlinked from nix-config repo.
+  # Writable VS Code / VSCodium settings — symlinked from nix-config repo.
   # Edit at ~/.config/nix-config/home/programs/vscode/settings.json
   home.file."${settingsPath}".source =
     config.lib.file.mkOutOfStoreSymlink "${builtins.getEnv "HOME"}/.config/nix-config/home/programs/vscode/settings.json";

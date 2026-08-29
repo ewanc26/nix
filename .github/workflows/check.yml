@@ -18,11 +18,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  eval:
-    name: evaluate host configurations
+  eval-linux:
+    name: evaluate NixOS host configurations
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: cachix/install-nix-action@v31
         with:
@@ -30,21 +30,40 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true
 
-      # Evaluating a nix-darwin configuration does not require macOS — only
-      # building it does — so the Mac host is covered from this Linux runner.
-      - name: nix flake check (all systems, eval only)
-        run: nix flake check --all-systems --no-build
+      - name: evaluate NixOS hosts
+        run: |
+          nix eval --raw .#nixosConfigurations.laptop.config.system.build.toplevel.drvPath
+          nix eval --raw .#nixosConfigurations.server.config.system.build.toplevel.drvPath
+          nix eval --raw .#nixosConfigurations.server-arm.config.system.build.toplevel.drvPath
 
       - name: flake.lock is in sync with flake.nix
         run: |
           nix flake lock --no-update-lock-file
           git diff --exit-code flake.lock
 
+  eval-darwin:
+    name: evaluate nix-darwin host configuration
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      # mac-app-util evaluates Common Lisp sources that are materialised by
+      # Nix on macOS. Cross-evaluating that closure on Linux can leave an
+      # unrealised store path even with --no-build, so evaluate it natively.
+      - name: evaluate Mac host
+        run: nix eval --raw .#darwinConfigurations.macmini.system.drvPath
+
   format:
     name: nixfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: cachix/install-nix-action@v31
         with:

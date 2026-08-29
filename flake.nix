@@ -77,6 +77,9 @@
       # Nixpkgs settings applied identically on every host.
       sharedNixpkgsConfig = {
         nixpkgs.config.allowUnfree = true;
+        nixpkgs.config.permittedInsecurePackages = [
+          "electron-39.8.10"
+        ];
         nixpkgs.overlays = [ nix-vscode-extensions.overlays.default ];
       };
 
