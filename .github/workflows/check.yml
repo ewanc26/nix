@@ -22,7 +22,7 @@ jobs:
     name: evaluate NixOS host configurations
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: cachix/install-nix-action@v31
         with:
@@ -45,7 +45,7 @@ jobs:
     name: evaluate nix-darwin host configuration
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: cachix/install-nix-action@v31
         with:
@@ -63,7 +63,7 @@ jobs:
     name: nixfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: cachix/install-nix-action@v31
         with:
