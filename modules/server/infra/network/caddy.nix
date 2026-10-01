@@ -146,19 +146,25 @@ in
       reloadServices = [ "caddy" ];
     };
 
-    # Wildcard cert for *.pds.croft.click — required because Cloudflare free
-    # plan does not auto-issue SSL for third-level subdomains (e.g.
-    # user.pds.croft.click). Uses DNS-01 against the croft.click zone.
-    certs."pds.croft.click" = {
-      domain = "*.pds.croft.click";
-      dnsProvider = "cloudflare";
-      webroot = null;
-      credentialFiles = {
-        "CF_DNS_API_TOKEN_FILE" = config.sops.secrets."cloudflare-acme-croft-click.env".path;
-      };
-      enableDebugLogs = true;
-      group = config.services.caddy.group;
-      reloadServices = [ "caddy" ];
+  # Wildcard cert for *.pds.croft.click — required because Cloudflare free
+  # plan does not auto-issue SSL for third-level subdomains (e.g.
+  # user.pds.croft.click). Uses DNS-01 against the croft.click zone.
+  #
+  # Dormant since 2026-10-01: the production PDS was decommissioned and the
+  # hostname now resolves to a 404. Note that the wildcard cannot be issued in
+  # practice — the Cloudflare edge cert covers croft.click and *.croft.click,
+  # which does not extend to a second-level wildcard, so only the bare
+  # pds.croft.click apex has a working certificate.
+  certs."pds.croft.click" = {
+    domain = "*.pds.croft.click";
+    dnsProvider = "cloudflare";
+    webroot = null;
+    credentialFiles = {
+      "CF_DNS_API_TOKEN_FILE" = config.sops.secrets."cloudflare-acme-croft-click.env".path;
     };
+    enableDebugLogs = true;
+    group = config.services.caddy.group;
+    reloadServices = [ "caddy" ];
+  };
   };
 }

@@ -36,6 +36,9 @@ in
   myConfig.services.immich.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.jellyfin.enable = true; # Tailnet-only — not in CF tunnel
   myConfig.services.pds.enable = false;
+  # The production PDS was decommissioned on 2026-10-01, after the account
+  # migrated to eurosky.social. The pds.croft.click DNS records are kept so the
+  # hostname stays reserved, and now answer 404 from the tunnel catch-all.
   myConfig.pds.serviceHandleDomains = [
     ".pds.ewancroft.uk"
     ".pds.croft.click"
