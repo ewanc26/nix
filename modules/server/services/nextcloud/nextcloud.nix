@@ -168,6 +168,9 @@ lib.mkIf cfg.services.nextcloud.enable {
     # Without this, large uploads silently fail to assemble and leave ghost
     # entries in the database.
     phpOptions."upload_tmp_dir" = "${nc.dataDir}/tmp";
+
+    # Mitigates CVE-2026-109619 (stale global state RCE) until patched PHP is deployed.
+    phpOptions."session.upload_progress.enabled" = "0";
   };
 
   # Pin nginx to localhost — Caddy is the sole external entry point.
