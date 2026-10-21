@@ -240,6 +240,10 @@ lib.mkIf cfg.services.nextcloud.enable {
     "request_terminate_timeout" = "3600";
   };
 
+  # Cap PHP-FPM memory as a share of physical RAM so the limit scales with the
+  # host. Keeps PHP OOM conditions (CVE-2026-109618) inside the service cgroup.
+  systemd.services.phpfpm-nextcloud.serviceConfig.MemoryMax = "50%";
+
   # nextcloud-occ internally calls systemd-run to execute as the nextcloud user,
   # which requires polkit permission to start transient units. On a headless
   # server with no interactive session polkit denies this by default — this rule
